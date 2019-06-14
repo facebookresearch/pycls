@@ -64,7 +64,7 @@ def time_train(num_iter, data_loader, model, loss_fun, optimizer):
     # Forward a dummy minibatch to warm up the caching allocator
     # and to synch the processes in the multi-proc setting
     dummy_inputs, _dummy_labels = next(data_loader.__iter__())
-    _dummy_preds = model(dummy_inputs.cuda())
+    model(dummy_inputs.cuda())
 
     logger.info('==> Running {} train iters...'.format(num_iter))
     iter_timer = Timer()
@@ -102,7 +102,7 @@ def time_forward(num_iter, data_loader, model, loss_fun):
     # Forward a dummy minibatch to warm up the caching allocator
     # and to synch the processes in the multi-proc setting
     dummy_inputs, _dummy_labels = next(data_loader.__iter__())
-    _dummy_preds = model(dummy_inputs.cuda())
+    model(dummy_inputs.cuda())
 
     logger.info('==> Running {} forward iters...'.format(num_iter))
     iter_timer = Timer()
@@ -118,7 +118,7 @@ def time_forward(num_iter, data_loader, model, loss_fun):
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # Perform the forward pass
         preds = model(inputs)
-        _loss = loss_fun(preds, labels)
+        loss_fun(preds, labels)
         # Measure iter time
         torch.cuda.synchronize()
         iter_timer.toc()
@@ -137,7 +137,7 @@ def time_train_wo_loading(num_iter, data_loader, model, loss_fun, optimizer):
 
     # Forward the data once to warm up the caching allocator
     # and to synch the processes in the multi-proc setting
-    preds = model(inputs)
+    model(inputs)
 
     logger.info('==> Running {} train w/o loading iters...'.format(num_iter))
     iter_timer = Timer()
@@ -170,7 +170,7 @@ def time_forward_wo_loading(num_iter, data_loader, model, loss_fun):
 
     # Forward the data once to warm up the caching allocator
     # and to synch the processes in the multi-proc setting
-    preds = model(inputs)
+    model(inputs)
 
     logger.info('==> Running {} forward w/o loading iters...'.format(num_iter))
     iter_timer = Timer()
@@ -179,7 +179,7 @@ def time_forward_wo_loading(num_iter, data_loader, model, loss_fun):
     for _cur_iter in range(num_iter):
         # Perform the forward pass
         preds = model(inputs)
-        _loss = loss_fun(preds, labels)
+        loss_fun(preds, labels)
         # Measure iter time
         torch.cuda.synchronize()
         iter_timer.toc()

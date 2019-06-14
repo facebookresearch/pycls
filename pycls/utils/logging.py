@@ -16,7 +16,8 @@ _FORMAT = '[%(levelname)s: %(filename)s: %(lineno)4d]: %(message)s'
 
 def _suppress_print():
     """Suppresses printing from the current process."""
-    def print_pass(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
+    def print_pass(*_objects, _sep=' ', _end='\n',
+                   _file=sys.stdout, _flush=False):
         pass
     builtins.print = print_pass
 
@@ -43,7 +44,7 @@ def get_logger(name):
     return logging.getLogger(name)
 
 
-def log_json_stats(stats, sort_keys=True):
+def log_json_stats(stats):
     """Logs json stats."""
     # It seems that in Python >= 3.5 json.encoder.FLOAT_REPR has no effect
     # Use decimal+string as a workaround for having fixed length values in logs
