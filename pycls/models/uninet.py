@@ -4,7 +4,7 @@
 
 # TODO(ilijar): Update with changes from nms
 # TODO(ilijar): Zero init final BN for each block
-# TODO(ilijar): Refactor wieght init to reduce duplication
+# TODO(ilijar): Refactor weight init to reduce duplication
 
 import math
 import numpy as np

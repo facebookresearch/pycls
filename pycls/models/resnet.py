@@ -107,7 +107,7 @@ class BasicTransform(nn.Module):
 
 
 class BottleneckTransform(nn.Module):
-    """Bottlenect transformation: 1x1, 3x3, 1x1"""
+    """Bottleneck transformation: 1x1, 3x3, 1x1"""
 
     def __init__(self, dim_in, dim_out, stride, dim_inner, num_gs):
         super(BottleneckTransform, self).__init__()

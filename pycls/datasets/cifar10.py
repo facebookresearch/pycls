@@ -42,7 +42,7 @@ class Cifar10(torch.utils.data.Dataset):
 
     def _load_data(self):
         logger.info(
-            'Loading cfiar10 {} split from: {}'.format(self._split, _DATA_DIR)
+            'Loading cifar10 {} split from: {}'.format(self._split, _DATA_DIR)
         )
         # Determine data batch names
         if self._split == 'train':

@@ -45,7 +45,7 @@ class ErrorHandler(object):
         # Invoke the signal handler
         os.kill(os.getpid(), signal.SIGUSR1)
 
-    def signal_handler(self, sig_num, stack_frame):
+    def signal_handler(self, _sig_num, _stack_frame):
         """Signal handler."""
         # Kill children processes
         for pid in self.children_pids:
