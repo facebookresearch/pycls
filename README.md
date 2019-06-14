@@ -1,51 +1,34 @@
-# PyTorch classification code
+# [wip] OSS version of `pycls`
 
-## Local development
+## Installation instructions
 
-Go to fbcode:
-
-```
-cd ~/fbsource/fbcode
-```
-
-Build with Buck:
+Clone the repo:
 
 ```
-buck build @mode/dev-nosan -c 'python.native_link_strategy=separate' experimental/deeplearning/ilijar/pycls/tools/...
+# PYCLS=/path/to/clone/pycls
+git clone https://github.com/facebookresearch/pycls $PYCLS
 ```
 
-Train on cifar10 with 1 GPU:
+Set up Python modules:
 
 ```
-buck-out/gen/experimental/deeplearning/ilijar/pycls/tools/train_net.par --cfg experimental/deeplearning/ilijar/pycls/configs/baselines/cifar10/resnet56_bs128_1gpu.yaml OUTPUT_DIR /tmp
+cd $PYCLS && make
 ```
 
-Train on IN-1k with 1 GPU:
+Debugging cifar10 models locally using 1 GPU:
 
 ```
-buck-out/gen/experimental/deeplearning/ilijar/pycls/tools/train_net.par --cfg experimental/deeplearning/ilijar/pycls/configs/baselines/in1k/R-50-1x64d_bs32_1gpu.yaml OUTPUT_DIR /tmp
+python tools/train_net.py \
+    --cfg configs/baselines/cifar10/vgg11_bs128_1gpu.yaml \
+    TRAIN.AUTO_RESUME False \
+    OUTPUT_DIR /tmp
 ```
 
-## Running jobs on the cluster
-
-Go to pycls:
+Debugging IN-1k models locally using 1 GPU:
 
 ```
-cd ~/fbsource/fbcode/experimental/deeplearning/ilijar/pycls
+python tools/train_net.py \
+    --cfg configs/baselines/in1k/R-50-1x64d_bs32_1gpu.yaml \
+    TRAIN.AUTO_RESUME False \
+    OUTPUT_DIR /tmp
 ```
-
-Train on cifar10 with 1 GPU:
-
-```
-GPU=1 CPU=8 MEM=32 ./cluster/launch.sh configs/baselines/cifar10/resnet56_bs128_1gpu.yaml <run_name>
-```
-
-Train on IN-1k with 8 GPUs:
-
-```
-./cluster/launch.sh configs/baselines/in1k/R-50-1x64d_bs32_1gpu.yaml <run_name>
-```
-
-## Plotting the training curves
-
-See https://fburl.com/unpnkfxv
