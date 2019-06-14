@@ -9,11 +9,7 @@ from pycls.core.config import cfg
 
 def get_step_index(cur_epoch):
     """Retrieves the lr step index for the given epoch."""
-    steps = cfg.OPTIM.STEPS + [cfg.OPTIM.MAX_EPOCH]
-    for ind, step in enumerate(steps):
-        if cur_epoch < step:
-            break
-    return ind - 1
+    return [i for i, s in enumerate(cfg.OPTIM.STEPS) if cur_epoch >= s][-1]
 
 
 def lr_func_steps_with_lrs(cur_epoch):
