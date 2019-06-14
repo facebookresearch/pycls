@@ -35,7 +35,7 @@ __C.MODEL.DEPTH = 0
 __C.MODEL.NUM_CLASSES = 10
 
 # Loss function (see pycls/models/loss.py for options)
-__C.MODEL.LOSS_FUN =  'cross_entropy'
+__C.MODEL.LOSS_FUN = 'cross_entropy'
 
 
 # ---------------------------------------------------------------------------- #

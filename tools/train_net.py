@@ -79,7 +79,7 @@ def compute_precise_bn_stats(model, loader):
     # Initialize stats storage
     mus = [torch.zeros_like(bn.running_mean) for bn in bns]
     sqs = [torch.zeros_like(bn.running_var) for bn in bns]
-    # Remeber momentum values
+    # Remember momentum values
     moms = [bn.momentum for bn in bns]
     # Disable momentum
     for bn in bns:

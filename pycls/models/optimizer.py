@@ -10,7 +10,7 @@ import pycls.utils.lr_policy as lr_policy
 
 
 def construct_optimizer(model):
-    """Constructs the optimzer.
+    """Constructs the optimizer.
 
     Note that the momentum update in PyTorch differs from the one in Caffe2.
     In particular,

@@ -2,7 +2,7 @@
 
 """VGG models."""
 
-# TODO(ilijar): Refactor wieght init to reduce duplication
+# TODO(ilijar): Refactor weight init to reduce duplication
 # TODO(ilijar): Not VGG (delete, rename, or update)
 
 import math
@@ -63,7 +63,7 @@ class VGG(nn.Module):
         self._init_weights()
 
     def _construct(self):
-        # Note that the depth is missused in case of VGG for cifar.
+        # Note that the depth is misused in case of VGG for cifar.
         # The actual depth is cfg.MODEL.DEPTH - 2 (FC layers)
         logger.info(
             'Constructing: VGG-{}, stgs {}, s2c {}, mp {}, ds {}, ws {}'.format(

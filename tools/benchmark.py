@@ -201,7 +201,7 @@ def benchmark_model(num_iter):
     # Construct the optimizer
     optimizer = optim.construct_optimizer(model)
 
-    # Benchmarks w/ data laoding
+    # Benchmarks w/ data loading
     time_train(num_iter, data_loader, model, loss_fun, optimizer)
     time_forward(num_iter, data_loader, model, loss_fun)
 
@@ -211,7 +211,7 @@ def benchmark_model(num_iter):
 
 
 def single_proc_benchmark(num_iter):
-    """Perfroms single process benchmarking."""
+    """Performs single process benchmarking."""
 
     # Setup logging
     logging.setup_logging()

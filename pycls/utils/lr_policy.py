@@ -83,7 +83,7 @@ def lr_func_exp(cur_epoch):
 
 
 def lr_func_cos(cur_epoch):
-    """For cfg.OPTIM.LR_POLCY = 'cos'"""
+    """For cfg.OPTIM.LR_POLICY = 'cos'"""
     return (
         0.5 * cfg.OPTIM.BASE_LR * (
             1.0 + np.cos(
