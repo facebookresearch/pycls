@@ -200,6 +200,9 @@ def train_model():
         last_checkpoint = cu.get_last_checkpoint(checkpoint_dir)
         checkpoint_epoch = cu.load_checkpoint(last_checkpoint, model, optimizer)
         start_epoch = checkpoint_epoch + 1
+    elif cfg.TRAIN.START_CHECKPOINT:
+        cu.load_checkpoint(cfg.TRAIN.START_CHECKPOINT, model)
+        start_epoch = 0
     else:
         # Save the initial weights
         cu.save_checkpoint(checkpoint_dir, model, optimizer, -1)

@@ -77,13 +77,14 @@ def get_last_checkpoint(checkpoint_dir):
     return last_checkpoint_file
 
 
-def load_checkpoint(checkpoint_file, model, optimizer):
+def load_checkpoint(checkpoint_file, model, optimizer=None):
     """Loads the checkpoint from the given file."""
     assert os.path.exists(checkpoint_file), \
         'Checkpoint \'{}\' not found'.format(checkpoint_file)
     checkpoint = torch.load(checkpoint_file)
     epoch = checkpoint['epoch']
     model.load_state_dict(checkpoint['model_state'])
-    optimizer.load_state_dict(checkpoint['optimizer_state'])
+    if optimizer:
+        optimizer.load_state_dict(checkpoint['optimizer_state'])
     logger.info('Loaded checkpoint from: {}'.format(checkpoint_file))
     return epoch
