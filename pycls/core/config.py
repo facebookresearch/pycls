@@ -184,6 +184,9 @@ __C.TRAIN.CHECKPOINT_PERIOD = 1
 # Resume training from the latest checkpoint in the output directory
 __C.TRAIN.AUTO_RESUME = True
 
+# Checkpoint to start training from (if no automatic checkpoint saved)
+__C.TRAIN.START_CHECKPOINT = ''
+
 
 # ---------------------------------------------------------------------------- #
 # Testing options
