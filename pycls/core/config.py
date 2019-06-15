@@ -5,6 +5,7 @@
 # TODO(ilijar): net naming (e.g. RESNET -> RES_NET)
 # TODO(ilijar): configurable train and test resolution
 # TODO(ilijar): don't include stem in stage config lists
+# TODO(ilijar): remove deprecated keys from configs
 
 from ast import literal_eval
 

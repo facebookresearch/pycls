@@ -2,15 +2,18 @@
 
 """Data loader."""
 
+# TODO(ilijar): consider adding mnist and cifar100
+
 import torch
 
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler
 
+from pycls.core.config import cfg
 from pycls.datasets.cifar10 import Cifar10
 from pycls.datasets.imagenet import ImageNet
 
-from pycls.core.config import cfg
+import pycls.datasets.paths as dp
 
 # Supported datasets
 _DATASET_CATALOG = {
@@ -23,8 +26,12 @@ def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
     """Constructs the data loader for the given dataset."""
     assert dataset_name in _DATASET_CATALOG.keys(), \
         'Dataset \'{}\' not supported'.format(dataset_name)
+    assert dp.contains(dataset_name), \
+        'Data path for \'{}\' is not present'.format(dataset_name)
+    # Retrieve the data path for the dataset
+    data_path = dp.get_data_path(dataset_name)
     # Construct the dataset
-    dataset = _DATASET_CATALOG[dataset_name](split)
+    dataset = _DATASET_CATALOG[dataset_name](data_path, split)
     # Create a sampler for multi-process training
     sampler = DistributedSampler(dataset) if cfg.NUM_GPUS > 1 else None
     # Create a loader

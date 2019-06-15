@@ -14,25 +14,25 @@ import pycls.utils.logging as logging
 
 logger = logging.get_logger(__name__)
 
-# Data location
-_GFSAI_DIR = '/mnt/vol/gfsai-flash-east/ai-group/users/ilijar'
-_DATA_DIR = _GFSAI_DIR + '/cifar/cifar-10-batches-py'
-
-# Pixel mean and std values in RGB order
+# Per-channel mean and SD values in BGR order
 _MEAN = [125.3, 123.0, 113.9]
-_STD = [63.0, 62.1, 66.7]
+_SD = [63.0, 62.1, 66.7]
 
 
 class Cifar10(torch.utils.data.Dataset):
-    """CIFAR10 dataset."""
+    """CIFAR-10 dataset."""
 
-    def __init__(self, split):
+    def __init__(self, data_path, split):
+        assert os.path.exists(data_path), \
+            'Data path \'{}\' not found'.format(data_path)
         assert split in ['train', 'test'], \
             'Split \'{}\' not supported for cifar'.format(split)
+        logger.info('Constructing CIFAR-10 {}...'.format(split))
+        self._data_path = data_path
         self._split = split
-        # Load the data in memory
-        #   inputs - (split_size, 3, 32, 32) ndarray
-        #   labels - split_size list
+        # Data format:
+        #   self._inputs - (split_size, 3, 32, 32) ndarray
+        #   self._labels - split_size list
         self._inputs, self._labels = self._load_data()
 
     def _load_batch(self, batch_path):
@@ -41,10 +41,9 @@ class Cifar10(torch.utils.data.Dataset):
         return d[b'data'], d[b'labels']
 
     def _load_data(self):
-        logger.info(
-            'Loading cifar10 {} split from: {}'.format(self._split, _DATA_DIR)
-        )
-        # Determine data batch names
+        """Loads data in memory."""
+        logger.info('{} data path: {}'.format(self._split, self._data_path))
+        # Compute data batch names
         if self._split == 'train':
             batch_names = ['data_batch_{}'.format(i) for i in range(1, 6)]
         else:
@@ -52,7 +51,7 @@ class Cifar10(torch.utils.data.Dataset):
         # Load data batches
         inputs, labels = [], []
         for batch_name in batch_names:
-            batch_path = os.path.join(_DATA_DIR, batch_name)
+            batch_path = os.path.join(self._data_path, batch_name)
             inputs_batch, labels_batch = self._load_batch(batch_path)
             inputs.append(inputs_batch)
             labels += labels_batch
@@ -61,8 +60,9 @@ class Cifar10(torch.utils.data.Dataset):
         inputs = inputs.reshape((-1, 3, 32, 32))
         return inputs, labels
 
-    def transform_image(self, image):
-        image = transforms.color_normalization(image, _MEAN, _STD)
+    def _transform_image(self, image):
+        """Transforms an image for network input."""
+        image = transforms.color_normalization(image, _MEAN, _SD)
         if self._split == 'train':
             image = transforms.horizontal_flip(image=image, prob=0.5)
             image = transforms.random_crop(image=image, size=32, pad_size=4)
@@ -70,7 +70,7 @@ class Cifar10(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         image, label = self._inputs[index, ...], self._labels[index]
-        image = self.transform_image(image)
+        image = self._transform_image(image)
         return image, label
 
     def __len__(self):

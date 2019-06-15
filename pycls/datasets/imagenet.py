@@ -14,13 +14,9 @@ import pycls.utils.logging as logging
 
 logger = logging.get_logger(__name__)
 
-# Data location
-_LOCAL_DIR = '/data/local/packages/'
-_DATA_DIR = _LOCAL_DIR + 'ai-group.imagenet-full-size/prod/imagenet_full_size'
-
-# Pixel mean and std values in BGR order
+# Per-channel mean and SD values in BGR order
 _MEAN = [0.406, 0.456, 0.485]
-_STD = [0.225, 0.224, 0.229]
+_SD = [0.225, 0.224, 0.229]
 
 # Eig vals and vecs of the cov mat
 _EIG_VALS = [0.2175, 0.0188, 0.0045]
@@ -34,37 +30,40 @@ _EIG_VECS = np.array([
 class ImageNet(torch.utils.data.Dataset):
     """ImageNet dataset."""
 
-    def __init__(self, split):
+    def __init__(self, data_path, split):
+        assert os.path.exists(data_path), \
+            'Data path \'{}\' not found'.format(data_path)
         assert split in ['train', 'val'], \
             'Split \'{}\' not supported for ImageNet'.format(split)
         logger.info('Constructing ImageNet {}...'.format(split))
+        self._data_path = data_path
         self._split = split
         self._construct_imdb()
 
     def _construct_imdb(self):
         """Constructs the imdb."""
-        data_dir = os.path.join(_DATA_DIR, self._split)
-        assert os.path.exists(data_dir), '{} dir not found'.format(data_dir)
-
+        # Compile the split data path
+        split_path = os.path.join(self._data_path, self._split)
+        logger.info('{} data path: {}'.format(self._split, split_path))
         # Map ImageNet class ids to contiguous ids
-        self._class_ids = os.listdir(data_dir)
+        self._class_ids = os.listdir(split_path)
         self._class_id_cont_id = {v: i for i, v in enumerate(self._class_ids)}
-
         # Construct the image db
         self._imdb = []
         for class_id in self._class_ids:
             cont_id = self._class_id_cont_id[class_id]
-            im_dir = os.path.join(data_dir, class_id)
+            im_dir = os.path.join(split_path, class_id)
             for im_name in os.listdir(im_dir):
                 self._imdb.append({
                     'im_path': os.path.join(im_dir, im_name),
                     'class': cont_id,
                 })
-
         logger.info('Number of images: {}'.format(len(self._imdb)))
         logger.info('Number of classes: {}'.format(len(self._class_ids)))
 
     def _prepare_im(self, im):
+        """Prepares the image for network input."""
+        # Train and test setups differ
         if self._split == 'train':
             # Scale and aspect ratio
             im = transforms.random_sized_crop(
@@ -84,7 +83,7 @@ class ImageNet(torch.utils.data.Dataset):
         if self._split == 'train':
             im = transforms.lighting(im, 0.1, _EIG_VALS, _EIG_VECS)
         # Color normalization
-        im = transforms.color_normalization(im, _MEAN, _STD)
+        im = transforms.color_normalization(im, _MEAN, _SD)
         return im
 
     def __getitem__(self, index):
