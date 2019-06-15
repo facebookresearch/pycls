@@ -52,4 +52,3 @@ def set_flat_weights(model, flat_weights):
         p.data.copy_(flat_weights[k:k+n].view_as(p.data))
         k += n
     assert k == flat_weights.numel()
-
