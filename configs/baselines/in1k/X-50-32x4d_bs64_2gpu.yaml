@@ -10,9 +10,9 @@ RESNET:
   ZERO_INIT_FINAL_TRANSFORM_BN: True
 OPTIM:
   BASE_LR: 0.025
-  LR_POLICY: steps_with_relative_lrs
+  LR_POLICY: steps
   STEPS: [0, 30, 60, 90]
-  LRS: [1, 0.1, 0.01, 0.001]
+  LR_MULS: [1, 0.1, 0.01, 0.001]
   MAX_EPOCH: 100
   MOMENTUM: 0.9
   NESTEROV: True
