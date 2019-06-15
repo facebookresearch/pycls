@@ -129,20 +129,17 @@ __C.OPTIM = AttrDict()
 # Base learning rate
 __C.OPTIM.BASE_LR = 0.1
 
-# Learning rate policy (see utils/lr_policy.py for options and examples)
+# Learning rate policy select from {'cos', 'exp', 'steps'}
 __C.OPTIM.LR_POLICY = 'cos'
 
 # Exponential decay factor
 __C.OPTIM.GAMMA = 0.1
 
-# Step size for 'exp' and 'cos' policies (in epochs)
-__C.OPTIM.STEP_SIZE = 1
-
-# Steps for 'steps_' policies (in epochs)
+# Steps for 'steps' policy (in epochs)
 __C.OPTIM.STEPS = []
 
-# Learning rates for 'steps_' policies
-__C.OPTIM.LRS = []
+# Learning rate multipliers for 'steps' policy
+__C.OPTIM.LR_MULS = []
 
 # Maximal number of epochs
 __C.OPTIM.MAX_EPOCH = 200
