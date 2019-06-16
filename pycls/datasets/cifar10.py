@@ -61,7 +61,7 @@ class Cifar10(torch.utils.data.Dataset):
         return inputs, labels
 
     def _transform_image(self, image):
-        """Transforms an image for network input."""
+        """Transforms the image for network input."""
         image = transforms.color_normalization(image, _MEAN, _SD)
         if self._split == 'train':
             image = transforms.horizontal_flip(image=image, prob=0.5)

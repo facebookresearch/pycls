@@ -26,8 +26,8 @@ def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
     """Constructs the data loader for the given dataset."""
     assert dataset_name in _DATASET_CATALOG.keys(), \
         'Dataset \'{}\' not supported'.format(dataset_name)
-    assert dp.contains(dataset_name), \
-        'Data path for \'{}\' is not present'.format(dataset_name)
+    assert dp.has_data_path(dataset_name), \
+        'Dataset \'{}\' has no data path'.format(dataset_name)
     # Retrieve the data path for the dataset
     data_path = dp.get_data_path(dataset_name)
     # Construct the dataset
