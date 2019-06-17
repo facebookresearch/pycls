@@ -17,6 +17,9 @@ import pycls.utils.distributed as du
 # Show filename and line number in logs
 _FORMAT = '[%(levelname)s: %(filename)s: %(lineno)4d]: %(message)s'
 
+# Printed log lines will be tagged w this
+_LINE_FILTER = 'json_stats: '
+
 
 def _suppress_print():
     """Suppresses printing from the current process."""
@@ -62,4 +65,21 @@ def log_json_stats(stats):
         for k, v in stats.items()
     }
     json_stats = simplejson.dumps(stats, sort_keys=True, use_decimal=True)
-    print('json_stats: {:s}'.format(json_stats))
+    print('{:s}{:s}'.format(_LINE_FILTER, json_stats))
+
+
+def load_json_stats(log_file):
+    """Loads json_stats from a single log file."""
+    with open(log_file, 'r') as f:
+        lines = f.readlines()
+    lines = [k[len(_LINE_FILTER):] for k in lines if _LINE_FILTER in k]
+    log = [simplejson.loads(line) for line in lines]
+    return log
+
+
+def parse_json_stats(log, row_type, key):
+    """Extract values corresponding to row_type/key out of log."""
+    vals = [row[key] for row in log if row['_type'] == row_type and key in row]
+    if key == 'iter' or key == 'epoch':
+        vals = [int(val.split('/')[0]) for val in vals]
+    return vals
