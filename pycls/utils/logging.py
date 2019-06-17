@@ -13,7 +13,7 @@ from pycls.core.config import cfg
 import pycls.utils.distributed as du
 
 # Show filename and line number in logs
-_FORMAT = '[%(levelname)s: %(filename)s: %(lineno)4d]: %(message)s'
+_FORMAT = '[%(filename)s: %(lineno)3d]: %(message)s'
 
 # Printed json stats lines will be tagged w/ this
 _TAG = 'json_stats: '
