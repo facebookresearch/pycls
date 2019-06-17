@@ -2,8 +2,6 @@
 
 """Logging."""
 
-# TODO(ilijar): support logging json stats to file
-
 import builtins
 import decimal
 import logging
@@ -17,8 +15,8 @@ import pycls.utils.distributed as du
 # Show filename and line number in logs
 _FORMAT = '[%(levelname)s: %(filename)s: %(lineno)4d]: %(message)s'
 
-# Printed log lines will be tagged w this
-_LINE_FILTER = 'json_stats: '
+# Printed json stats lines will be tagged w/ this
+_TAG = 'json_stats: '
 
 
 def _suppress_print():
@@ -65,16 +63,17 @@ def log_json_stats(stats):
         for k, v in stats.items()
     }
     json_stats = simplejson.dumps(stats, sort_keys=True, use_decimal=True)
-    print('{:s}{:s}'.format(_LINE_FILTER, json_stats))
+    logger = get_logger(__name__)
+    logger.info('{:s}{:s}'.format(_TAG, json_stats))
 
 
 def load_json_stats(log_file):
     """Loads json_stats from a single log file."""
     with open(log_file, 'r') as f:
         lines = f.readlines()
-    lines = [k[len(_LINE_FILTER):] for k in lines if _LINE_FILTER in k]
-    log = [simplejson.loads(line) for line in lines]
-    return log
+    json_lines = [l[l.find(_TAG) + len(_TAG):] for l in lines if _TAG in l]
+    json_stats = [simplejson.loads(l) for l in json_lines]
+    return json_stats
 
 
 def parse_json_stats(log, row_type, key):
