@@ -140,8 +140,8 @@ __C.OPTIM.GAMMA = 0.1
 # Steps for 'steps' policy (in epochs)
 __C.OPTIM.STEPS = []
 
-# Learning rate multipliers for 'steps' policy
-__C.OPTIM.LR_MULS = []
+# Learning rate multiplier for 'steps' policy
+__C.OPTIM.LR_MULT = 0.1
 
 # Maximal number of epochs
 __C.OPTIM.MAX_EPOCH = 200
