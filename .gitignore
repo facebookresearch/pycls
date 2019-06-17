@@ -22,6 +22,9 @@ build/
 # Mac
 .DS_STORE
 
+# Data symlinks
+pycls/datasets/data/
+
 # Other
 logs/
 scratch/
