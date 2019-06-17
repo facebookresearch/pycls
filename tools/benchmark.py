@@ -232,7 +232,6 @@ def single_proc_benchmark(num_iter):
 def main():
     # Parse cmd line args
     args = parse_args()
-    print('Called with args: {}'.format(args))
 
     # Load config options
     if args.cfg_file is not None:

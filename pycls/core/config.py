@@ -6,6 +6,7 @@
 # TODO(ilijar): configurable train and test resolution
 # TODO(ilijar): don't include stem in stage config lists
 # TODO(ilijar): remove deprecated keys from configs
+# TODO(ilijar): remove unused keys (e.g. alt transforms)
 
 from ast import literal_eval
 
@@ -247,6 +248,9 @@ __C.OUTPUT_DIR = '/tmp'
 # Note that non-determinism may still be present due to non-deterministic
 # operator implementations in GPU operator libraries
 __C.RNG_SEED = 1
+
+# Log destination ('stdout' or filename)
+__C.LOG_DEST = 'stdout'
 
 # Log period in iters
 __C.LOG_PERIOD = 10

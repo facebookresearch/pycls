@@ -2,11 +2,15 @@
 
 """Logging."""
 
+# TODO(ilijar): support logging json stats to file
+
 import builtins
 import decimal
 import logging
 import simplejson
 import sys
+
+from pycls.core.config import cfg
 
 import pycls.utils.distributed as du
 
@@ -16,10 +20,9 @@ _FORMAT = '[%(levelname)s: %(filename)s: %(lineno)4d]: %(message)s'
 
 def _suppress_print():
     """Suppresses printing from the current process."""
-    def print_pass(*_objects, _sep=' ', _end='\n',
-                   _file=sys.stdout, _flush=False):
+    def ignore(*_objects, _sep=' ', _end='\n', _file=sys.stdout, _flush=False):
         pass
-    builtins.print = print_pass
+    builtins.print = ignore
 
 
 def setup_logging():
@@ -29,12 +32,18 @@ def setup_logging():
         # Clear the root logger to prevent any existing logging config
         # (e.g. set by another module) from messing with our setup
         logging.root.handlers = []
+        # Construct logging configuration
+        logging_config = {
+            'level': logging.INFO,
+            'format': _FORMAT
+        }
+        # Log either to stdout or to a file
+        if cfg.LOG_DEST == 'stdout':
+            logging_config['stream'] = sys.stdout
+        else:
+            logging_config['filename'] = cfg.LOG_DEST
         # Configure logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format=_FORMAT,
-            stream=sys.stdout
-        )
+        logging.basicConfig(**logging_config)
     else:
         _suppress_print()
 
