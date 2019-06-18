@@ -60,8 +60,7 @@ def get_logger(name):
 
 def log_json_stats(stats):
     """Logs json stats."""
-    # It seems that in Python >= 3.5 json.encoder.FLOAT_REPR has no effect
-    # Use decimal+string as a workaround for having fixed length values in logs
+    # Decimal + string workaround for having fixed len float vals in logs
     stats = {
         k: decimal.Decimal('{:.6f}'.format(v)) if isinstance(v, float) else v
         for k, v in stats.items()

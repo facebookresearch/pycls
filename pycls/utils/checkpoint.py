@@ -18,9 +18,10 @@ import pycls.utils.logging as logging
 
 logger = logging.get_logger(__name__)
 
-# Common prefix used for checkpoint file names
+# Common prefix for checkpoint file names
 _NAME_PREFIX = 'model_epoch_'
-# Checkpoint directory name
+
+# Checkpoints directory name
 _DIR_NAME = 'checkpoints'
 
 
