@@ -1,0 +1,33 @@
+MODEL:
+  TYPE: uninet
+  NUM_CLASSES: 1000
+UNINET:
+  STEM_TYPE: res_stem_in
+  BLOCK_TYPE: res_basic_block
+  DEPTHS: [1, 2, 2, 2, 2]
+  WIDTHS: [64, 64, 128, 256, 512]
+  STRIDES: [4, 1, 2, 2, 2]
+OPTIM:
+  BASE_LR: 0.1
+  LR_POLICY: steps
+  STEPS: [0, 30, 60, 90]
+  LR_MULT: 0.1
+  MAX_EPOCH: 100
+  MOMENTUM: 0.9
+  NESTEROV: True
+  WEIGHT_DECAY: 0.0001
+TRAIN:
+  DATASET: imagenet
+  SPLIT: train
+  BATCH_SIZE: 256
+  EVAL_PERIOD: 1
+TEST:
+  DATASET: imagenet
+  SPLIT: val
+  BATCH_SIZE: 200
+NUM_GPUS: 8
+DATA_LOADER:
+  NUM_WORKERS: 4
+CUDNN:
+  BENCHMARK: True
+OUT_DIR: .

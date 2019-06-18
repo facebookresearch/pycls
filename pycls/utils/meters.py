@@ -104,6 +104,7 @@ class TrainMeter(object):
         eta_sec = self.iter_timer.average_time * (
             self.max_iter - (cur_epoch * self.epoch_iters + cur_iter + 1)
         )
+        eta_td=datetime.timedelta(seconds=int(eta_sec))
         mem_usage = metrics.gpu_mem_usage()
         stats = dict(
             _type='train_iter',
@@ -111,7 +112,7 @@ class TrainMeter(object):
             iter='{}/{}'.format(cur_iter + 1, self.epoch_iters),
             time_avg=self.iter_timer.average_time,
             time_diff=self.iter_timer.diff,
-            eta=eta_str(datetime.timedelta(seconds=int(eta_sec))),
+            eta=eta_str(eta_td),
             top1_err=self.mb_top1_err.get_win_median(),
             top5_err=self.mb_top5_err.get_win_median(),
             loss=self.loss.get_win_median(),
@@ -130,6 +131,7 @@ class TrainMeter(object):
         eta_sec = self.iter_timer.average_time * (
             self.max_iter - (cur_epoch + 1) * self.epoch_iters
         )
+        eta_td=datetime.timedelta(seconds=int(eta_sec))
         mem_usage = metrics.gpu_mem_usage()
         top1_err = self.num_top1_mis / self.num_samples
         top5_err = self.num_top5_mis / self.num_samples
@@ -138,7 +140,7 @@ class TrainMeter(object):
             _type='train_epoch',
             epoch='{}/{}'.format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
             time_avg=self.iter_timer.average_time,
-            eta=eta_str(datetime.timedelta(seconds=int(eta_sec))),
+            eta=eta_str(eta_td),
             top1_err=top1_err,
             top5_err=top5_err,
             loss=avg_loss,

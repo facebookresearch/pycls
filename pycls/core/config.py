@@ -103,7 +103,10 @@ __C.RESNET.ZERO_INIT_FINAL_TRANSFORM_BN = False
 # ---------------------------------------------------------------------------- #
 __C.UNINET = AttrDict()
 
-# Block type (applies to stages > 1; stage 1 is always fixed)
+# Stem type (stage 0)
+__C.UNINET.STEM_TYPE = 'plain_block'
+
+# Block type (stages > 0)
 __C.UNINET.BLOCK_TYPE = 'plain_block'
 
 # Depth for each stage (number of blocks in the stage)
@@ -114,6 +117,12 @@ __C.UNINET.WIDTHS = []
 
 # Strides for each stage (applies to the first block of each stage)
 __C.UNINET.STRIDES = []
+
+# Bottleneck multipliers for each stage (applies to bottleneck block)
+__C.UNINET.BOT_MULS = []
+
+# Number of groups for each stage (applies to bottleneck block)
+__C.UNINET.NUM_GS = []
 
 
 # ---------------------------------------------------------------------------- #

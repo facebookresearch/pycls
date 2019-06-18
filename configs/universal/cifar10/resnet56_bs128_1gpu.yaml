@@ -2,6 +2,7 @@ MODEL:
   TYPE: uninet
   NUM_CLASSES: 10
 UNINET:
+  STEM_TYPE: plain_block
   BLOCK_TYPE: res_basic_block
   DEPTHS: [1, 9, 9, 9]
   WIDTHS: [16, 16, 32, 64]
