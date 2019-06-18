@@ -6,8 +6,6 @@
 # TODO(ilijar): Get rid of the ddp wrapper when saving checkpoints
 
 import os
-import sys
-import yaml
 
 import torch
 
@@ -51,7 +49,7 @@ def save_checkpoint(checkpoint_dir, model, optimizer, epoch):
         'epoch': epoch,
         'model_state': model.state_dict(),
         'optimizer_state': optimizer.state_dict(),
-        'cfg': yaml.dump(cfg)
+        'cfg': cfg.dump()
     }
     # Write the checkpoint
     file_name = '{}{:04d}.pyth'.format(_NAME_PREFIX, epoch + 1)

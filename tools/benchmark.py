@@ -4,15 +4,13 @@
 
 import argparse
 import numpy as np
-import pprint
+import os
 import sys
 
 import torch
 
-from pycls.core.config import assert_and_infer_cfg
+from pycls.core.config import assert_cfg
 from pycls.core.config import cfg
-from pycls.core.config import merge_cfg_from_file
-from pycls.core.config import merge_cfg_from_list
 from pycls.datasets import loader
 from pycls.models import model_builder
 from pycls.utils.timer import Timer
@@ -41,7 +39,7 @@ def parse_args():
         '--cfg',
         dest='cfg_file',
         help='Config file',
-        default=None,
+        required=True,
         type=str
     )
     parser.add_argument(
@@ -216,8 +214,7 @@ def single_proc_benchmark(num_iter):
     # Setup logging
     logging.setup_logging()
     # Show the config
-    logger.info('Training with config:')
-    logger.info(pprint.pformat(cfg))
+    logger.info('Config:\n{}'.format(cfg))
 
     # Set RNG seeds for reproducibility (see RNG comment in core/config.py)
     np.random.seed(cfg.RNG_SEED)
@@ -234,11 +231,13 @@ def main():
     args = parse_args()
 
     # Load config options
-    if args.cfg_file is not None:
-        merge_cfg_from_file(args.cfg_file)
-    if args.opts is not None:
-        merge_cfg_from_list(args.opts)
-    assert_and_infer_cfg()
+    cfg.merge_from_file(args.cfg_file)
+    cfg.merge_from_list(args.opts)
+    assert_cfg()
+    cfg.freeze()
+
+    # Ensure that the output dir exists
+    os.makedirs(cfg.OUT_DIR, exist_ok=True)
 
     # Run benchmarks
     if cfg.NUM_GPUS > 1:
