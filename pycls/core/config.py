@@ -5,8 +5,7 @@
 # TODO(ilijar): net naming (e.g. RESNET -> RES_NET)
 # TODO(ilijar): configurable train and test resolution
 # TODO(ilijar): don't include stem in stage config lists
-# TODO(ilijar): remove deprecated keys from configs
-# TODO(ilijar): remove unused keys (e.g. alt transforms)
+# TODO(ilijar): move zero init entry from resnet to bn
 
 from ast import literal_eval
 
@@ -94,12 +93,6 @@ __C.RESNET.WIDTH_PER_GROUP = 64
 # Apply stride to 1x1 conv (True -> MSRA; False -> fb.torch)
 __C.RESNET.STRIDE_1X1 = True
 
-# Alternative transformation function (e.g. to use in a subset of blocks)
-__C.RESNET.ALT_TRANS_FUN = ''
-
-# Blocks that use the alternative transformation function (e.g. res4_4)
-__C.RESNET.ALT_TRANS_FUN_BLOCKS = []
-
 # Initialize the "gamma" scale parameters of the final BN operation of each
 # residual block transformation function to zero
 __C.RESNET.ZERO_INIT_FINAL_TRANSFORM_BN = False
@@ -170,7 +163,7 @@ __C.OPTIM.WARMUP_EPOCHS = 0
 # ---------------------------------------------------------------------------- #
 __C.TRAIN = AttrDict()
 
-# Dataset
+# Dataset and split
 __C.TRAIN.DATASET = ''
 __C.TRAIN.SPLIT = 'train'
 
@@ -195,7 +188,7 @@ __C.TRAIN.START_CHECKPOINT = ''
 # ---------------------------------------------------------------------------- #
 __C.TEST = AttrDict()
 
-# Dataset
+# Dataset and split
 __C.TEST.DATASET = ''
 __C.TEST.SPLIT = 'val'
 
