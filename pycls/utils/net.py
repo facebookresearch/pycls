@@ -49,6 +49,6 @@ def set_flat_weights(model, flat_weights):
     k = 0
     for p in model.parameters():
         n = p.data.numel()
-        p.data.copy_(flat_weights[k:k+n].view_as(p.data))
+        p.data.copy_(flat_weights[k:(k + n)].view_as(p.data))
         k += n
     assert k == flat_weights.numel()

@@ -8,7 +8,6 @@
 # TODO(ilijar): Consider creating stems.py and blocks.py
 
 import math
-import numpy as np
 
 import torch.nn as nn
 

@@ -24,7 +24,7 @@ def prepare_plot_data(log_files, names, key='top1_err'):
     """Load logs and extract data for plotting error curves."""
     plot_data = []
     for file, name in zip(log_files, names):
-        d, log = dict(), lu.load_json_stats(file)
+        d, log = {}, lu.load_json_stats(file)
         d['epochs'] = lu.parse_json_stats(log, 'test_epoch', 'epoch')
         y = lu.parse_json_stats(log, 'test_epoch', key)
         d['test'] = y

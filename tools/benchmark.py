@@ -2,6 +2,8 @@
 
 """Benchmark different training components."""
 
+# TODO(ilijar): port benchmarking functions from nms
+
 import argparse
 import numpy as np
 import os
