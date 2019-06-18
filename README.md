@@ -21,7 +21,7 @@ Debugging cifar10 models locally using 1 GPU:
 python tools/train_net.py \
     --cfg configs/baselines/cifar10/vgg11_bs128_1gpu.yaml \
     TRAIN.AUTO_RESUME False \
-    OUTPUT_DIR /tmp
+    OUT_DIR /tmp
 ```
 
 Debugging IN-1k models locally using 1 GPU:
@@ -30,5 +30,5 @@ Debugging IN-1k models locally using 1 GPU:
 python tools/train_net.py \
     --cfg configs/baselines/in1k/R-50-1x64d_bs32_1gpu.yaml \
     TRAIN.AUTO_RESUME False \
-    OUTPUT_DIR /tmp
+    OUT_DIR /tmp
 ```

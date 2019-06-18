@@ -242,8 +242,8 @@ __C.CUDNN.BENCHMARK = False
 # Number of GPUs to use (applies to both training and testing)
 __C.NUM_GPUS = 1
 
-# Output basedir
-__C.OUTPUT_DIR = '/tmp'
+# Output directory
+__C.OUT_DIR = '/tmp'
 
 # Note that non-determinism may still be present due to non-deterministic
 # operator implementations in GPU operator libraries
@@ -258,7 +258,7 @@ __C.LOG_PERIOD = 10
 # Distributed backend
 __C.DIST_BACKEND = 'nccl'
 
-# Hostname and port used for initializing multi process groups
+# Hostname and port for initializing multi-process groups
 __C.HOST = 'localhost'
 __C.PORT = 10001
 

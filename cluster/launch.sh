@@ -51,4 +51,4 @@ fry flow-gpu --name "${NAME}" \
   -- \
   "${BINARY}" \
   --cfg "$(basename "${CFG}")" \
-  OUTPUT_DIR ./output
+  OUT_DIR ./output
