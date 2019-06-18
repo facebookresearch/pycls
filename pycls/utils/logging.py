@@ -5,6 +5,7 @@
 import builtins
 import decimal
 import logging
+import os
 import simplejson
 import sys
 
@@ -14,6 +15,9 @@ import pycls.utils.distributed as du
 
 # Show filename and line number in logs
 _FORMAT = '[%(filename)s: %(lineno)3d]: %(message)s'
+
+# Default log file name (for cfg.LOG_DEST = 'file')
+_LOG_FILE = 'stdout.log'
 
 # Printed json stats lines will be tagged w/ this
 _TAG = 'json_stats: '
@@ -42,7 +46,7 @@ def setup_logging():
         if cfg.LOG_DEST == 'stdout':
             logging_config['stream'] = sys.stdout
         else:
-            logging_config['filename'] = cfg.LOG_DEST
+            logging_config['filename'] = os.path.join(cfg.OUTPUT_DIR, _LOG_FILE)
         # Configure logging
         logging.basicConfig(**logging_config)
     else:

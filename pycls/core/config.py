@@ -249,7 +249,7 @@ __C.OUTPUT_DIR = '/tmp'
 # operator implementations in GPU operator libraries
 __C.RNG_SEED = 1
 
-# Log destination ('stdout' or filename)
+# Log destination ('stdout' or 'file')
 __C.LOG_DEST = 'stdout'
 
 # Log period in iters
@@ -306,6 +306,8 @@ def assert_and_infer_cfg():
         'Test mini-batch size should be a multiple of NUM_GPUS.'
     assert not __C.BN.USE_PRECISE_STATS or __C.NUM_GPUS == 1, \
         'Precise BN stats computation not verified for > 1 GPU'
+    assert cfg.LOG_DEST in ['stdout', 'file'], \
+        'Log destination \'{}\' not supported'.format(__C.LOG_DEST)
 
 
 def merge_cfg_from_file(filename):
