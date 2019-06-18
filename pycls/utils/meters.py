@@ -16,10 +16,10 @@ import pycls.utils.logging as logging
 import pycls.utils.metrics as metrics
 
 
-def eta_str(timedelta):
-    """Converts a time delta to a custom eta string format."""
-    days = timedelta.days
-    hrs, rem = divmod(timedelta.seconds, 3600)
+def eta_str(eta_td):
+    """Converts an eta timedelta to a fixed-width string format."""
+    days = eta_td.days
+    hrs, rem = divmod(eta_td.seconds, 3600)
     mins, secs = divmod(rem, 60)
     return '{0:02},{1:02}:{2:02}:{3:02}'.format(days, hrs, mins, secs)
 
@@ -194,7 +194,6 @@ class TestMeter(object):
         self.num_samples += mb_size
 
     def get_iter_stats(self, cur_epoch, cur_iter):
-        eta_sec = self.iter_timer.average_time * (self.max_iter - cur_iter - 1)
         mem_usage = metrics.gpu_mem_usage()
         iter_stats = dict(
             _type='test_iter',
@@ -202,7 +201,6 @@ class TestMeter(object):
             iter='{}/{}'.format(cur_iter + 1, self.max_iter),
             time_avg=self.iter_timer.average_time,
             time_diff=self.iter_timer.diff,
-            eta=eta_str(datetime.timedelta(seconds=int(eta_sec))),
             top1_err=self.mb_top1_err.get_win_median(),
             top5_err=self.mb_top5_err.get_win_median(),
             mem=int(np.ceil(mem_usage))
