@@ -5,6 +5,7 @@
 import argparse
 import itertools
 import numpy as np
+import os
 import pprint
 import sys
 
@@ -235,6 +236,9 @@ def main():
     if args.opts is not None:
         merge_cfg_from_list(args.opts)
     assert_and_infer_cfg()
+
+    # Ensure that the output dir exists
+    os.makedirs(cfg.OUT_DIR, exist_ok=True)
 
     # Perform training
     if cfg.NUM_GPUS > 1:

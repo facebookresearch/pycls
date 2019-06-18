@@ -29,8 +29,8 @@ def make_checkpoint_dir():
     """Creates the checkpoint directory (if not present already)."""
     checkpoint_dir = os.path.join(cfg.OUT_DIR, _DIR_NAME)
     # Create the checkpoint dir from the master process
-    if du.is_master_proc() and not os.path.exists(checkpoint_dir):
-        os.makedirs(checkpoint_dir)
+    if du.is_master_proc():
+        os.makedirs(checkpoint_dir, exist_ok=True)
     return checkpoint_dir
 
 
