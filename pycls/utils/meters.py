@@ -16,6 +16,14 @@ import pycls.utils.logging as logging
 import pycls.utils.metrics as metrics
 
 
+def eta_str(timedelta):
+    """Converts a time delta to a custom eta string format."""
+    days = timedelta.days
+    hrs, rem = divmod(timedelta.seconds, 3600)
+    mins, secs = divmod(rem, 60)
+    return '{0:02},{1:02}:{2:02}:{3:02}'.format(days, hrs, mins, secs)
+
+
 class ScalarMeter(object):
     """Measures a scalar value (adapted from Detectron)."""
 
@@ -96,7 +104,6 @@ class TrainMeter(object):
         eta_sec = self.iter_timer.average_time * (
             self.max_iter - (cur_epoch * self.epoch_iters + cur_iter + 1)
         )
-        eta = str(datetime.timedelta(seconds=int(eta_sec)))
         mem_usage = metrics.gpu_mem_usage()
         stats = dict(
             _type='train_iter',
@@ -104,7 +111,7 @@ class TrainMeter(object):
             iter='{}/{}'.format(cur_iter + 1, self.epoch_iters),
             time_avg=self.iter_timer.average_time,
             time_diff=self.iter_timer.diff,
-            eta=eta,
+            eta=eta_str(datetime.timedelta(seconds=int(eta_sec))),
             top1_err=self.mb_top1_err.get_win_median(),
             top5_err=self.mb_top5_err.get_win_median(),
             loss=self.loss.get_win_median(),
@@ -123,7 +130,6 @@ class TrainMeter(object):
         eta_sec = self.iter_timer.average_time * (
             self.max_iter - (cur_epoch + 1) * self.epoch_iters
         )
-        eta = str(datetime.timedelta(seconds=int(eta_sec)))
         mem_usage = metrics.gpu_mem_usage()
         top1_err = self.num_top1_mis / self.num_samples
         top5_err = self.num_top5_mis / self.num_samples
@@ -132,7 +138,7 @@ class TrainMeter(object):
             _type='train_epoch',
             epoch='{}/{}'.format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
             time_avg=self.iter_timer.average_time,
-            eta=eta,
+            eta=eta_str(datetime.timedelta(seconds=int(eta_sec))),
             top1_err=top1_err,
             top5_err=top5_err,
             loss=avg_loss,
@@ -189,7 +195,6 @@ class TestMeter(object):
 
     def get_iter_stats(self, cur_epoch, cur_iter):
         eta_sec = self.iter_timer.average_time * (self.max_iter - cur_iter - 1)
-        eta = str(datetime.timedelta(seconds=int(eta_sec)))
         mem_usage = metrics.gpu_mem_usage()
         iter_stats = dict(
             _type='test_iter',
@@ -197,7 +202,7 @@ class TestMeter(object):
             iter='{}/{}'.format(cur_iter + 1, self.max_iter),
             time_avg=self.iter_timer.average_time,
             time_diff=self.iter_timer.diff,
-            eta=eta,
+            eta=eta_str(datetime.timedelta(seconds=int(eta_sec))),
             top1_err=self.mb_top1_err.get_win_median(),
             top5_err=self.mb_top5_err.get_win_median(),
             mem=int(np.ceil(mem_usage))
