@@ -8,7 +8,7 @@
 export TOOL=benchmark
 
 BIN="cluster/launch.sh"
-DIR="configs/baselines/in1k"
+DIR="configs/baselines/imagenet"
 
 function NGPU_ON() {
   export GPU=$1

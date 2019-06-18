@@ -28,7 +28,7 @@ Debugging IN-1k models locally using 1 GPU:
 
 ```
 python tools/train_net.py \
-    --cfg configs/baselines/in1k/R-50-1x64d_bs32_1gpu.yaml \
+    --cfg configs/baselines/imagenet/R-50-1x64d_bs32_1gpu.yaml \
     TRAIN.AUTO_RESUME False \
     OUT_DIR /tmp
 ```
