@@ -12,9 +12,9 @@ import torch
 from pycls.core.config import cfg
 
 import pycls.utils.distributed as du
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 # Common prefix for checkpoint file names
 _NAME_PREFIX = 'model_epoch_'

@@ -14,9 +14,9 @@ import torch.nn as nn
 
 from pycls.core.config import cfg
 
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 
 def get_stem_fun(stem_type):

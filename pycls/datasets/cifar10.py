@@ -10,9 +10,9 @@ import torch
 import torch.utils.data
 
 import pycls.datasets.transforms as transforms
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 # Per-channel mean and SD values in BGR order
 _MEAN = [125.3, 123.0, 113.9]

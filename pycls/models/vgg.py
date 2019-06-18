@@ -12,9 +12,9 @@ import torch.nn as nn
 from pycls.core.config import cfg
 
 import pycls.models.modules as modules
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 
 # Stage configurations (supports VGG11 VGG13, VGG16 and VGG19)

@@ -12,7 +12,7 @@ import numpy as np
 from pycls.core.config import cfg
 from pycls.utils.timer import Timer
 
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 import pycls.utils.metrics as metrics
 
 
@@ -125,7 +125,7 @@ class TrainMeter(object):
         if (cur_iter + 1) % cfg.LOG_PERIOD != 0:
             return
         stats = self.get_iter_stats(cur_epoch, cur_iter)
-        logging.log_json_stats(stats)
+        lu.log_json_stats(stats)
 
     def get_epoch_stats(self, cur_epoch):
         eta_sec = self.iter_timer.average_time * (
@@ -151,7 +151,7 @@ class TrainMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logging.log_json_stats(stats)
+        lu.log_json_stats(stats)
 
 
 class TestMeter(object):
@@ -213,7 +213,7 @@ class TestMeter(object):
         if (cur_iter + 1) % cfg.LOG_PERIOD != 0:
             return
         stats = self.get_iter_stats(cur_epoch, cur_iter)
-        logging.log_json_stats(stats)
+        lu.log_json_stats(stats)
 
     def get_epoch_stats(self, cur_epoch):
         top1_err = self.num_top1_mis / self.num_samples
@@ -235,4 +235,4 @@ class TestMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logging.log_json_stats(stats)
+        lu.log_json_stats(stats)

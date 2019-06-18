@@ -2,8 +2,6 @@
 
 """Train a classification model."""
 
-# TODO(ilijar): refactor imports
-
 import argparse
 import numpy as np
 import os
@@ -22,12 +20,12 @@ import pycls.models.losses as losses
 import pycls.models.optimizer as optim
 import pycls.utils.checkpoint as cu
 import pycls.utils.distributed as du
-import pycls.utils.logging as logging
-import pycls.utils.metrics as metrics
+import pycls.utils.logging as lu
+import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
 import pycls.utils.net as nu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 
 def parse_args():
@@ -65,8 +63,8 @@ def is_eval_epoch(cur_epoch):
 def log_model_info(model):
     """Logs model info"""
     logger.info('Model:\n{}'.format(model))
-    logger.info('Params: {:,}'.format(metrics.params_count(model)))
-    logger.info('Flops: {:,}'.format(metrics.flops_count(model)))
+    logger.info('Params: {:,}'.format(mu.params_count(model)))
+    logger.info('Flops: {:,}'.format(mu.flops_count(model)))
 
 
 def train_epoch(
@@ -96,7 +94,7 @@ def train_epoch(
         # Update the parameters
         optimizer.step()
         # Compute the errors
-        top1_err, top5_err = metrics.topk_errors(preds, labels, [1, 5])
+        top1_err, top5_err = mu.topk_errors(preds, labels, [1, 5])
         # Combine the stats across the GPUs
         if cfg.NUM_GPUS > 1:
             loss, top1_err, top5_err = du.scaled_all_reduce(
@@ -131,7 +129,7 @@ def eval_epoch(test_loader, model, test_meter, cur_epoch):
         # Compute the predictions
         preds = model(inputs)
         # Compute the errors
-        top1_err, top5_err = metrics.topk_errors(preds, labels, [1, 5])
+        top1_err, top5_err = mu.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs
         if cfg.NUM_GPUS > 1:
             top1_err, top5_err = du.scaled_all_reduce([top1_err, top5_err])
@@ -209,7 +207,7 @@ def single_proc_train():
     """Performs single process training."""
 
     # Setup logging
-    logging.setup_logging()
+    lu.setup_logging()
     # Show the config
     logger.info('Config:\n{}'.format(cfg))
 

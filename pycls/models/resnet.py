@@ -10,9 +10,9 @@ import torch.nn as nn
 
 from pycls.core.config import cfg
 
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 
 # Stage depths for an ImageNet model {model depth -> (d2, d3, d4, d5)}

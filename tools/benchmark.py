@@ -17,10 +17,10 @@ from pycls.utils.timer import Timer
 
 import pycls.models.losses as losses
 import pycls.models.optimizer as optim
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 import pycls.utils.multiprocessing as mpu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 
 def parse_args():
@@ -212,7 +212,7 @@ def single_proc_benchmark(num_iter):
     """Performs single process benchmarking."""
 
     # Setup logging
-    logging.setup_logging()
+    lu.setup_logging()
     # Show the config
     logger.info('Config:\n{}'.format(cfg))
 

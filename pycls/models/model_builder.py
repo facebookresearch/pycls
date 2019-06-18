@@ -11,9 +11,9 @@ from pycls.models.resnet import ResNet
 from pycls.models.uninet import UniNet
 from pycls.models.vgg import VGG
 
-import pycls.utils.logging as logging
+import pycls.utils.logging as lu
 
-logger = logging.get_logger(__name__)
+logger = lu.get_logger(__name__)
 
 # Supported model types
 _MODEL_TYPES = {
