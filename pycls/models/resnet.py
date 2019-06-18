@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-"""ResNet models."""
-
-# TODO(ilijar): rename base to stem (like in uninet)
+"""ResNe(X)t model."""
 
 import math
 
@@ -216,13 +214,13 @@ class ResStage(nn.Module):
         return x
 
 
-class ResBase(nn.Module):
-    """Base of ResNet."""
+class ResStem(nn.Module):
+    """Stem of ResNet."""
 
     def __init__(self, dim_in, dim_out):
         assert cfg.TRAIN.DATASET == cfg.TEST.DATASET, \
             'Train and test dataset must be the same for now'
-        super(ResBase, self).__init__()
+        super(ResStem, self).__init__()
         if cfg.TRAIN.DATASET == 'cifar10':
             self._construct_cifar(dim_in, dim_out)
         else:
@@ -280,7 +278,7 @@ class ResNet(nn.Module):
         # Each stage has the same number of blocks for cifar
         num_blocks = int((cfg.MODEL.DEPTH - 2) / 6)
         # Stage 1: (N, 3, 32, 32) -> (N, 16, 32, 32)
-        self.s1 = ResBase(dim_in=3, dim_out=16)
+        self.s1 = ResStem(dim_in=3, dim_out=16)
         # Stage 2: (N, 16, 32, 32) -> (N, 16, 32, 32)
         self.s2 = ResStage(dim_in=16, dim_out=16, stride=1, num_bs=num_blocks)
         # Stage 3: (N, 16, 32, 32) -> (N, 32, 16, 16)
@@ -307,7 +305,7 @@ class ResNet(nn.Module):
         dim_inner = num_groups * width_per_group
 
         # Stage 1: (N, 3, 224, 224) -> (N, 64, 56, 56)
-        self.s1 = ResBase(dim_in=3, dim_out=64)
+        self.s1 = ResStem(dim_in=3, dim_out=64)
         # Stage 2: (N, 64, 56, 56) -> (N, 256, 56, 56)
         self.s2 = ResStage(
             dim_in=64, dim_out=256, stride=1, num_bs=d2,
