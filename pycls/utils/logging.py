@@ -85,3 +85,12 @@ def parse_json_stats(log, row_type, key):
     if key == 'iter' or key == 'epoch':
         vals = [int(val.split('/')[0]) for val in vals]
     return vals
+
+
+def get_log_files(log_dir, name_filter=''):
+    """Get all log files in directory containing subdirs of trained models."""
+    names = [n for n in sorted(os.listdir(log_dir)) if name_filter in n]
+    files = [os.path.join(log_dir, n, _LOG_FILE) for n in names]
+    f_n_ps = [(f, n) for (f, n) in zip(files, names) if os.path.exists(f)]
+    files, names = zip(*f_n_ps)
+    return files, names
