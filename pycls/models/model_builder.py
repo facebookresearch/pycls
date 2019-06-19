@@ -3,6 +3,7 @@
 """Model construction functions."""
 
 # TODO(ilijar): file naming (e.g. resnet -> res_net)
+# TODO(ilijar): consider renaming the models subdir
 
 import torch
 

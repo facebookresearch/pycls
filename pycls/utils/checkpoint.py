@@ -6,7 +6,6 @@
 # TODO(ilijar): Get rid of the ddp wrapper when saving checkpoints
 
 import os
-
 import torch
 
 from pycls.core.config import cfg

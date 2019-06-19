@@ -2,10 +2,9 @@
 
 """CIFAR10 dataset."""
 
-import pickle
 import numpy as np
 import os
-
+import pickle
 import torch
 import torch.utils.data
 

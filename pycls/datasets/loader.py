@@ -4,10 +4,10 @@
 
 # TODO(ilijar): consider adding mnist and cifar100
 
-import torch
-
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler
+
+import torch
 
 from pycls.core.config import cfg
 from pycls.datasets.cifar10 import Cifar10

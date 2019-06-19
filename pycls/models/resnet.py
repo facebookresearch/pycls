@@ -6,7 +6,6 @@
 # TODO(ilijar): Rename dim to w or num channels
 
 import math
-
 import torch.nn as nn
 
 from pycls.core.config import cfg

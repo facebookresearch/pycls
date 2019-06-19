@@ -2,6 +2,8 @@
 
 """Custom module abstractions."""
 
+# TODO(ilijar): delete this
+
 import torch.nn as nn
 
 

@@ -5,7 +5,6 @@
 # TODO(ilijar): Test precise bn computation for NUM_GPUS > 1
 
 import itertools
-
 import torch
 
 from pycls.core.config import cfg

@@ -6,7 +6,6 @@
 # TODO(ilijar): Not VGG (delete, rename, or update)
 
 import math
-
 import torch.nn as nn
 
 from pycls.core.config import cfg

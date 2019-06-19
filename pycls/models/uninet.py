@@ -8,7 +8,6 @@
 # TODO(ilijar): Consider creating stems.py and blocks.py
 
 import math
-
 import torch.nn as nn
 
 from pycls.core.config import cfg

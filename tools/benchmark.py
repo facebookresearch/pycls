@@ -8,7 +8,6 @@ import argparse
 import numpy as np
 import os
 import sys
-
 import torch
 
 from pycls.core.config import assert_cfg
