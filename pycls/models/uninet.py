@@ -3,16 +3,15 @@
 """Universal network."""
 
 # TODO(ilijar): Option to zero init final BN for each block
-# TODO(ilijar): Refactor weight init to reduce duplication
 # TODO(ilijar): Shorten BN keys (epsilon -> eps, momentum -> mom)
 # TODO(ilijar): Consider creating stems.py and blocks.py
 
-import math
 import torch.nn as nn
 
 from pycls.config import cfg
 
 import pycls.utils.logging as lu
+import pycls.utils.net as nu
 
 logger = lu.get_logger(__name__)
 
@@ -39,21 +38,6 @@ def get_block_fun(block_type):
     assert block_type in block_funs.keys(), \
         'Block type \'{}\' not supported'.format(block_type)
     return block_funs[block_type]
-
-
-def init_weights(model):
-    """Performs ResNet style weight initialization."""
-    for m in model.modules():
-        if isinstance(m, nn.Conv2d):
-            # Note that there is no bias due to BN
-            fan_out = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-            m.weight.data.normal_(mean=0.0, std=math.sqrt(2.0 / fan_out))
-        elif isinstance(m, nn.BatchNorm2d):
-            m.weight.data.fill_(1.0)
-            m.bias.data.zero_()
-        elif isinstance(m, nn.Linear):
-            m.weight.data.normal_(mean=0.0, std=0.01)
-            m.bias.data.zero_()
 
 
 class UniHead(nn.Module):
@@ -347,7 +331,7 @@ class UniNet(nn.Module):
             num_gs=cfg.UNINET.NUM_GS,
             num_classes=cfg.MODEL.NUM_CLASSES
         )
-        init_weights(self)
+        nu.init_weights(self)
 
     def _construct(
         self, stem_type, block_type, ds, ws, ss, bot_muls, num_gs, num_classes

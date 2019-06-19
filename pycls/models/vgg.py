@@ -5,13 +5,13 @@
 # TODO(ilijar): Refactor weight init to reduce duplication
 # TODO(ilijar): Not VGG (delete, rename, or update)
 
-import math
 import torch.nn as nn
 
 from pycls.config import cfg
 
 import pycls.models.modules as modules
 import pycls.utils.logging as lu
+import pycls.utils.net as nu
 
 logger = lu.get_logger(__name__)
 
@@ -59,7 +59,7 @@ class VGG(nn.Module):
             'VGG{} not supported'.format(cfg.MODEL.DEPTH)
         super(VGG, self).__init__()
         self._construct()
-        self._init_weights()
+        nu.init_weights()
 
     def _construct(self):
         # Note that the depth is misused in case of VGG for cifar.
@@ -126,19 +126,6 @@ class VGG(nn.Module):
             modules.Flatten(),
             nn.Linear(dim_in, cfg.MODEL.NUM_CLASSES, bias=True)
         )
-
-    def _init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                # Note that there is no bias due to BN
-                fan_out = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(mean=0.0, std=math.sqrt(2.0 / fan_out))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1.0)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
-                m.weight.data.normal_(mean=0.0, std=0.01)
-                m.bias.data.zero_()
 
     def forward(self, im):
         body_out = self.body(im)

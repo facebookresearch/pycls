@@ -5,12 +5,12 @@
 # TODO(ilijar): Make stage numbering start at 0 rather than 1
 # TODO(ilijar): Rename dim to w or num channels
 
-import math
 import torch.nn as nn
 
 from pycls.config import cfg
 
 import pycls.utils.logging as lu
+import pycls.utils.net as nu
 
 logger = lu.get_logger(__name__)
 
@@ -32,27 +32,6 @@ def get_trans_fun(name):
     assert name in trans_funs.keys(), \
         'Transformation function \'{}\' not supported'.format(name)
     return trans_funs[name]
-
-
-def init_weights(model):
-    """Performs ResNet style weight initialization."""
-    for m in model.modules():
-        if isinstance(m, nn.Conv2d):
-            # Note that there is no bias due to BN
-            fan_out = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-            m.weight.data.normal_(mean=0.0, std=math.sqrt(2.0 / fan_out))
-        elif isinstance(m, nn.BatchNorm2d):
-            fill = (
-                0.0 if hasattr(m, 'final_transform_bn')
-                and m.final_transform_bn
-                and cfg.RESNET.ZERO_INIT_FINAL_TRANSFORM_BN
-                else 1.0
-            )
-            m.weight.data.fill_(fill)
-            m.bias.data.zero_()
-        elif isinstance(m, nn.Linear):
-            m.weight.data.normal_(mean=0.0, std=0.01)
-            m.bias.data.zero_()
 
 
 class ResHead(nn.Module):
@@ -260,7 +239,7 @@ class ResNet(nn.Module):
             self._construct_cifar()
         else:
             self._construct_imagenet()
-        init_weights(self)
+        nu.init_weights(self)
 
     def _construct_cifar(self):
         assert (cfg.MODEL.DEPTH - 2) % 6 == 0, \
