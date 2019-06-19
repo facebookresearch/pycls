@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 # Number of bytes in a megabyte
 _B_IN_MB = 1024 * 1024

@@ -8,7 +8,7 @@
 import math
 import torch.nn as nn
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 import pycls.models.modules as modules
 import pycls.utils.logging as lu

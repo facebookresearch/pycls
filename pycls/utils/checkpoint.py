@@ -8,7 +8,7 @@
 import os
 import torch
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 import pycls.utils.distributed as du
 import pycls.utils.logging as lu

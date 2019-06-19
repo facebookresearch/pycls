@@ -4,7 +4,7 @@
 
 import torch.nn as nn
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 # Supported losses
 _LOSS_FUNS = {

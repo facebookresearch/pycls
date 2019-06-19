@@ -4,7 +4,7 @@
 
 import torch
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 import pycls.utils.lr_policy as lr_policy
 

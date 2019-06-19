@@ -9,7 +9,7 @@ import os
 import simplejson
 import sys
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 import pycls.utils.distributed as du
 

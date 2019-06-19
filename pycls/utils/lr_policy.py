@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 
 def lr_fun_steps(cur_epoch):

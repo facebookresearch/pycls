@@ -9,7 +9,7 @@ from torch.utils.data.sampler import RandomSampler
 
 import torch
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 from pycls.datasets.cifar10 import Cifar10
 from pycls.datasets.imagenet import ImageNet
 

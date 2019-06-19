@@ -7,7 +7,7 @@
 import itertools
 import torch
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 
 @torch.no_grad()

@@ -4,7 +4,7 @@
 
 import torch
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 
 
 def is_master_proc():

@@ -9,7 +9,7 @@ from collections import deque
 import datetime
 import numpy as np
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 from pycls.utils.timer import Timer
 
 import pycls.utils.logging as lu

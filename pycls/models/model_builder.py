@@ -7,7 +7,7 @@
 
 import torch
 
-from pycls.core.config import cfg
+from pycls.config import cfg
 from pycls.models.resnet import ResNet
 from pycls.models.uninet import UniNet
 from pycls.models.vgg import VGG

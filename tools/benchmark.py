@@ -10,9 +10,9 @@ import os
 import sys
 import torch
 
-from pycls.core.config import assert_cfg
-from pycls.core.config import cfg
-from pycls.core.config import dump_cfg
+from pycls.config import assert_cfg
+from pycls.config import cfg
+from pycls.config import dump_cfg
 from pycls.datasets import loader
 from pycls.models import model_builder
 from pycls.utils.timer import Timer
