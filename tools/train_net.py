@@ -11,6 +11,7 @@ import torch
 
 from pycls.core.config import assert_cfg
 from pycls.core.config import cfg
+from pycls.core.config import dump_cfg
 from pycls.datasets import loader
 from pycls.models import model_builder
 from pycls.utils.meters import TestMeter
@@ -233,6 +234,8 @@ def main():
 
     # Ensure that the output dir exists
     os.makedirs(cfg.OUT_DIR, exist_ok=True)
+    # Save the config
+    dump_cfg()
 
     # Perform training
     if cfg.NUM_GPUS > 1:

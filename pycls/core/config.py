@@ -7,6 +7,8 @@
 # TODO(ilijar): don't include stem in stage config lists
 # TODO(ilijar): move zero init entry from resnet to bn
 
+import os
+
 from yacs.config import CfgNode as CN
 
 
@@ -278,3 +280,10 @@ def assert_cfg():
         'Precise BN stats computation not verified for > 1 GPU'
     assert _C.LOG_DEST in ['stdout', 'file'], \
         'Log destination \'{}\' not supported'.format(_C.LOG_DEST)
+
+
+def dump_cfg():
+    """Dumps the cfg to a file in the output directory."""
+    out_f = os.path.join(_C.OUT_DIR, 'config.yaml')
+    with open(out_f, 'w') as f:
+        _C.dump(stream=f)
