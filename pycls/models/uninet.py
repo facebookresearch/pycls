@@ -20,7 +20,7 @@ def get_stem_fun(stem_type):
     """Retrives the stem function by name."""
     stem_funs = {
         'plain_block': PlainBlock,
-        'res_stem_in': ResStemIN
+        'res_stem_in': ResStemIN,
     }
     assert stem_type in stem_funs.keys(), \
         'Stem type \'{}\' not supported'.format(stem_type)

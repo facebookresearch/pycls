@@ -10,7 +10,6 @@ import torch
 from pycls.config import cfg
 from pycls.models.resnet import ResNet
 from pycls.models.uninet import UniNet
-from pycls.models.vgg import VGG
 
 import pycls.utils.logging as lu
 
@@ -20,7 +19,6 @@ logger = lu.get_logger(__name__)
 _MODEL_TYPES = {
     'resnet': ResNet,
     'uninet': UniNet,
-    'vgg': VGG,
 }
 
 
