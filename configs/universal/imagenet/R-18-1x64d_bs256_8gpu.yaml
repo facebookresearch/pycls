@@ -7,6 +7,8 @@ UNINET:
   DEPTHS: [1, 2, 2, 2, 2]
   WIDTHS: [64, 64, 128, 256, 512]
   STRIDES: [4, 1, 2, 2, 2]
+BN:
+  ZERO_INIT_FINAL_GAMMA: True
 OPTIM:
   BASE_LR: 0.1
   LR_POLICY: steps

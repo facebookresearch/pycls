@@ -9,6 +9,8 @@ UNINET:
   STRIDES: [4, 1, 2, 2, 2]
   BOT_MULS: [1.0, 0.25, 0.25, 0.25, 0.25]
   NUM_GS: [1, 1, 1, 1, 1]
+BN:
+  ZERO_INIT_FINAL_GAMMA: True
 OPTIM:
   BASE_LR: 0.0125
   LR_POLICY: steps

@@ -2,9 +2,8 @@
 
 """Universal network."""
 
-# TODO(ilijar): Option to zero init final BN for each block
-# TODO(ilijar): Shorten BN keys (epsilon -> eps, momentum -> mom)
 # TODO(ilijar): Consider creating stems.py and blocks.py
+# TODO(ilijar): Rename dim to w or num channels
 
 import torch.nn as nn
 
@@ -133,6 +132,7 @@ class BasicTransform(nn.Module):
             stride=1, padding=1, bias=False
         )
         self.b_bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
+        self.b_bn.final_bn = True
 
     def forward(self, x):
         for layer in self.children():
@@ -209,7 +209,7 @@ class BottleneckTransform(nn.Module):
             stride=1, padding=0, bias=False
         )
         self.c_bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.c_bn.final_transform_bn = True
+        self.c_bn.final_bn = True
 
     def forward(self, x):
         for layer in self.children():
