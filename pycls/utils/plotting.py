@@ -25,13 +25,11 @@ def prepare_plot_data(log_files, names, key='top1_err'):
     plot_data = []
     for file, name in zip(log_files, names):
         d, log = {}, lu.load_json_stats(file)
-        d['epochs'] = lu.parse_json_stats(log, 'test_epoch', 'epoch')
-        y = lu.parse_json_stats(log, 'test_epoch', key)
-        d['test'] = y
-        d['test_label'] = '[{:5.2f}] '.format(min(y) if y else 0) + name
-        y = lu.parse_json_stats(log, 'train_epoch', key)
-        d['train'] = y
-        d['train_label'] = '[{:5.2f}] '.format(min(y) if y else 0) + name
+        for phase in ['train', 'test']:
+            x = lu.parse_json_stats(log, phase + '_epoch', 'epoch')
+            y = lu.parse_json_stats(log, phase + '_epoch', key)
+            d['x_' + phase], d['y_' + phase] = x, y
+            d[phase + '_label'] = '[{:5.2f}] '.format(min(y) if y else 0) + name
         plot_data.append(d)
     assert len(plot_data) > 0, 'No data to plot'
     return plot_data
@@ -48,15 +46,15 @@ def plot_error_curves_plotly(log_files, names, filename, key='top1_err'):
         line_train = {'color': colors[i], 'dash': 'dashdot', 'width': 1.5}
         line_test = {'color': colors[i], 'dash': 'solid', 'width': 1.5}
         data.append(go.Scatter(
-            x=d['epochs'], y=d['train'], mode='lines', name=d['train_label'],
+            x=d['x_train'], y=d['y_train'], mode='lines', name=d['train_label'],
             line=line_train, legendgroup=s, visible=True, showlegend=False
         ))
         data.append(go.Scatter(
-            x=d['epochs'], y=d['test'], mode='lines', name=d['test_label'],
+            x=d['x_test'], y=d['y_test'], mode='lines', name=d['test_label'],
             line=line_test, legendgroup=s, visible=True, showlegend=True
         ))
         data.append(go.Scatter(
-            x=d['epochs'], y=d['train'], mode='lines', name=d['train_label'],
+            x=d['x_train'], y=d['y_train'], mode='lines', name=d['train_label'],
             line=line_train, legendgroup=s, visible=False, showlegend=True
         ))
     # Prepare layout w ability to toggle 'all', 'train', 'test'
@@ -85,8 +83,8 @@ def plot_error_curves_pyplot(log_files, names, filename=None, key='top1_err'):
     colors = get_plot_colors(len(names))
     for ind, d in enumerate(plot_data):
         c, lbl = colors[ind], d['test_label']
-        plt.plot(d['epochs'], d['train'], '--', c=c, alpha=0.8)
-        plt.plot(d['epochs'], d['test'], '-', c=c, alpha=0.8, label=lbl)
+        plt.plot(d['x_train'], d['y_train'], '--', c=c, alpha=0.8)
+        plt.plot(d['x_test'], d['y_test'], '-', c=c, alpha=0.8, label=lbl)
     plt.title(key + ' vs. epoch\n[dash=train, solid=test]', fontsize=14)
     plt.xlabel('epoch', fontsize=14)
     plt.ylabel(key, fontsize=14)
@@ -94,5 +92,6 @@ def plot_error_curves_pyplot(log_files, names, filename=None, key='top1_err'):
     plt.legend()
     if filename:
         plt.savefig(filename)
+        plt.clf()
     else:
         plt.show()
