@@ -5,7 +5,6 @@
 # TODO(ilijar): net naming (e.g. RESNET -> RES_NET)
 # TODO(ilijar): configurable train and test resolution
 # TODO(ilijar): don't include stem in stage config lists
-# TODO(ilijar): move zero init entry from resnet to bn
 
 import os
 
@@ -39,43 +38,6 @@ _C.MODEL.LOSS_FUN = 'cross_entropy'
 
 
 # ---------------------------------------------------------------------------- #
-# Batch norm options
-# ---------------------------------------------------------------------------- #
-_C.BN = CN()
-
-# BN epsilon
-_C.BN.EPS = 1e-5
-
-# BN momentum (BN momentum in PyTorch = 1 - BN momentum in Caffe2)
-_C.BN.MOM = 0.1
-
-# Precise BN stats
-_C.BN.USE_PRECISE_STATS = False
-_C.BN.NUM_SAMPLES_PRECISE = 1024
-
-
-# ---------------------------------------------------------------------------- #
-# VGG options
-# ---------------------------------------------------------------------------- #
-_C.VGG = CN()
-
-# Number of stages
-_C.VGG.NUM_STAGES = 5
-
-# Indices of stages whose first block uses stride 2 conv
-_C.VGG.STRIDE2_INDS = []
-
-# Indices of stages after which max pooling is performed
-_C.VGG.MAX_POOL_INDS = [0, 1, 2, 3, 4]
-
-# Depths multiplier (relative to the original VGG)
-_C.VGG.DS_MULT = 1.0
-
-# Widths multiplier (relative to the original VGG)
-_C.VGG.WS_MULT = 1.0
-
-
-# ---------------------------------------------------------------------------- #
 # ResNet options
 # ---------------------------------------------------------------------------- #
 _C.RESNET = CN()
@@ -91,10 +53,6 @@ _C.RESNET.WIDTH_PER_GROUP = 64
 
 # Apply stride to 1x1 conv (True -> MSRA; False -> fb.torch)
 _C.RESNET.STRIDE_1X1 = True
-
-# Initialize the "gamma" scale parameters of the final BN operation of each
-# residual block transformation function to zero
-_C.RESNET.ZERO_INIT_FINAL_TRANSFORM_BN = False
 
 
 # ---------------------------------------------------------------------------- #
@@ -122,6 +80,25 @@ _C.UNINET.BOT_MULS = []
 
 # Number of groups for each stage (applies to bottleneck block)
 _C.UNINET.NUM_GS = []
+
+
+# ---------------------------------------------------------------------------- #
+# Batch norm options
+# ---------------------------------------------------------------------------- #
+_C.BN = CN()
+
+# BN epsilon
+_C.BN.EPS = 1e-5
+
+# BN momentum (BN momentum in PyTorch = 1 - BN momentum in Caffe2)
+_C.BN.MOM = 0.1
+
+# Precise BN stats
+_C.BN.USE_PRECISE_STATS = False
+_C.BN.NUM_SAMPLES_PRECISE = 1024
+
+# Initialize the gamma of the final BN of each block to zero
+_C.BN.ZERO_INIT_FINAL_GAMMA = False
 
 
 # ---------------------------------------------------------------------------- #

@@ -163,6 +163,12 @@ def train_model():
     # Construct the optimizer
     optimizer = optim.construct_optimizer(model)
 
+    for n, m in model.named_modules():
+        if isinstance(m, torch.nn.BatchNorm2d):
+            print(n, torch.mean(m.weight.data).item())
+
+    return
+
     # Load a checkpoint if applicable
     if cfg.TRAIN.AUTO_RESUME and cu.has_checkpoint(checkpoint_dir):
         last_checkpoint = cu.get_last_checkpoint(checkpoint_dir)
