@@ -283,7 +283,7 @@ def assert_cfg():
 
 
 def dump_cfg():
-    """Dumps the cfg to a file in the output directory."""
+    """Dumps the config to the output directory."""
     out_f = os.path.join(_C.OUT_DIR, 'config.yaml')
     with open(out_f, 'w') as f:
         _C.dump(stream=f)
