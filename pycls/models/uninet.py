@@ -87,9 +87,7 @@ class PlainBlock(nn.Module):
             dim_in, dim_out, kernel_size=3,
             stride=stride, padding=1, bias=False
         )
-        self.bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
 
     def forward(self, x):
@@ -113,9 +111,7 @@ class DoublePlainBlock(nn.Module):
             dim_in, dim_out, kernel_size=3,
             stride=stride, padding=1, bias=False
         )
-        self.a_bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.a_bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.a_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
 
         # 3x3, BN, ReLU
@@ -123,9 +119,7 @@ class DoublePlainBlock(nn.Module):
             dim_out, dim_out, kernel_size=3,
             stride=1, padding=1, bias=False
         )
-        self.b_bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.b_bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.b_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
 
     def forward(self, x):
@@ -147,9 +141,7 @@ class BasicTransform(nn.Module):
             dim_in, dim_out, kernel_size=3,
             stride=stride, padding=1, bias=False
         )
-        self.a_bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.a_bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.a_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
 
         # 3x3, BN
@@ -157,9 +149,7 @@ class BasicTransform(nn.Module):
             dim_out, dim_out, kernel_size=3,
             stride=1, padding=1, bias=False
         )
-        self.b_bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.b_bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
 
     def forward(self, x):
         for layer in self.children():
@@ -181,9 +171,7 @@ class ResBasicBlock(nn.Module):
             dim_in, dim_out, kernel_size=1,
             stride=stride, padding=0, bias=False
         )
-        self.bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
 
     def _construct(self, dim_in, dim_out, stride):
         # Use skip connection with projection if dim or res change
@@ -219,8 +207,7 @@ class BottleneckTransform(nn.Module):
             stride=1, padding=0, bias=False
         )
         self.a_bn = nn.BatchNorm2d(
-            dim_inner, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+            dim_inner, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.a_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
 
         # 3x3, BN, ReLU
@@ -229,7 +216,7 @@ class BottleneckTransform(nn.Module):
             stride=stride, padding=1, groups=num_gs, bias=False
         )
         self.b_bn = nn.BatchNorm2d(
-            dim_inner, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
+            dim_inner, eps=cfg.BN.EPS, momentum=cfg.BN.MOM
         )
         self.b_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
 
@@ -238,9 +225,7 @@ class BottleneckTransform(nn.Module):
             dim_inner, dim_out, kernel_size=1,
             stride=1, padding=0, bias=False
         )
-        self.c_bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.c_bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.c_bn.final_transform_bn = True
 
     def forward(self, x):
@@ -263,9 +248,7 @@ class ResBottleneckBlock(nn.Module):
             dim_in, dim_out, kernel_size=1,
             stride=stride, padding=0, bias=False
         )
-        self.bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
 
     def _construct(self, dim_in, dim_out, stride, bot_mul, num_gs):
         # Use skip connection with projection if dim or res change
@@ -300,9 +283,7 @@ class ResStemIN(nn.Module):
             dim_in, dim_out, kernel_size=7,
             stride=2, padding=3, bias=False
         )
-        self.bn = nn.BatchNorm2d(
-            dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
-        )
+        self.bn = nn.BatchNorm2d(dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 

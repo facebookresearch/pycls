@@ -103,7 +103,7 @@ class VGG(nn.Module):
                         stride=stride, padding=1, bias=False
                     ),
                     nn.BatchNorm2d(
-                        dim_out, eps=cfg.BN.EPSILON, momentum=cfg.BN.MOMENTUM
+                        dim_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM
                     ),
                     nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
                 ]

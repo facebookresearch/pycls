@@ -42,10 +42,10 @@ _C.MODEL.LOSS_FUN = 'cross_entropy'
 _C.BN = CN()
 
 # BN epsilon
-_C.BN.EPSILON = 1e-5
+_C.BN.EPS = 1e-5
 
 # BN momentum (BN momentum in PyTorch = 1 - BN momentum in Caffe2)
-_C.BN.MOMENTUM = 0.1
+_C.BN.MOM = 0.1
 
 # Precise BN stats
 _C.BN.USE_PRECISE_STATS = False
