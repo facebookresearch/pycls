@@ -22,20 +22,21 @@ _DIR_NAME = 'checkpoints'
 
 def get_checkpoint_dir():
     """Get location for storing checkpoints."""
-    checkpoint_dir = os.path.join(cfg.OUT_DIR, _DIR_NAME)
-    return checkpoint_dir
+    return os.path.join(cfg.OUT_DIR, _DIR_NAME)
 
 
-def get_checkpoint_file(epoch):
+def get_checkpoint(epoch):
     """Get the full path to a checkpoint file."""
+    name = '{}{:04d}.pyth'.format(_NAME_PREFIX, epoch)
+    return os.path.join(get_checkpoint_dir(), name)
+
+
+def get_checkpoint_last():
     d = get_checkpoint_dir()
-    if epoch == 'last':
-        names = os.listdir(d) if os.path.exists(d) else []
-        names = [f for f in names if _NAME_PREFIX in f]
-        assert len(names), 'No checkpoints found in \'{}\'.'.format(d)
-        name = sorted(names)[-1]
-    else:
-        name = '{}{:04d}.pyth'.format(_NAME_PREFIX, epoch)
+    names = os.listdir(d) if os.path.exists(d) else []
+    names = [f for f in names if _NAME_PREFIX in f]
+    assert len(names), 'No checkpoints found in \'{}\'.'.format(d)
+    name = sorted(names)[-1]
     return os.path.join(d, name)
 
 
@@ -63,7 +64,7 @@ def save_checkpoint(model, optimizer, epoch):
         'optimizer_state': optimizer.state_dict(),
         'cfg': cfg.dump()
     }
-    checkpoint_file = get_checkpoint_file(epoch + 1)
+    checkpoint_file = get_checkpoint(epoch + 1)
     torch.save(checkpoint, checkpoint_file)
     return checkpoint_file
 

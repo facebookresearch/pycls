@@ -162,7 +162,7 @@ def train_model():
 
     # Load a checkpoint if applicable
     if cfg.TRAIN.AUTO_RESUME and cu.has_checkpoint():
-        last_checkpoint = cu.get_checkpoint_file('last')
+        last_checkpoint = cu.get_checkpoint_last()
         checkpoint_epoch = cu.load_checkpoint(last_checkpoint, model, optimizer)
         logger.info('Loaded checkpoint from: {}'.format(last_checkpoint))
         start_epoch = checkpoint_epoch + 1
