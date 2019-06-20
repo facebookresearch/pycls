@@ -239,7 +239,7 @@ class ResNet(nn.Module):
             self._construct_cifar()
         else:
             self._construct_imagenet()
-        nu.init_weights(self)
+        self.apply(nu.init_weights)
 
     def _construct_cifar(self):
         assert (cfg.MODEL.DEPTH - 2) % 6 == 0, \

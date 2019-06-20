@@ -331,7 +331,7 @@ class UniNet(nn.Module):
             num_gs=cfg.UNINET.NUM_GS,
             num_classes=cfg.MODEL.NUM_CLASSES
         )
-        nu.init_weights(self)
+        self.apply(nu.init_weights)
 
     def _construct(
         self, stem_type, block_type, ds, ws, ss, bot_muls, num_gs, num_classes
