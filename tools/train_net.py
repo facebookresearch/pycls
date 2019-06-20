@@ -168,7 +168,7 @@ def train_model():
         start_epoch = checkpoint_epoch + 1
     elif cfg.TRAIN.START_CHECKPOINT:
         cu.load_checkpoint(cfg.TRAIN.START_CHECKPOINT, model)
-        logger.info('Loaded checkpoint from: {}'.cfg.TRAIN.START_CHECKPOINT)
+        logger.info('Loaded checkpoint from: ' + cfg.TRAIN.START_CHECKPOINT)
         start_epoch = 0
     else:
         checkpoint_file = cu.save_checkpoint(model, optimizer, -1)
