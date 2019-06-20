@@ -11,9 +11,7 @@ import torch
 from pycls.config import cfg
 
 import pycls.utils.distributed as du
-import pycls.utils.logging as lu
 
-logger = lu.get_logger(__name__)
 
 # Common prefix for checkpoint file names
 _NAME_PREFIX = 'model_epoch_'
@@ -22,13 +20,30 @@ _NAME_PREFIX = 'model_epoch_'
 _DIR_NAME = 'checkpoints'
 
 
-def make_checkpoint_dir():
-    """Creates the checkpoint directory (if not present already)."""
+def get_checkpoint_dir():
+    """Get location for storing checkpoints."""
     checkpoint_dir = os.path.join(cfg.OUT_DIR, _DIR_NAME)
-    # Create the checkpoint dir from the master process
-    if du.is_master_proc():
-        os.makedirs(checkpoint_dir, exist_ok=True)
     return checkpoint_dir
+
+
+def get_checkpoint_file(epoch):
+    """Get the full path to a checkpoint file."""
+    d = get_checkpoint_dir()
+    if epoch == 'last':
+        names = os.listdir(d) if os.path.exists(d) else []
+        names = [f for f in names if _NAME_PREFIX in f]
+        assert len(names), 'No checkpoints found in \'{}\'.'.format(d)
+        name = sorted(names)[-1]
+    else:
+        name = '{}{:04d}.pyth'.format(_NAME_PREFIX, epoch)
+    return os.path.join(d, name)
+
+
+def has_checkpoint():
+    """Determines if the given directory contains a checkpoint."""
+    d = get_checkpoint_dir()
+    files = os.listdir(d) if os.path.exists(d) else []
+    return any(_NAME_PREFIX in f for f in files)
 
 
 def is_checkpoint_epoch(cur_epoch):
@@ -36,43 +51,21 @@ def is_checkpoint_epoch(cur_epoch):
     return (cur_epoch + 1) % cfg.TRAIN.CHECKPOINT_PERIOD == 0
 
 
-def save_checkpoint(checkpoint_dir, model, optimizer, epoch):
+def save_checkpoint(model, optimizer, epoch):
     """Saves a checkpoint."""
-    assert os.path.exists(checkpoint_dir), \
-        'Checkpoint dir \'{}\' not found'.format(checkpoint_dir)
     # Save checkpoints only from the master process
     if not du.is_master_proc():
         return
-    # Record the state
+    os.makedirs(get_checkpoint_dir(), exist_ok=True)
     checkpoint = {
         'epoch': epoch,
         'model_state': model.state_dict(),
         'optimizer_state': optimizer.state_dict(),
         'cfg': cfg.dump()
     }
-    # Write the checkpoint
-    file_name = '{}{:04d}.pyth'.format(_NAME_PREFIX, epoch + 1)
-    checkpoint_file = os.path.join(checkpoint_dir, file_name)
+    checkpoint_file = get_checkpoint_file(epoch + 1)
     torch.save(checkpoint, checkpoint_file)
-    logger.info('Wrote checkpoint to: {}'.format(checkpoint_file))
-
-
-def has_checkpoint(checkpoint_dir):
-    """Determines if the given directory contains a checkpoint."""
-    assert os.path.exists(checkpoint_dir), \
-        'Checkpoint dir \'{}\' not found'.format(checkpoint_dir)
-    return any(_NAME_PREFIX in f for f in os.listdir(checkpoint_dir))
-
-
-def get_last_checkpoint(checkpoint_dir):
-    """Retrieves the most recent checkpoint (highest epoch number)."""
-    assert os.path.exists(checkpoint_dir), \
-        'Checkpoint dir \'{}\' not found'.format(checkpoint_dir)
-    # Checkpoint file names are in lexicographic order
-    checkpoints = [f for f in os.listdir(checkpoint_dir) if _NAME_PREFIX in f]
-    last_checkpoint_name = sorted(checkpoints)[-1]
-    last_checkpoint_file = os.path.join(checkpoint_dir, last_checkpoint_name)
-    return last_checkpoint_file
+    return checkpoint_file
 
 
 def load_checkpoint(checkpoint_file, model, optimizer=None):
@@ -84,5 +77,4 @@ def load_checkpoint(checkpoint_file, model, optimizer=None):
     model.load_state_dict(checkpoint['model_state'])
     if optimizer:
         optimizer.load_state_dict(checkpoint['optimizer_state'])
-    logger.info('Loaded checkpoint from: {}'.format(checkpoint_file))
     return epoch

@@ -223,6 +223,9 @@ _C.NUM_GPUS = 1
 # Output directory
 _C.OUT_DIR = '/tmp'
 
+# Config destination (in OUT_DIR)
+_C.CFG_DEST = 'config.yaml'
+
 # Note that non-determinism may still be present due to non-deterministic
 # operator implementations in GPU operator libraries
 _C.RNG_SEED = 1
@@ -261,6 +264,12 @@ def assert_cfg():
 
 def dump_cfg():
     """Dumps the config to the output directory."""
-    out_f = os.path.join(_C.OUT_DIR, 'config.yaml')
-    with open(out_f, 'w') as f:
+    cfg_file = os.path.join(_C.OUT_DIR, _C.CFG_DEST)
+    with open(cfg_file, 'w') as f:
         _C.dump(stream=f)
+
+
+def load_cfg(out_dir, cfg_dest='config.yaml'):
+    """Loads config from specified output directory."""
+    cfg_file = os.path.join(out_dir, cfg_dest)
+    _C.merge_from_file(cfg_file)

@@ -151,9 +151,6 @@ def eval_epoch(test_loader, model, test_meter, cur_epoch):
 def train_model():
     """Trains the model."""
 
-    # Create the checkpoint dir
-    checkpoint_dir = cu.make_checkpoint_dir()
-
     # Build the model (before the loaders to ease debugging)
     model = model_builder.build_model()
     log_model_info(model)
@@ -164,16 +161,18 @@ def train_model():
     optimizer = optim.construct_optimizer(model)
 
     # Load a checkpoint if applicable
-    if cfg.TRAIN.AUTO_RESUME and cu.has_checkpoint(checkpoint_dir):
-        last_checkpoint = cu.get_last_checkpoint(checkpoint_dir)
+    if cfg.TRAIN.AUTO_RESUME and cu.has_checkpoint():
+        last_checkpoint = cu.get_checkpoint_file('last')
         checkpoint_epoch = cu.load_checkpoint(last_checkpoint, model, optimizer)
+        logger.info('Loaded checkpoint from: {}'.format(last_checkpoint))
         start_epoch = checkpoint_epoch + 1
     elif cfg.TRAIN.START_CHECKPOINT:
         cu.load_checkpoint(cfg.TRAIN.START_CHECKPOINT, model)
+        logger.info('Loaded checkpoint from: {}'.cfg.TRAIN.START_CHECKPOINT)
         start_epoch = 0
     else:
-        # Save the initial weights
-        cu.save_checkpoint(checkpoint_dir, model, optimizer, -1)
+        checkpoint_file = cu.save_checkpoint(model, optimizer, -1)
+        logger.info('Wrote checkpoint to: {}'.format(checkpoint_file))
         start_epoch = 0
 
     # Create data loaders
@@ -197,7 +196,8 @@ def train_model():
             nu.compute_precise_bn_stats(model, train_loader)
         # Save a checkpoint
         if cu.is_checkpoint_epoch(cur_epoch):
-            cu.save_checkpoint(checkpoint_dir, model, optimizer, cur_epoch)
+            checkpoint_file = cu.save_checkpoint(model, optimizer, cur_epoch)
+            logger.info('Wrote checkpoint to: {}'.format(checkpoint_file))
         # Evaluate the model
         if is_eval_epoch(cur_epoch):
             eval_epoch(test_loader, model, test_meter, cur_epoch)
