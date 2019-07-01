@@ -75,6 +75,16 @@ def load_checkpoint(checkpoint_file, model, optimizer=None):
         'Checkpoint \'{}\' not found'.format(checkpoint_file)
     checkpoint = torch.load(checkpoint_file)
     epoch = checkpoint['epoch']
+    # Either the checkpoint or the current model uses DistributedDataParallel, 
+    # but the other isn't
+    if hasattr(model, 'module'):
+        if not next(iter(checkpoint['model_state'])).startswith('module'):
+            state = checkpoint['model_state']
+            checkpoint['model_state'] = {'module.' + k: state[k]for k in state}
+    else:
+        if next(iter(checkpoint['model_state'])).startswith('module'):
+            state = checkpoint['model_state']
+            checkpoint['model_state'] = {k[len('module.'):]: state[k]for k in state}
     model.load_state_dict(checkpoint['model_state'])
     if optimizer:
         optimizer.load_state_dict(checkpoint['optimizer_state'])
