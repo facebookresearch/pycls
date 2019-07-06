@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Train a classification model."""
+"""Test a trained classification model."""
 
 import argparse
 import numpy as np
@@ -13,16 +13,13 @@ from pycls.config import cfg
 from pycls.datasets import loader
 from pycls.models import model_builder
 from pycls.utils.meters import TestMeter
-from pycls.utils.meters import TrainMeter
 
 import pycls.models.losses as losses
-import pycls.models.optimizer as optim
 import pycls.utils.checkpoint as cu
 import pycls.utils.distributed as du
 import pycls.utils.logging as lu
 import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
-import pycls.utils.net as nu
 
 logger = lu.get_logger(__name__)
 
@@ -30,7 +27,7 @@ logger = lu.get_logger(__name__)
 def parse_args():
     """Parses the arguments."""
     parser = argparse.ArgumentParser(
-        description='Train a classification model'
+        description='Test a trained classification model'
     )
     parser.add_argument(
         '--cfg',
@@ -98,36 +95,29 @@ def eval_model():
     model = model_builder.build_model()
     log_model_info(model)
 
-    # Define the loss function
-    loss_fun = losses.get_loss_fun()
-
     # Load a checkpoint if applicable
     if cfg.TRAIN.AUTO_RESUME and cu.has_checkpoint():
         last_checkpoint = cu.get_checkpoint_last()
         checkpoint_epoch = cu.load_checkpoint(last_checkpoint, model)
         logger.info('Loaded checkpoint from: {}'.format(last_checkpoint))
-        start_epoch = checkpoint_epoch + 1
     elif cfg.TRAIN.START_CHECKPOINT:
         cu.load_checkpoint(cfg.TRAIN.START_CHECKPOINT, model)
         logger.info('Loaded checkpoint from: ' + cfg.TRAIN.START_CHECKPOINT)
-        start_epoch = 0
     else:
-        checkpoint_file = cu.save_checkpoint(model, optimizer, -1)
-        logger.info('Wrote checkpoint to: {}'.format(checkpoint_file))
-        start_epoch = 0
-
+        logger.info('No checkpoints are loaded. Evaluating a randomly initialized network.')
+        
     # Create data loaders
     test_loader = loader.construct_test_loader()
 
     # Create meters
     test_meter = TestMeter(len(test_loader))
 
-
+    # Evaluate the model
     eval_epoch(test_loader, model, test_meter, 0)
 
 
 def single_proc_eval():
-    """Performs single process training."""
+    """Performs single process evaluation."""
 
     # Setup logging
     lu.setup_logging()
@@ -140,7 +130,7 @@ def single_proc_eval():
     # Configure the CUDNN backend
     torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
 
-    # Train the model
+    # evaluate the model
     eval_model()
 
 
@@ -154,7 +144,7 @@ def main():
     assert_cfg()
     cfg.freeze()
 
-    # Perform training
+    # Perform evaluation
     if cfg.NUM_GPUS > 1:
         mpu.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=single_proc_eval)
     else:
