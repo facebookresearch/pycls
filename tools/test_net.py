@@ -96,15 +96,9 @@ def eval_model():
     log_model_info(model)
 
     # Load a checkpoint if applicable
-    if cfg.TRAIN.AUTO_RESUME and cu.has_checkpoint():
-        last_checkpoint = cu.get_checkpoint_last()
-        checkpoint_epoch = cu.load_checkpoint(last_checkpoint, model)
-        logger.info('Loaded checkpoint from: {}'.format(last_checkpoint))
-    elif cfg.TRAIN.START_CHECKPOINT:
+    if cfg.TRAIN.START_CHECKPOINT:
         cu.load_checkpoint(cfg.TRAIN.START_CHECKPOINT, model)
         logger.info('Loaded checkpoint from: ' + cfg.TRAIN.START_CHECKPOINT)
-    else:
-        logger.info('No checkpoints are loaded. Evaluating a randomly initialized network.')
         
     # Create data loaders
     test_loader = loader.construct_test_loader()
