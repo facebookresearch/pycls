@@ -2,7 +2,6 @@
 
 """Functions that handle saving and loading of checkpoints."""
 
-# TODO(ilijar): Resolve memory issues with loading ddp checkpoints
 # TODO(ilijar): Get rid of the ddp wrapper when saving checkpoints
 
 import os
@@ -73,9 +72,10 @@ def load_checkpoint(checkpoint_file, model, optimizer=None):
     """Loads the checkpoint from the given file."""
     assert os.path.exists(checkpoint_file), \
         'Checkpoint \'{}\' not found'.format(checkpoint_file)
-    checkpoint = torch.load(checkpoint_file)
+    # Load the checkpoint on CPU to avoid GPU mem spike
+    checkpoint = torch.load(checkpoint_file, map_location='cpu')
     epoch = checkpoint['epoch']
-    # Either the checkpoint or the current model uses DistributedDataParallel, 
+    # Either the checkpoint or the current model uses DistributedDataParallel,
     # but the other isn't
     if hasattr(model, 'module'):
         if not next(iter(checkpoint['model_state'])).startswith('module'):
