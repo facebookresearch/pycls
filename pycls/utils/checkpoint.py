@@ -2,7 +2,7 @@
 
 """Functions that handle saving and loading of checkpoints."""
 
-# TODO(ilijar): Get rid of the ddp wrapper when saving checkpoints
+# TODO(ilijar): Refactor
 
 import os
 import torch
@@ -56,13 +56,18 @@ def save_checkpoint(model, optimizer, epoch):
     # Save checkpoints only from the master process
     if not du.is_master_proc():
         return
+    # Ensure that the checkpoint dir exists
     os.makedirs(get_checkpoint_dir(), exist_ok=True)
+    # Omit the DDP wrapper in the multi-gpu setting
+    sd = model.module.state_dict() if cfg.NUM_GPUS > 1 else model.state_dict()
+    # Record the state
     checkpoint = {
         'epoch': epoch,
-        'model_state': model.state_dict(),
+        'model_state': sd,
         'optimizer_state': optimizer.state_dict(),
         'cfg': cfg.dump()
     }
+    # Write the checkpoint
     checkpoint_file = get_checkpoint(epoch + 1)
     torch.save(checkpoint, checkpoint_file)
     return checkpoint_file
@@ -74,18 +79,10 @@ def load_checkpoint(checkpoint_file, model, optimizer=None):
         'Checkpoint \'{}\' not found'.format(checkpoint_file)
     # Load the checkpoint on CPU to avoid GPU mem spike
     checkpoint = torch.load(checkpoint_file, map_location='cpu')
-    epoch = checkpoint['epoch']
-    # Either the checkpoint or the current model uses DistributedDataParallel,
-    # but the other isn't
-    if hasattr(model, 'module'):
-        if not next(iter(checkpoint['model_state'])).startswith('module'):
-            state = checkpoint['model_state']
-            checkpoint['model_state'] = {'module.' + k: state[k]for k in state}
-    else:
-        if next(iter(checkpoint['model_state'])).startswith('module'):
-            state = checkpoint['model_state']
-            checkpoint['model_state'] = {k[len('module.'):]: state[k]for k in state}
-    model.load_state_dict(checkpoint['model_state'])
+    # Account for the DDP wrapper in the multi-gpu setting
+    ms = model.module if cfg.NUM_GPUS > 1 else model
+    ms.load_state_dict(checkpoint['model_state'])
+    # Load the optimizer state (commonly not done when fine-tuning)
     if optimizer:
         optimizer.load_state_dict(checkpoint['optimizer_state'])
-    return epoch
+    return checkpoint['epoch']

@@ -99,7 +99,7 @@ def eval_model():
     if cfg.TRAIN.START_CHECKPOINT:
         cu.load_checkpoint(cfg.TRAIN.START_CHECKPOINT, model)
         logger.info('Loaded checkpoint from: ' + cfg.TRAIN.START_CHECKPOINT)
-        
+
     # Create data loaders
     test_loader = loader.construct_test_loader()
 

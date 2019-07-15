@@ -4,6 +4,7 @@
 
 # TODO(ilijar): file naming (e.g. resnet -> res_net)
 # TODO(ilijar): consider renaming the models subdir
+# TODO(ilijar): function to register models dynamically
 
 import torch
 
