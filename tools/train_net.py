@@ -171,8 +171,6 @@ def train_model():
         logger.info('Loaded checkpoint from: ' + cfg.TRAIN.START_CHECKPOINT)
         start_epoch = 0
     else:
-        checkpoint_file = cu.save_checkpoint(model, optimizer, -1)
-        logger.info('Wrote checkpoint to: {}'.format(checkpoint_file))
         start_epoch = 0
 
     # Create data loaders
