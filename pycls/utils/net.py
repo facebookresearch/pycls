@@ -60,6 +60,13 @@ def compute_precise_bn_stats(model, loader):
         bn.momentum = moms[i]
 
 
+def reset_bn_stats(model):
+    """Resets running BN stats."""
+    for m in model.modules():
+        if isinstance(m, torch.nn.BatchNorm2d):
+            m.reset_running_stats()
+
+
 def get_flat_weights(model):
     """Gets all model weights as a single flat vector."""
     return torch.cat([p.data.view(-1, 1) for p in model.parameters()], 0)

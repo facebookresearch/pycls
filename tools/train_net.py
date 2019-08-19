@@ -18,6 +18,7 @@ from pycls.utils.meters import TrainMeter
 
 import pycls.models.losses as losses
 import pycls.models.optimizer as optim
+import pycls.utils.benchmark as bu
 import pycls.utils.checkpoint as cu
 import pycls.utils.distributed as du
 import pycls.utils.logging as lu
@@ -172,6 +173,12 @@ def train_model():
         start_epoch = 0
     else:
         start_epoch = 0
+
+    # Compute precise time
+    if start_epoch == 0 and cfg.PREC_TIME.ENABLED:
+        logger.info('Computing precise time...')
+        bu.compute_precise_time(model, loss_fun)
+        nu.reset_bn_stats(model)
 
     # Create data loaders
     train_loader = loader.construct_train_loader()

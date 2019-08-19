@@ -214,6 +214,24 @@ _C.CUDNN.BENCHMARK = False
 
 
 # ---------------------------------------------------------------------------- #
+# Precise timing options
+# ---------------------------------------------------------------------------- #
+_C.PREC_TIME = CN()
+
+# Perform precise timing at the start of training
+_C.PREC_TIME.ENABLED = False
+
+# Total mini-batch size
+_C.PREC_TIME.BATCH_SIZE = 128
+
+# Number of iterations to warm up the caches
+_C.PREC_TIME.WARMUP_ITER = 3
+
+# Number of iterations to compute avg time
+_C.PREC_TIME.NUM_ITER = 30
+
+
+# ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
 
@@ -260,6 +278,8 @@ def assert_cfg():
         'Precise BN stats computation not verified for > 1 GPU'
     assert _C.LOG_DEST in ['stdout', 'file'], \
         'Log destination \'{}\' not supported'.format(_C.LOG_DEST)
+    assert not _C.PREC_TIME.ENABLED or _C.NUM_GPUS == 1, \
+        'Precise iter time computation not verified for > 1 GPU'
 
 
 def dump_cfg():
