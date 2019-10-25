@@ -1,0 +1,40 @@
+MODEL:
+  TYPE: anynet
+  NUM_CLASSES: 1000
+ANYNET:
+  STEM_TYPE: res_stem_in
+  STEM_W: 64
+  BLOCK_TYPE: res_bottleneck_block
+  DEPTHS: [3, 4, 6, 3]
+  WIDTHS: [256, 512, 1024, 2048]
+  STRIDES: [1, 2, 2, 2]
+  BOT_MULS: [0.25, 0.25, 0.25, 0.25]
+  NUM_GS: [1, 1, 1, 1]
+BN:
+  ZERO_INIT_FINAL_GAMMA: True
+OPTIM:
+  BASE_LR: 0.1
+  LR_POLICY: steps
+  STEPS: [0, 30, 60, 90]
+  LR_MULT: 0.1
+  MAX_EPOCH: 100
+  MOMENTUM: 0.9
+  NESTEROV: True
+  WEIGHT_DECAY: 0.0001
+TRAIN:
+  DATASET: imagenet
+  SPLIT: train
+  BATCH_SIZE: 256
+  IM_SIZE: 224
+  EVAL_PERIOD: 1
+TEST:
+  DATASET: imagenet
+  SPLIT: val
+  BATCH_SIZE: 200
+  IM_SIZE: 256
+NUM_GPUS: 8
+DATA_LOADER:
+  NUM_WORKERS: 4
+CUDNN:
+  BENCHMARK: True
+OUT_DIR: .

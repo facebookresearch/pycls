@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Shared objects
+*.so
+
+# Distribution / packaging
+build/
+*.egg-info/
+*.egg
+
+# Temporary files
+*.swn
+*.swo
+*.swp
+
+# PyCharm
+.idea/
+
+# Mac
+.DS_STORE
+
+# Data symlinks
+pycls/datasets/data/
+
+# Other
+logs/
+scratch/
