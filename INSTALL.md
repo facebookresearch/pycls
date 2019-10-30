@@ -41,7 +41,7 @@ cd $PYCLS && make
 
 ## Datasets
 
-**pycls** finds datasets via symlinks from `pycls/datasets/data` to the actual locations where the dataset images and annotations are stored. For instructions on how to create symlinks for CIFAR and ImageNet, please see [`DATA.md`](pycls/DATA.md).
+**pycls** finds datasets via symlinks from `pycls/datasets/data` to the actual locations where the dataset images and annotations are stored. For instructions on how to create symlinks for CIFAR and ImageNet, please see [`DATA.md`](DATA.md).
 
 ## Getting Started
 
