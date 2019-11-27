@@ -26,12 +26,15 @@ def zero_pad(im, pad_size):
     return np.pad(im, pad_width, mode='constant')
 
 
-def horizontal_flip(im, p):
-    """Performs horizontal flip (CHW format)."""
+def horizontal_flip(im, p, order='CHW'):
+    """Performs horizontal flip (CHW or HWC format)."""
+    assert order in ['CHW', 'HWC']
     if np.random.uniform() < p:
-        im = im[:, :, ::-1]
+        if order == 'CHW':
+            im = im[:, :, ::-1]
+        else:
+            im = im[:, ::-1, :]
     return im
-
 
 def random_crop(im, size, pad_size=0):
     """Performs random crop (CHW format)."""
