@@ -143,6 +143,8 @@ _C.BN.NUM_SAMPLES_PRECISE = 1024
 # Initialize the gamma of the final BN of each block to zero
 _C.BN.ZERO_INIT_FINAL_GAMMA = False
 
+# Weight decay on BN parameters
+_C.BN.WEIGHT_DECAY = 0.0
 
 # ---------------------------------------------------------------------------- #
 # Optimizer options
