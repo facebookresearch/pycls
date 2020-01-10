@@ -1,6 +1,6 @@
 # pycls
 
-**pycl** is an image classification codebase, written in [PyTorch](https://pytorch.org/). The codebase was originally developed for a project that led to the [On Network Design Spaces for Visual Recognition](https://arxiv.org/abs/1905.13214) work. **pycls** has since matured into a general image classification codebase that has been adopted by a number representation learning projects at Facebook AI Research.
+**pycls** is an image classification codebase, written in [PyTorch](https://pytorch.org/). The codebase was originally developed for a project that led to the [On Network Design Spaces for Visual Recognition](https://arxiv.org/abs/1905.13214) work. **pycls** has since matured into a general image classification codebase that has been adopted by a number representation learning projects at Facebook AI Research.
 
 ## Introduction
 
