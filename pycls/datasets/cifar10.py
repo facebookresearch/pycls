@@ -77,7 +77,7 @@ class Cifar10(torch.utils.data.Dataset):
         return im
 
     def __getitem__(self, index):
-        im, label = self._inputs[index, ...], self._labels[index]
+        im, label = self._inputs[index, ...].copy(), self._labels[index]
         im = self._prepare_im(im)
         return im, label
 
