@@ -22,6 +22,7 @@ def get_stem_fun(stem_type):
     stem_funs = {
         'res_stem_cifar': ResStemCifar,
         'res_stem_in': ResStemIN,
+        'simple_stem_in': SimpleStemIN,
     }
     assert stem_type in stem_funs.keys(), \
         'Stem type \'{}\' not supported'.format(stem_type)
@@ -260,6 +261,28 @@ class ResStemIN(nn.Module):
         self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+
+    def forward(self, x):
+        for layer in self.children():
+            x = layer(x)
+        return x
+
+
+class SimpleStemIN(nn.Module):
+    """Simple stem for ImageNet."""
+
+    def __init__(self, in_w, out_w):
+        super(SimpleStemIN, self).__init__()
+        self._construct(in_w, out_w)
+
+    def _construct(self, in_w, out_w):
+        # 3x3, BN, ReLU
+        self.conv = nn.Conv2d(
+            in_w, out_w, kernel_size=3,
+            stride=2, padding=1, bias=False
+        )
+        self.bn = nn.BatchNorm2d(out_w, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
+        self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
 
     def forward(self, x):
         for layer in self.children():
