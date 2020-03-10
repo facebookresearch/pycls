@@ -58,9 +58,9 @@ class AnyHead(nn.Module):
 class VanillaBlock(nn.Module):
     """Vanilla block: [3x3 conv, BN, Relu] x2"""
 
-    def __init__(self, w_in, w_out, stride, bot_mul=1.0, num_gs=1):
-        assert bot_mul == 1.0 and num_gs == 1, \
-            'Vanilla block does not support bot_mul and num_gs options'
+    def __init__(self, w_in, w_out, stride, bm=None, g=None):
+        assert bm is None and g is None, \
+            'Vanilla block does not support bm and g options'
         super(VanillaBlock, self).__init__()
         self._construct(w_in, w_out, stride)
 
@@ -118,9 +118,9 @@ class BasicTransform(nn.Module):
 class ResBasicBlock(nn.Module):
     """Residual basic block: x + F(x), F = basic transform"""
 
-    def __init__(self, w_in, w_out, stride, bot_mul=1.0, num_gs=1):
-        assert bot_mul == 1.0 and num_gs == 1, \
-            'Basic transform does not support bot_mul and num_gs options'
+    def __init__(self, w_in, w_out, stride, bm=None, g=None):
+        assert bm is None and g is None, \
+            'Basic transform does not support bm and g options'
         super(ResBasicBlock, self).__init__()
         self._construct(w_in, w_out, stride)
 
@@ -151,13 +151,15 @@ class ResBasicBlock(nn.Module):
 class BottleneckTransform(nn.Module):
     """Bottlenect transformation: 1x1, 3x3, 1x1"""
 
-    def __init__(self, w_in, w_out, stride, bot_mul, num_gs):
+    def __init__(self, w_in, w_out, stride, bm, g):
         super(BottleneckTransform, self).__init__()
-        self._construct(w_in, w_out, stride, bot_mul, num_gs)
+        self._construct(w_in, w_out, stride, bm, g)
 
-    def _construct(self, w_in, w_out, stride, bot_mul, num_gs):
+    def _construct(self, w_in, w_out, stride, bm, g):
         # Compute the bottleneck width
-        w_b = int(round(w_out * bot_mul))
+        w_b = int(round(w_out * bm))
+        # Compute the number of groups
+        num_gs = w_b // g if cfg.ANYNET.GW_PARAM else g
         # 1x1, BN, ReLU
         self.a = nn.Conv2d(
             w_in, w_b, kernel_size=1,
@@ -192,11 +194,9 @@ class BottleneckTransform(nn.Module):
 class ResBottleneckBlock(nn.Module):
     """Residual bottleneck block: x + F(x), F = bottleneck transform"""
 
-    def __init__(
-        self, w_in, w_out, stride, bot_mul=1.0, num_gs=1
-    ):
+    def __init__(self, w_in, w_out, stride, bm=1.0, g=1):
         super(ResBottleneckBlock, self).__init__()
-        self._construct(w_in, w_out, stride, bot_mul, num_gs)
+        self._construct(w_in, w_out, stride, bm, g)
 
     def _add_skip_proj(self, w_in, w_out, stride):
         self.proj = nn.Conv2d(
@@ -205,12 +205,12 @@ class ResBottleneckBlock(nn.Module):
         )
         self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
 
-    def _construct(self, w_in, w_out, stride, bot_mul, num_gs):
+    def _construct(self, w_in, w_out, stride, bm, g):
         # Use skip connection with projection if shape changes
         self.proj_block = (w_in != w_out) or (stride != 1)
         if self.proj_block:
             self._add_skip_proj(w_in, w_out, stride)
-        self.f = BottleneckTransform(w_in, w_out, stride, bot_mul, num_gs)
+        self.f = BottleneckTransform(w_in, w_out, stride, bm, g)
         self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
 
     def forward(self, x):
@@ -270,11 +270,11 @@ class ResStemIN(nn.Module):
 class AnyStage(nn.Module):
     """AnyNet stage (sequence of blocks w/ the same output shape)."""
 
-    def __init__(self, w_in, w_out, stride, d, block_fun, bot_mul, num_gs):
+    def __init__(self, w_in, w_out, stride, d, block_fun, bm, g):
         super(AnyStage, self).__init__()
-        self._construct(w_in, w_out, stride, d, block_fun, bot_mul, num_gs)
+        self._construct(w_in, w_out, stride, d, block_fun, bm, g)
 
-    def _construct(self, w_in, w_out, stride, d, block_fun, bot_mul, num_gs):
+    def _construct(self, w_in, w_out, stride, d, block_fun, bm, g):
         # Construct the blocks
         for i in range(d):
             # Stride and w_in apply to the first block of the stage
@@ -283,7 +283,7 @@ class AnyStage(nn.Module):
             # Construct the block
             self.add_module(
                 'b{}'.format(i + 1),
-                block_fun(b_w_in, w_out, b_stride, bot_mul, num_gs)
+                block_fun(b_w_in, w_out, b_stride, bm, g)
             )
 
     def forward(self, x):
@@ -308,38 +308,31 @@ class AnyNet(nn.Module):
             ds=cfg.ANYNET.DEPTHS,
             ws=cfg.ANYNET.WIDTHS,
             ss=cfg.ANYNET.STRIDES,
-            bot_muls=cfg.ANYNET.BOT_MULS,
-            num_gs=cfg.ANYNET.NUM_GS,
+            bms=cfg.ANYNET.BOT_MULS,
+            gs=cfg.ANYNET.GROUPS,
             nc=cfg.MODEL.NUM_CLASSES
         )
         self.apply(nu.init_weights)
 
-    def _construct(
-        self, stem_type, stem_w, block_type, ds, ws, ss, bot_muls, num_gs, nc
-    ):
-        # Generate dummy bot muls and num gs for models that do not use them
-        bot_muls = bot_muls if bot_muls else [1.0 for _d in ds]
-        num_gs = num_gs if num_gs else [1 for _d in ds]
-
+    def _construct(self, stem_type, stem_w, block_type, ds, ws, ss, bms, gs, nc):
+        # Generate dummy bot muls and gs for models that do not use them
+        bms = bms if bms else [1.0 for _d in ds]
+        gs = gs if gs else [1 for _d in ds]
         # Group params by stage
-        stage_params = list(zip(ds, ws, ss, bot_muls, num_gs))
+        stage_params = list(zip(ds, ws, ss, bms, gs))
         logger.info('Constructing: AnyNet-{}'.format(stage_params))
-
         # Construct the stem
         stem_fun = get_stem_fun(stem_type)
         self.stem = stem_fun(3, stem_w)
-
         # Construct the stages
         block_fun = get_block_fun(block_type)
         prev_w = stem_w
-
-        for i, (d, w, s, bm, gs) in enumerate(stage_params):
+        for i, (d, w, s, bm, g) in enumerate(stage_params):
             self.add_module(
                 's{}'.format(i + 1),
-                AnyStage(prev_w, w, s, d, block_fun, bm, gs)
+                AnyStage(prev_w, w, s, d, block_fun, bm, g)
             )
             prev_w = w
-
         # Construct the head
         self.head = AnyHead(w_in=prev_w, nc=nc)
 

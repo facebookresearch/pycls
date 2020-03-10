@@ -82,8 +82,11 @@ _C.ANYNET.STRIDES = []
 # Bottleneck multipliers for each stage (applies to bottleneck block)
 _C.ANYNET.BOT_MULS = []
 
-# Number of groups for each stage (applies to bottleneck block)
-_C.ANYNET.NUM_GS = []
+# Group width parametrization (number of groups otherwise)
+_C.ANYNET.GW_PARAM = False
+
+# Group param for each stage (number of groups or group width)
+_C.ANYNET.GROUPS = []
 
 
 # ---------------------------------------------------------------------------- #
