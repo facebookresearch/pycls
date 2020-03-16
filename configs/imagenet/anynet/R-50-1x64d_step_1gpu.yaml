@@ -9,7 +9,7 @@ ANYNET:
   WIDTHS: [256, 512, 1024, 2048]
   STRIDES: [1, 2, 2, 2]
   BOT_MULS: [0.25, 0.25, 0.25, 0.25]
-  NUM_GS: [1, 1, 1, 1]
+  GROUPS: [1, 1, 1, 1]
 BN:
   ZERO_INIT_FINAL_GAMMA: True
 OPTIM:
