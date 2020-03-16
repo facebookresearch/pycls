@@ -228,13 +228,13 @@ class ResStemCifar(nn.Module):
 
     def __init__(self, w_in, w_out):
         super(ResStemCifar, self).__init__()
-        self._construct(w_in, w_out, stride)
+        self._construct(w_in, w_out)
 
-    def _construct(self, w_in, w_out, stride):
+    def _construct(self, w_in, w_out):
         # 3x3, BN, ReLU
         self.conv = nn.Conv2d(
             w_in, w_out, kernel_size=3,
-            stride=stride, padding=1, bias=False
+            stride=1, padding=1, bias=False
         )
         self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
