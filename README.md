@@ -10,11 +10,11 @@ The codebase implements efficient single-machine multi-gpu training, powered by 
 
 ## Installation
 
-Please see [`INSTALL.md`](INSTALL.md) for installation instructions.
+Please see [`INSTALL.md`](docs/INSTALL.md) for installation instructions.
 
 ## Getting Started
 
-After installation, please see [`GETTING_STARTED.md`](GETTING_STARTED.md) for basic instructions on training and evaluation with **pycls**.
+After installation, please see [`GETTING_STARTED.md`](docs/GETTING_STARTED.md) for basic instructions on training and evaluation with **pycls**.
 
 ## Model Zoo
 

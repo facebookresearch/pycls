@@ -2,7 +2,7 @@
 
 This document provides basic instructions for training and evaluation using **pycls**.
 
-- For general information about **pycls**, please see [`README.md`](README.md)
+- For general information about **pycls**, please see [`README.md`](../README.md)
 - For installation instructions, please see [`INSTALL.md`](INSTALL.md)
 
 ## Training Models
