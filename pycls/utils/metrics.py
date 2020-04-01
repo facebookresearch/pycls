@@ -10,8 +10,8 @@
 import numpy as np
 import torch
 import torch.nn as nn
-
 from pycls.core.config import cfg
+
 
 # Number of bytes in a megabyte
 _B_IN_MB = 1024 * 1024
@@ -19,8 +19,9 @@ _B_IN_MB = 1024 * 1024
 
 def topks_correct(preds, labels, ks):
     """Computes the number of top-k correct predictions for each k."""
-    assert preds.size(0) == labels.size(0), \
-        'Batch dim of predictions and labels must match'
+    assert preds.size(0) == labels.size(
+        0
+    ), "Batch dim of predictions and labels must match"
     # Find the top max_k predictions for each sample
     _top_max_k_vals, top_max_k_inds = torch.topk(
         preds, max(ks), dim=1, largest=True, sorted=True
@@ -32,9 +33,7 @@ def topks_correct(preds, labels, ks):
     # (i, j) = 1 if top i-th prediction for the j-th sample is correct
     top_max_k_correct = top_max_k_inds.eq(rep_max_k_labels)
     # Compute the number of topk correct predictions for each k
-    topks_correct = [
-        top_max_k_correct[:k, :].view(-1).float().sum() for k in ks
-    ]
+    topks_correct = [top_max_k_correct[:k, :].view(-1).float().sum() for k in ks]
     return topks_correct
 
 
@@ -61,16 +60,13 @@ def flops_count(model):
     count = 0
     for n, m in model.named_modules():
         if isinstance(m, nn.Conv2d):
-            if 'se.' in n:
+            if "se." in n:
                 count += m.in_channels * m.out_channels + m.bias.numel()
                 continue
             h_out = (h + 2 * m.padding[0] - m.kernel_size[0]) // m.stride[0] + 1
             w_out = (w + 2 * m.padding[1] - m.kernel_size[1]) // m.stride[1] + 1
-            count += np.prod([
-                m.weight.numel(),
-                h_out, w_out
-            ])
-            if '.proj' not in n:
+            count += np.prod([m.weight.numel(), h_out, w_out])
+            if ".proj" not in n:
                 h, w = h_out, w_out
         elif isinstance(m, nn.MaxPool2d):
             h = (h + 2 * m.padding - m.kernel_size) // m.stride + 1

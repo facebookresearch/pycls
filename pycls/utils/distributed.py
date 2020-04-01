@@ -8,7 +8,6 @@
 """Distributed helpers."""
 
 import torch
-
 from pycls.core.config import cfg
 
 
@@ -32,7 +31,7 @@ def init_process_group(proc_rank, world_size):
         backend=cfg.DIST_BACKEND,
         init_method="tcp://{}:{}".format(cfg.HOST, cfg.PORT),
         world_size=world_size,
-        rank=proc_rank
+        rank=proc_rank,
     )
 
 

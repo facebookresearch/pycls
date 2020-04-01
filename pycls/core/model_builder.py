@@ -7,31 +7,28 @@
 
 """Model construction functions."""
 
+import pycls.utils.logging as lu
 import torch
-
 from pycls.core.config import cfg
 from pycls.models.anynet import AnyNet
 from pycls.models.effnet import EffNet
 from pycls.models.resnet import ResNet
 
-import pycls.utils.logging as lu
 
 logger = lu.get_logger(__name__)
 
 # Supported models
-_models = {
-    'anynet': AnyNet,
-    'effnet': EffNet,
-    'resnet': ResNet,
-}
+_models = {"anynet": AnyNet, "effnet": EffNet, "resnet": ResNet}
 
 
 def build_model():
     """Builds the model."""
-    assert cfg.MODEL.TYPE in _models.keys(), \
-        'Model type \'{}\' not supported'.format(cfg.MODEL.TYPE)
-    assert cfg.NUM_GPUS <= torch.cuda.device_count(), \
-        'Cannot use more GPU devices than available'
+    assert cfg.MODEL.TYPE in _models.keys(), "Model type '{}' not supported".format(
+        cfg.MODEL.TYPE
+    )
+    assert (
+        cfg.NUM_GPUS <= torch.cuda.device_count()
+    ), "Cannot use more GPU devices than available"
     # Construct the model
     model = _models[cfg.MODEL.TYPE]()
     # Determine the GPU used by the current process
@@ -42,9 +39,7 @@ def build_model():
     if cfg.NUM_GPUS > 1:
         # Make model replica operate on the current device
         model = torch.nn.parallel.DistributedDataParallel(
-            module=model,
-            device_ids=[cur_device],
-            output_device=cur_device
+            module=model, device_ids=[cur_device], output_device=cur_device
         )
     return model
 

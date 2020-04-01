@@ -7,13 +7,12 @@
 
 """EfficientNet models."""
 
-import torch
-import torch.nn as nn
-
-from pycls.core.config import cfg
-
 import pycls.utils.logging as logging
 import pycls.utils.net as nu
+import torch
+import torch.nn as nn
+from pycls.core.config import cfg
+
 
 logger = logging.get_logger(__name__)
 
@@ -28,12 +27,9 @@ class EffHead(nn.Module):
     def _construct(self, w_in, w_out, nc):
         # 1x1, BN, Swish
         self.conv = nn.Conv2d(
-            w_in, w_out,
-            kernel_size=1, stride=1, padding=0, bias=False
+            w_in, w_out, kernel_size=1, stride=1, padding=0, bias=False
         )
-        self.conv_bn = nn.BatchNorm2d(
-            w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM
-        )
+        self.conv_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.conv_swish = Swish()
         # AvgPool
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
@@ -47,7 +43,7 @@ class EffHead(nn.Module):
         x = self.conv_swish(self.conv_bn(self.conv(x)))
         x = self.avg_pool(x)
         x = x.view(x.size(0), -1)
-        x = self.dropout(x) if hasattr(self, 'dropout') else x
+        x = self.dropout(x) if hasattr(self, "dropout") else x
         x = self.fc(x)
         return x
 
@@ -77,7 +73,7 @@ class SE(nn.Module):
             nn.Conv2d(w_in, w_se, kernel_size=1, bias=True),
             Swish(),
             nn.Conv2d(w_se, w_in, kernel_size=1, bias=True),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
@@ -99,35 +95,31 @@ class MBConv(nn.Module):
         if w_exp != w_in:
             # 1x1, BN, Swish
             self.exp = nn.Conv2d(
-                w_in, w_exp,
-                kernel_size=1, stride=1, padding=0, bias=False
+                w_in, w_exp, kernel_size=1, stride=1, padding=0, bias=False
             )
-            self.exp_bn = nn.BatchNorm2d(
-                w_exp, eps=cfg.BN.EPS, momentum=cfg.BN.MOM
-            )
+            self.exp_bn = nn.BatchNorm2d(w_exp, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
             self.exp_swish = Swish()
         # 3x3 dwise, BN, Swish
         self.dwise = nn.Conv2d(
-            w_exp, w_exp,
-            kernel_size=kernel, stride=stride, groups=w_exp, bias=False,
+            w_exp,
+            w_exp,
+            kernel_size=kernel,
+            stride=stride,
+            groups=w_exp,
+            bias=False,
             # Hacky padding to preserve res  (supports only 3x3 and 5x5)
-            padding=(1 if kernel == 3 else 2)
+            padding=(1 if kernel == 3 else 2),
         )
-        self.dwise_bn = nn.BatchNorm2d(
-            w_exp, eps=cfg.BN.EPS, momentum=cfg.BN.MOM
-        )
+        self.dwise_bn = nn.BatchNorm2d(w_exp, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.dwise_swish = Swish()
         # SE
         w_se = int(w_in * se_r)
         self.se = SE(w_exp, w_se)
         # 1x1, BN
         self.lin_proj = nn.Conv2d(
-            w_exp, w_out,
-            kernel_size=1, stride=1, padding=0, bias=False
+            w_exp, w_out, kernel_size=1, stride=1, padding=0, bias=False
         )
-        self.lin_proj_bn = nn.BatchNorm2d(
-            w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM
-        )
+        self.lin_proj_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         # Skip connection if in and out shapes are the same (MN-V2 style)
         self.has_skip = (stride == 1) and (w_in == w_out)
 
@@ -167,8 +159,8 @@ class EffStage(nn.Module):
             b_w_in = w_in if i == 0 else w_out
             # Construct the block
             self.add_module(
-                'b{}'.format(i + 1),
-                MBConv(b_w_in, exp_r, kernel, b_stride, se_r, w_out)
+                "b{}".format(i + 1),
+                MBConv(b_w_in, exp_r, kernel, b_stride, se_r, w_out),
             )
 
     def forward(self, x):
@@ -187,8 +179,7 @@ class StemIN(nn.Module):
     def _construct(self, w_in, w_out):
         # 3x3, BN, Swish
         self.conv = nn.Conv2d(
-            w_in, w_out,
-            kernel_size=3, stride=2, padding=1, bias=False
+            w_in, w_out, kernel_size=3, stride=2, padding=1, bias=False
         )
         self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.swish = Swish()
@@ -203,10 +194,12 @@ class EffNet(nn.Module):
     """EfficientNet model."""
 
     def __init__(self):
-        assert cfg.TRAIN.DATASET in ['imagenet'], \
-            'Training on {} is not supported'.format(cfg.TRAIN.DATASET)
-        assert cfg.TEST.DATASET in ['imagenet'], \
-            'Testing on {} is not supported'.format(cfg.TEST.DATASET)
+        assert cfg.TRAIN.DATASET in [
+            "imagenet"
+        ], "Training on {} is not supported".format(cfg.TRAIN.DATASET)
+        assert cfg.TEST.DATASET in [
+            "imagenet"
+        ], "Testing on {} is not supported".format(cfg.TEST.DATASET)
         super(EffNet, self).__init__()
         self._construct(
             stem_w=cfg.EN.STEM_W,
@@ -217,22 +210,21 @@ class EffNet(nn.Module):
             ss=cfg.EN.STRIDES,
             ks=cfg.EN.KERNELS,
             head_w=cfg.EN.HEAD_W,
-            nc=cfg.MODEL.NUM_CLASSES
+            nc=cfg.MODEL.NUM_CLASSES,
         )
         self.apply(nu.init_weights)
 
     def _construct(self, stem_w, ds, ws, exp_rs, se_r, ss, ks, head_w, nc):
         # Group params by stage
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        logger.info('Constructing: EfficientNet-{}'.format(stage_params))
+        logger.info("Constructing: EfficientNet-{}".format(stage_params))
         # Construct the stem
         self.stem = StemIN(3, stem_w)
         prev_w = stem_w
         # Construct the stages
         for i, (d, w, exp_r, stride, kernel) in enumerate(stage_params):
             self.add_module(
-                's{}'.format(i + 1),
-                EffStage(prev_w, exp_r, kernel, stride, se_r, w, d)
+                "s{}".format(i + 1), EffStage(prev_w, exp_r, kernel, stride, se_r, w, d)
             )
             prev_w = w
         # Construct the head

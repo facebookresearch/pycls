@@ -26,7 +26,7 @@ cfg = _C
 _C.MODEL = CN()
 
 # Model type
-_C.MODEL.TYPE = ''
+_C.MODEL.TYPE = ""
 
 # Number of weight layers
 _C.MODEL.DEPTH = 0
@@ -35,7 +35,7 @@ _C.MODEL.DEPTH = 0
 _C.MODEL.NUM_CLASSES = 10
 
 # Loss function (see pycls/models/loss.py for options)
-_C.MODEL.LOSS_FUN = 'cross_entropy'
+_C.MODEL.LOSS_FUN = "cross_entropy"
 
 
 # ---------------------------------------------------------------------------- #
@@ -44,7 +44,7 @@ _C.MODEL.LOSS_FUN = 'cross_entropy'
 _C.RESNET = CN()
 
 # Transformation function (see pycls/models/resnet.py for options)
-_C.RESNET.TRANS_FUN = 'basic_transform'
+_C.RESNET.TRANS_FUN = "basic_transform"
 
 # Number of groups to use (1 -> ResNet; > 1 -> ResNeXt)
 _C.RESNET.NUM_GROUPS = 1
@@ -62,13 +62,13 @@ _C.RESNET.STRIDE_1X1 = True
 _C.ANYNET = CN()
 
 # Stem type
-_C.ANYNET.STEM_TYPE = 'plain_block'
+_C.ANYNET.STEM_TYPE = "plain_block"
 
 # Stem width
 _C.ANYNET.STEM_W = 32
 
 # Block type
-_C.ANYNET.BLOCK_TYPE = 'plain_block'
+_C.ANYNET.BLOCK_TYPE = "plain_block"
 
 # Depth for each stage (number of blocks in the stage)
 _C.ANYNET.DEPTHS = []
@@ -158,7 +158,7 @@ _C.OPTIM = CN()
 _C.OPTIM.BASE_LR = 0.1
 
 # Learning rate policy select from {'cos', 'exp', 'steps'}
-_C.OPTIM.LR_POLICY = 'cos'
+_C.OPTIM.LR_POLICY = "cos"
 
 # Exponential decay factor
 _C.OPTIM.GAMMA = 0.1
@@ -197,8 +197,8 @@ _C.OPTIM.WARMUP_EPOCHS = 0
 _C.TRAIN = CN()
 
 # Dataset and split
-_C.TRAIN.DATASET = ''
-_C.TRAIN.SPLIT = 'train'
+_C.TRAIN.DATASET = ""
+_C.TRAIN.SPLIT = "train"
 
 # Total mini-batch size
 _C.TRAIN.BATCH_SIZE = 128
@@ -216,7 +216,7 @@ _C.TRAIN.CHECKPOINT_PERIOD = 1
 _C.TRAIN.AUTO_RESUME = True
 
 # Weights to start training from
-_C.TRAIN.WEIGHTS = ''
+_C.TRAIN.WEIGHTS = ""
 
 
 # ---------------------------------------------------------------------------- #
@@ -225,8 +225,8 @@ _C.TRAIN.WEIGHTS = ''
 _C.TEST = CN()
 
 # Dataset and split
-_C.TEST.DATASET = ''
-_C.TEST.SPLIT = 'val'
+_C.TEST.DATASET = ""
+_C.TEST.SPLIT = "val"
 
 # Total mini-batch size
 _C.TEST.BATCH_SIZE = 200
@@ -235,7 +235,7 @@ _C.TEST.BATCH_SIZE = 200
 _C.TEST.IM_SIZE = 256
 
 # Weights to use for testing
-_C.TEST.WEIGHTS = ''
+_C.TEST.WEIGHTS = ""
 
 
 # ---------------------------------------------------------------------------- #
@@ -296,57 +296,70 @@ _C.PREC_TIME.NUM_ITER = 30
 _C.NUM_GPUS = 1
 
 # Output directory
-_C.OUT_DIR = '/tmp'
+_C.OUT_DIR = "/tmp"
 
 # Config destination (in OUT_DIR)
-_C.CFG_DEST = 'config.yaml'
+_C.CFG_DEST = "config.yaml"
 
 # Note that non-determinism may still be present due to non-deterministic
 # operator implementations in GPU operator libraries
 _C.RNG_SEED = 1
 
 # Log destination ('stdout' or 'file')
-_C.LOG_DEST = 'stdout'
+_C.LOG_DEST = "stdout"
 
 # Log period in iters
 _C.LOG_PERIOD = 10
 
 # Distributed backend
-_C.DIST_BACKEND = 'nccl'
+_C.DIST_BACKEND = "nccl"
 
 # Hostname and port for initializing multi-process groups
-_C.HOST = 'localhost'
+_C.HOST = "localhost"
 _C.PORT = 10001
 
 
 def assert_cfg():
     """Checks config values invariants."""
-    assert not _C.OPTIM.STEPS or _C.OPTIM.STEPS[0] == 0, \
-        'The first lr step must start at 0'
-    assert _C.TRAIN.SPLIT in ['train', 'val', 'test'], \
-        'Train split \'{}\' not supported'.format(_C.TRAIN.SPLIT)
-    assert _C.TRAIN.BATCH_SIZE % _C.NUM_GPUS == 0, \
-        'Train mini-batch size should be a multiple of NUM_GPUS.'
-    assert _C.TEST.SPLIT in ['train', 'val', 'test'], \
-        'Test split \'{}\' not supported'.format(_C.TEST.SPLIT)
-    assert _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0, \
-        'Test mini-batch size should be a multiple of NUM_GPUS.'
-    assert not _C.BN.USE_PRECISE_STATS or _C.NUM_GPUS == 1, \
-        'Precise BN stats computation not verified for > 1 GPU'
-    assert _C.LOG_DEST in ['stdout', 'file'], \
-        'Log destination \'{}\' not supported'.format(_C.LOG_DEST)
-    assert not _C.PREC_TIME.ENABLED or _C.NUM_GPUS == 1, \
-        'Precise iter time computation not verified for > 1 GPU'
+    assert (
+        not _C.OPTIM.STEPS or _C.OPTIM.STEPS[0] == 0
+    ), "The first lr step must start at 0"
+    assert _C.TRAIN.SPLIT in [
+        "train",
+        "val",
+        "test",
+    ], "Train split '{}' not supported".format(_C.TRAIN.SPLIT)
+    assert (
+        _C.TRAIN.BATCH_SIZE % _C.NUM_GPUS == 0
+    ), "Train mini-batch size should be a multiple of NUM_GPUS."
+    assert _C.TEST.SPLIT in [
+        "train",
+        "val",
+        "test",
+    ], "Test split '{}' not supported".format(_C.TEST.SPLIT)
+    assert (
+        _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0
+    ), "Test mini-batch size should be a multiple of NUM_GPUS."
+    assert (
+        not _C.BN.USE_PRECISE_STATS or _C.NUM_GPUS == 1
+    ), "Precise BN stats computation not verified for > 1 GPU"
+    assert _C.LOG_DEST in [
+        "stdout",
+        "file",
+    ], "Log destination '{}' not supported".format(_C.LOG_DEST)
+    assert (
+        not _C.PREC_TIME.ENABLED or _C.NUM_GPUS == 1
+    ), "Precise iter time computation not verified for > 1 GPU"
 
 
 def dump_cfg():
     """Dumps the config to the output directory."""
     cfg_file = os.path.join(_C.OUT_DIR, _C.CFG_DEST)
-    with open(cfg_file, 'w') as f:
+    with open(cfg_file, "w") as f:
         _C.dump(stream=f)
 
 
-def load_cfg(out_dir, cfg_dest='config.yaml'):
+def load_cfg(out_dir, cfg_dest="config.yaml"):
     """Loads config from specified output directory."""
     cfg_file = os.path.join(out_dir, cfg_dest)
     _C.merge_from_file(cfg_file)

@@ -7,16 +7,14 @@
 
 """Meters."""
 
+import datetime
 from collections import deque
 
-import datetime
 import numpy as np
-
-from pycls.core.config import cfg
-from pycls.utils.timer import Timer
-
 import pycls.utils.logging as lu
 import pycls.utils.metrics as metrics
+from pycls.core.config import cfg
+from pycls.utils.timer import Timer
 
 
 def eta_str(eta_td):
@@ -24,7 +22,7 @@ def eta_str(eta_td):
     days = eta_td.days
     hrs, rem = divmod(eta_td.seconds, 3600)
     mins, secs = divmod(rem, 60)
-    return '{0:02},{1:02}:{2:02}:{3:02}'.format(days, hrs, mins, secs)
+    return "{0:02},{1:02}:{2:02}:{3:02}".format(days, hrs, mins, secs)
 
 
 class ScalarMeter(object):
@@ -110,17 +108,17 @@ class TrainMeter(object):
         eta_td = datetime.timedelta(seconds=int(eta_sec))
         mem_usage = metrics.gpu_mem_usage()
         stats = {
-            '_type': 'train_iter',
-            'epoch': '{}/{}'.format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
-            'iter': '{}/{}'.format(cur_iter + 1, self.epoch_iters),
-            'time_avg': self.iter_timer.average_time,
-            'time_diff': self.iter_timer.diff,
-            'eta': eta_str(eta_td),
-            'top1_err': self.mb_top1_err.get_win_median(),
-            'top5_err': self.mb_top5_err.get_win_median(),
-            'loss': self.loss.get_win_median(),
-            'lr': self.lr,
-            'mem': int(np.ceil(mem_usage))
+            "_type": "train_iter",
+            "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
+            "iter": "{}/{}".format(cur_iter + 1, self.epoch_iters),
+            "time_avg": self.iter_timer.average_time,
+            "time_diff": self.iter_timer.diff,
+            "eta": eta_str(eta_td),
+            "top1_err": self.mb_top1_err.get_win_median(),
+            "top5_err": self.mb_top5_err.get_win_median(),
+            "loss": self.loss.get_win_median(),
+            "lr": self.lr,
+            "mem": int(np.ceil(mem_usage)),
         }
         return stats
 
@@ -140,15 +138,15 @@ class TrainMeter(object):
         top5_err = self.num_top5_mis / self.num_samples
         avg_loss = self.loss_total / self.num_samples
         stats = {
-            '_type': 'train_epoch',
-            'epoch': '{}/{}'.format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
-            'time_avg': self.iter_timer.average_time,
-            'eta': eta_str(eta_td),
-            'top1_err': top1_err,
-            'top5_err': top5_err,
-            'loss': avg_loss,
-            'lr': self.lr,
-            'mem': int(np.ceil(mem_usage))
+            "_type": "train_epoch",
+            "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
+            "time_avg": self.iter_timer.average_time,
+            "eta": eta_str(eta_td),
+            "top1_err": top1_err,
+            "top5_err": top5_err,
+            "loss": avg_loss,
+            "lr": self.lr,
+            "mem": int(np.ceil(mem_usage)),
         }
         return stats
 
@@ -201,14 +199,14 @@ class TestMeter(object):
     def get_iter_stats(self, cur_epoch, cur_iter):
         mem_usage = metrics.gpu_mem_usage()
         iter_stats = {
-            '_type': 'test_iter',
-            'epoch': '{}/{}'.format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
-            'iter': '{}/{}'.format(cur_iter + 1, self.max_iter),
-            'time_avg': self.iter_timer.average_time,
-            'time_diff': self.iter_timer.diff,
-            'top1_err': self.mb_top1_err.get_win_median(),
-            'top5_err': self.mb_top5_err.get_win_median(),
-            'mem': int(np.ceil(mem_usage))
+            "_type": "test_iter",
+            "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
+            "iter": "{}/{}".format(cur_iter + 1, self.max_iter),
+            "time_avg": self.iter_timer.average_time,
+            "time_diff": self.iter_timer.diff,
+            "top1_err": self.mb_top1_err.get_win_median(),
+            "top5_err": self.mb_top5_err.get_win_median(),
+            "mem": int(np.ceil(mem_usage)),
         }
         return iter_stats
 
@@ -225,14 +223,14 @@ class TestMeter(object):
         self.min_top5_err = min(self.min_top5_err, top5_err)
         mem_usage = metrics.gpu_mem_usage()
         stats = {
-            '_type': 'test_epoch',
-            'epoch': '{}/{}'.format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
-            'time_avg': self.iter_timer.average_time,
-            'top1_err': top1_err,
-            'top5_err': top5_err,
-            'min_top1_err': self.min_top1_err,
-            'min_top5_err': self.min_top5_err,
-            'mem': int(np.ceil(mem_usage))
+            "_type": "test_epoch",
+            "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
+            "time_avg": self.iter_timer.average_time,
+            "top1_err": top1_err,
+            "top5_err": top5_err,
+            "min_top1_err": self.min_top1_err,
+            "min_top5_err": self.min_top5_err,
+            "mem": int(np.ceil(mem_usage)),
         }
         return stats
 

@@ -8,17 +8,16 @@
 """Functions that handle saving and loading of checkpoints."""
 
 import os
-import torch
-
-from pycls.core.config import cfg
 
 import pycls.utils.distributed as du
+import torch
+from pycls.core.config import cfg
 
 
 # Common prefix for checkpoint file names
-_NAME_PREFIX = 'model_epoch_'
+_NAME_PREFIX = "model_epoch_"
 # Checkpoints directory name
-_DIR_NAME = 'checkpoints'
+_DIR_NAME = "checkpoints"
 
 
 def get_checkpoint_dir():
@@ -28,7 +27,7 @@ def get_checkpoint_dir():
 
 def get_checkpoint(epoch):
     """Retrieves the path to a checkpoint file."""
-    name = '{}{:04d}.pyth'.format(_NAME_PREFIX, epoch)
+    name = "{}{:04d}.pyth".format(_NAME_PREFIX, epoch)
     return os.path.join(get_checkpoint_dir(), name)
 
 
@@ -46,7 +45,7 @@ def has_checkpoint():
     checkpoint_dir = get_checkpoint_dir()
     if not os.path.exists(checkpoint_dir):
         return False
-    return any([_NAME_PREFIX in f for f in os.listdir(checkpoint_dir)])
+    return any(_NAME_PREFIX in f for f in os.listdir(checkpoint_dir))
 
 
 def is_checkpoint_epoch(cur_epoch):
@@ -65,10 +64,10 @@ def save_checkpoint(model, optimizer, epoch):
     sd = model.module.state_dict() if cfg.NUM_GPUS > 1 else model.state_dict()
     # Record the state
     checkpoint = {
-        'epoch': epoch,
-        'model_state': sd,
-        'optimizer_state': optimizer.state_dict(),
-        'cfg': cfg.dump()
+        "epoch": epoch,
+        "model_state": sd,
+        "optimizer_state": optimizer.state_dict(),
+        "cfg": cfg.dump(),
     }
     # Write the checkpoint
     checkpoint_file = get_checkpoint(epoch + 1)
@@ -78,14 +77,15 @@ def save_checkpoint(model, optimizer, epoch):
 
 def load_checkpoint(checkpoint_file, model, optimizer=None):
     """Loads the checkpoint from the given file."""
-    assert os.path.exists(checkpoint_file), \
-        'Checkpoint \'{}\' not found'.format(checkpoint_file)
+    assert os.path.exists(checkpoint_file), "Checkpoint '{}' not found".format(
+        checkpoint_file
+    )
     # Load the checkpoint on CPU to avoid GPU mem spike
-    checkpoint = torch.load(checkpoint_file, map_location='cpu')
+    checkpoint = torch.load(checkpoint_file, map_location="cpu")
     # Account for the DDP wrapper in the multi-gpu setting
     ms = model.module if cfg.NUM_GPUS > 1 else model
-    ms.load_state_dict(checkpoint['model_state'])
+    ms.load_state_dict(checkpoint["model_state"])
     # Load the optimizer state (commonly not done when fine-tuning)
     if optimizer:
-        optimizer.load_state_dict(checkpoint['optimizer_state'])
-    return checkpoint['epoch']
+        optimizer.load_state_dict(checkpoint["optimizer_state"])
+    return checkpoint["epoch"]

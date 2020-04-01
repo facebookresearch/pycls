@@ -8,7 +8,6 @@
 """Learning rate policies."""
 
 import numpy as np
-
 from pycls.core.config import cfg
 
 
@@ -31,9 +30,9 @@ def lr_fun_cos(cur_epoch):
 
 def get_lr_fun():
     """Retrieves the specified lr policy function"""
-    lr_fun = 'lr_fun_' + cfg.OPTIM.LR_POLICY
+    lr_fun = "lr_fun_" + cfg.OPTIM.LR_POLICY
     if lr_fun not in globals():
-        raise NotImplementedError('Unknown LR policy:' + cfg.OPTIM.LR_POLICY)
+        raise NotImplementedError("Unknown LR policy:" + cfg.OPTIM.LR_POLICY)
     return globals()[lr_fun]
 
 

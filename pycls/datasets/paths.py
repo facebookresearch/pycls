@@ -9,13 +9,14 @@
 
 import os
 
+
 # Default data directory (/path/pycls/pycls/datasets/data)
-_DEF_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+_DEF_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 # Data paths
 _paths = {
-    'cifar10': _DEF_DATA_DIR + '/cifar10',
-    'imagenet': _DEF_DATA_DIR + '/imagenet'
+    "cifar10": _DEF_DATA_DIR + "/cifar10",
+    "imagenet": _DEF_DATA_DIR + "/imagenet",
 }
 
 

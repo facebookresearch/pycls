@@ -8,15 +8,9 @@
 """Test a trained classification model."""
 
 import argparse
-import numpy as np
-import os
 import sys
-import torch
 
-from pycls.core.config import assert_cfg
-from pycls.core.config import cfg
-from pycls.utils.meters import TestMeter
-
+import numpy as np
 import pycls.core.model_builder as model_builder
 import pycls.datasets.loader as loader
 import pycls.utils.checkpoint as cu
@@ -24,27 +18,25 @@ import pycls.utils.distributed as du
 import pycls.utils.logging as lu
 import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
+import torch
+from pycls.core.config import assert_cfg, cfg
+from pycls.utils.meters import TestMeter
+
 
 logger = lu.get_logger(__name__)
 
 
 def parse_args():
     """Parses the arguments."""
-    parser = argparse.ArgumentParser(
-        description='Test a trained classification model'
+    parser = argparse.ArgumentParser(description="Test a trained classification model")
+    parser.add_argument(
+        "--cfg", dest="cfg_file", help="Config file", required=True, type=str
     )
     parser.add_argument(
-        '--cfg',
-        dest='cfg_file',
-        help='Config file',
-        required=True,
-        type=str
-    )
-    parser.add_argument(
-        'opts',
-        help='See pycls/core/config.py for all options',
+        "opts",
+        help="See pycls/core/config.py for all options",
         default=None,
-        nargs=argparse.REMAINDER
+        nargs=argparse.REMAINDER,
     )
     if len(sys.argv) == 1:
         parser.logger.info_help()
@@ -54,9 +46,9 @@ def parse_args():
 
 def log_model_info(model):
     """Logs model info"""
-    logger.info('Model:\n{}'.format(model))
-    logger.info('Params: {:,}'.format(mu.params_count(model)))
-    logger.info('Flops: {:,}'.format(mu.flops_count(model)))
+    logger.info("Model:\n{}".format(model))
+    logger.info("Params: {:,}".format(mu.params_count(model)))
+    logger.info("Flops: {:,}".format(mu.flops_count(model)))
 
 
 @torch.no_grad()
@@ -81,9 +73,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         top1_err, top5_err = top1_err.item(), top5_err.item()
         test_meter.iter_toc()
         # Update and log stats
-        test_meter.update_stats(
-            top1_err, top5_err, inputs.size(0) * cfg.NUM_GPUS
-        )
+        test_meter.update_stats(top1_err, top5_err, inputs.size(0) * cfg.NUM_GPUS)
         test_meter.log_iter_stats(cur_epoch, cur_iter)
         test_meter.iter_tic()
 
@@ -101,7 +91,7 @@ def test_model():
 
     # Load model weights
     cu.load_checkpoint(cfg.TEST.WEIGHTS, model)
-    logger.info('Loaded model weights from: {}'.format(cfg.TEST.WEIGHTS))
+    logger.info("Loaded model weights from: {}".format(cfg.TEST.WEIGHTS))
 
     # Create data loaders
     test_loader = loader.construct_test_loader()
@@ -119,7 +109,7 @@ def single_proc_test():
     # Setup logging
     lu.setup_logging()
     # Show the config
-    logger.info('Config:\n{}'.format(cfg))
+    logger.info("Config:\n{}".format(cfg))
 
     # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
     np.random.seed(cfg.RNG_SEED)
@@ -148,5 +138,5 @@ def main():
         single_proc_test()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

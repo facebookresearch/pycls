@@ -10,7 +10,4 @@
 from setuptools import setup
 
 
-setup(
-    name='pycls',
-    packages=['pycls']
-)
+setup(name="pycls", packages=["pycls"])

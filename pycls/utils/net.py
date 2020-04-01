@@ -9,9 +9,9 @@
 
 import itertools
 import math
+
 import torch
 import torch.nn as nn
-
 from pycls.core.config import cfg
 
 
@@ -23,8 +23,7 @@ def init_weights(m):
         m.weight.data.normal_(mean=0.0, std=math.sqrt(2.0 / fan_out))
     elif isinstance(m, nn.BatchNorm2d):
         zero_init_gamma = (
-            hasattr(m, 'final_bn') and m.final_bn and
-            cfg.BN.ZERO_INIT_FINAL_GAMMA
+            hasattr(m, "final_bn") and m.final_bn and cfg.BN.ZERO_INIT_FINAL_GAMMA
         )
         m.weight.data.fill_(0.0 if zero_init_gamma else 1.0)
         m.bias.data.zero_()
@@ -90,6 +89,6 @@ def set_flat_weights(model, flat_weights):
     k = 0
     for p in model.parameters():
         n = p.data.numel()
-        p.data.copy_(flat_weights[k:(k + n)].view_as(p.data))
+        p.data.copy_(flat_weights[k : (k + n)].view_as(p.data))
         k += n
     assert k == flat_weights.numel()

@@ -10,9 +10,8 @@
 import multiprocessing as mp
 import traceback
 
-from pycls.utils.error_handler import ErrorHandler
-
 import pycls.utils.distributed as du
+from pycls.utils.error_handler import ErrorHandler
 
 
 def run(proc_rank, world_size, error_queue, fun, fun_args, fun_kwargs):
@@ -33,8 +32,11 @@ def run(proc_rank, world_size, error_queue, fun, fun_args, fun_kwargs):
         du.destroy_process_group()
 
 
-def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs={}):
+def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs=None):
     """Runs a function in a multi-proc setting."""
+
+    if fun_kwargs is None:
+        fun_kwargs = {}
 
     # Handle errors from training subprocesses
     error_queue = mp.SimpleQueue()
@@ -44,8 +46,7 @@ def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs={}):
     ps = []
     for i in range(num_proc):
         p_i = mp.Process(
-            target=run,
-            args=(i, num_proc, error_queue, fun, fun_args, fun_kwargs)
+            target=run, args=(i, num_proc, error_queue, fun, fun_args, fun_kwargs)
         )
         ps.append(p_i)
         p_i.start()

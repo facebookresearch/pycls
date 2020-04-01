@@ -28,8 +28,8 @@ class Timer(object):
         self.average_time = self.total_time / self.calls
 
     def reset(self):
-        self.total_time = 0.
+        self.total_time = 0.0
         self.calls = 0
-        self.start_time = 0.
-        self.diff = 0.
-        self.average_time = 0.
+        self.start_time = 0.0
+        self.diff = 0.0
+        self.average_time = 0.0

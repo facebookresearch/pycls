@@ -7,8 +7,9 @@
 
 """Image transformations."""
 
-import cv2
 import math
+
+import cv2
 import numpy as np
 
 
@@ -23,18 +24,19 @@ def color_norm(im, mean, std):
 def zero_pad(im, pad_size):
     """Performs zero padding (CHW format)."""
     pad_width = ((0, 0), (pad_size, pad_size), (pad_size, pad_size))
-    return np.pad(im, pad_width, mode='constant')
+    return np.pad(im, pad_width, mode="constant")
 
 
-def horizontal_flip(im, p, order='CHW'):
+def horizontal_flip(im, p, order="CHW"):
     """Performs horizontal flip (CHW or HWC format)."""
-    assert order in ['CHW', 'HWC']
+    assert order in ["CHW", "HWC"]
     if np.random.uniform() < p:
-        if order == 'CHW':
+        if order == "CHW":
             im = im[:, :, ::-1]
         else:
             im = im[:, ::-1, :]
     return im
+
 
 def random_crop(im, size, pad_size=0):
     """Performs random crop (CHW format)."""
@@ -43,7 +45,7 @@ def random_crop(im, size, pad_size=0):
     h, w = im.shape[1:]
     y = np.random.randint(0, h - size)
     x = np.random.randint(0, w - size)
-    im_crop = im[:, y:(y + size), x:(x + size)]
+    im_crop = im[:, y : (y + size), x : (x + size)]
     assert im_crop.shape[1:] == (size, size)
     return im_crop
 
@@ -58,10 +60,7 @@ def scale(size, im):
         h_new = int(math.floor((float(h) / w) * size))
     else:
         w_new = int(math.floor((float(w) / h) * size))
-    im = cv2.resize(
-        im, (w_new, h_new),
-        interpolation=cv2.INTER_LINEAR
-    )
+    im = cv2.resize(im, (w_new, h_new), interpolation=cv2.INTER_LINEAR)
     return im.astype(np.float32)
 
 
@@ -70,7 +69,7 @@ def center_crop(size, im):
     h, w = im.shape[:2]
     y = int(math.ceil((h - size) / 2))
     x = int(math.ceil((w - size) / 2))
-    im_crop = im[y:(y + size), x:(x + size), :]
+    im_crop = im[y : (y + size), x : (x + size), :]
     assert im_crop.shape[:2] == (size, size)
     return im_crop
 
@@ -89,12 +88,9 @@ def random_sized_crop(im, size, area_frac=0.08, max_iter=10):
         if h_crop <= h and w_crop <= w:
             y = 0 if h_crop == h else np.random.randint(0, h - h_crop)
             x = 0 if w_crop == w else np.random.randint(0, w - w_crop)
-            im_crop = im[y:(y + h_crop), x:(x + w_crop), :]
+            im_crop = im[y : (y + h_crop), x : (x + w_crop), :]
             assert im_crop.shape[:2] == (h_crop, w_crop)
-            im_crop = cv2.resize(
-                im_crop, (size, size),
-                interpolation=cv2.INTER_LINEAR
-            )
+            im_crop = cv2.resize(im_crop, (size, size), interpolation=cv2.INTER_LINEAR)
             return im_crop.astype(np.float32)
     return center_crop(size, scale(size, im))
 
@@ -105,8 +101,7 @@ def lighting(im, alpha_std, eig_val, eig_vec):
         return im
     alpha = np.random.normal(0, alpha_std, size=(1, 3))
     rgb = np.sum(
-        eig_vec * np.repeat(alpha, 3, axis=0) * np.repeat(eig_val, 3, axis=0),
-        axis=1
+        eig_vec * np.repeat(alpha, 3, axis=0) * np.repeat(eig_val, 3, axis=0), axis=1
     )
     for i in range(im.shape[0]):
         im[i] = im[i] + rgb[2 - i]
