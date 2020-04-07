@@ -18,7 +18,7 @@ After installation, please see [`GETTING_STARTED.md`](docs/GETTING_STARTED.md) f
 
 ## Model Zoo
 
-Coming soon!
+Coming soon (with RegNets introduced in Designing Network Design Spaces (https://arxiv.org/abs/2003.13678). 
 
 ## Citing pycls
 
