@@ -19,7 +19,7 @@ import pycls.utils.logging as lu
 import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
 import torch
-from pycls.core.config import assert_cfg, cfg
+from pycls.core.config import assert_and_infer_cfg, cfg
 from pycls.utils.meters import TestMeter
 
 
@@ -128,7 +128,7 @@ def main():
     # Load config options
     cfg.merge_from_file(args.cfg_file)
     cfg.merge_from_list(args.opts)
-    assert_cfg()
+    assert_and_infer_cfg()
     cfg.freeze()
 
     # Perform evaluation

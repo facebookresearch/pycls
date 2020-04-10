@@ -9,6 +9,7 @@
 
 import os
 
+from pycls.utils.io import cache_url
 from yacs.config import CfgNode as CN
 
 
@@ -323,8 +324,11 @@ _C.DIST_BACKEND = "nccl"
 _C.HOST = "localhost"
 _C.PORT = 10001
 
+# Models weights referred to by URL are downloaded to this local cache
+_C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"
 
-def assert_cfg():
+
+def assert_and_infer_cfg(cache_urls=True):
     """Checks config values invariants."""
     assert (
         not _C.OPTIM.STEPS or _C.OPTIM.STEPS[0] == 0
@@ -355,6 +359,16 @@ def assert_cfg():
     assert (
         not _C.PREC_TIME.ENABLED or _C.NUM_GPUS == 1
     ), "Precise iter time computation not verified for > 1 GPU"
+    if cache_urls:
+        cache_cfg_urls()
+
+
+def cache_cfg_urls():
+    """Download URLs in the config, cache them locally, and rewrite cfg to make
+    use of the locally cached file.
+    """
+    _C.TRAIN.WEIGHTS = cache_url(_C.TRAIN.WEIGHTS, _C.DOWNLOAD_CACHE)
+    _C.TEST.WEIGHTS = cache_url(_C.TEST.WEIGHTS, _C.DOWNLOAD_CACHE)
 
 
 def dump_cfg():

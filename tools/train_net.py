@@ -24,7 +24,7 @@ import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
 import pycls.utils.net as nu
 import torch
-from pycls.core.config import assert_cfg, cfg, dump_cfg
+from pycls.core.config import assert_and_infer_cfg, cfg, dump_cfg
 from pycls.utils.meters import TestMeter, TrainMeter
 
 
@@ -218,7 +218,7 @@ def main():
     # Load config options
     cfg.merge_from_file(args.cfg_file)
     cfg.merge_from_list(args.opts)
-    assert_cfg()
+    assert_and_infer_cfg()
     cfg.freeze()
 
     # Ensure that the output dir exists
