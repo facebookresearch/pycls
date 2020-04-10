@@ -42,6 +42,28 @@ def get_block_fun(block_type):
     return block_funs[block_type]
 
 
+class SE(nn.Module):
+    """Squeeze-and-Excitation (SE) block"""
+
+    def __init__(self, dim_in, dim_se):
+        super(SE, self).__init__()
+        self._construct(dim_in, dim_se)
+
+    def _construct(self, dim_in, dim_se):
+        # AvgPool
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        # FC, Activation, FC, Sigmoid
+        self.f_ex = nn.Sequential(
+            nn.Conv2d(dim_in, dim_se, kernel_size=1, bias=True),
+            nn.ReLU(inplace=cfg.MEM.RELU_INPLACE),
+            nn.Conv2d(dim_se, dim_in, kernel_size=1, bias=True),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x):
+        return x * self.f_ex(self.avg_pool(x))
+
+
 class AnyHead(nn.Module):
     """AnyNet head."""
 
@@ -165,6 +187,12 @@ class BottleneckTransform(nn.Module):
         )
         self.b_bn = nn.BatchNorm2d(w_b, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.b_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
+
+        if cfg.ANYNET.SE_ENABLED:
+            se_r = cfg.ANYNET.SE_RATIO
+            dim_se = int(round(w_in * se_r))
+            self.se = SE(w_b, dim_se)
+
         # 1x1, BN
         self.c = nn.Conv2d(w_b, w_out, kernel_size=1, stride=1, padding=0, bias=False)
         self.c_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)

@@ -88,6 +88,11 @@ _C.ANYNET.GW_PARAM = False
 # Group param for each stage (number of groups or group width)
 _C.ANYNET.GROUPS = []
 
+# Whether SE is enabled for res_bottleneck_block
+_C.ANYNET.SE_ENABLED = False
+
+# SE ratio
+_C.ANYNET.SE_RATIO = 0.25
 
 # ---------------------------------------------------------------------------- #
 # EfficientNet options
