@@ -61,6 +61,7 @@ def log_model_info(model):
     logger.info("Model:\n{}".format(model))
     logger.info("Params: {:,}".format(mu.params_count(model)))
     logger.info("Flops: {:,}".format(mu.flops_count(model)))
+    logger.info("Acts: {:,}".format(mu.acts_count(model)))
 
 
 def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch):

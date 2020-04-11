@@ -72,7 +72,29 @@ def flops_count(model):
             h = (h + 2 * m.padding - m.kernel_size) // m.stride + 1
             w = (w + 2 * m.padding - m.kernel_size) // m.stride + 1
         elif isinstance(m, nn.Linear):
-            count += m.in_features * m.out_features
+            count += m.in_features * m.out_features + m.bias.numel()
+    return count.item()
+
+
+def acts_count(model):
+    """Computes the number of activations statically."""
+    h, w = cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE
+    count = 0
+    for n, m in model.named_modules():
+        if isinstance(m, nn.Conv2d):
+            if "se." in n:
+                count += m.out_channels
+                continue
+            h_out = (h + 2 * m.padding[0] - m.kernel_size[0]) // m.stride[0] + 1
+            w_out = (w + 2 * m.padding[1] - m.kernel_size[1]) // m.stride[1] + 1
+            count += np.prod([m.out_channels, h_out, w_out])
+            if ".proj" not in n:
+                h, w = h_out, w_out
+        elif isinstance(m, nn.MaxPool2d):
+            h = (h + 2 * m.padding - m.kernel_size) // m.stride + 1
+            w = (w + 2 * m.padding - m.kernel_size) // m.stride + 1
+        elif isinstance(m, nn.Linear):
+            count += m.out_features
     return count.item()
 
 
