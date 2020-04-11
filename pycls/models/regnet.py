@@ -33,8 +33,8 @@ def adjust_ws_gs_comp(ws, bms, gs):
 def get_stages_from_blocks(ws, rs):
     """Gets ws/ds of network at each stage from per block values."""
     ts = [
-        w != wp or r != rp for w, wp, r, rp in
-        zip(ws + [0], [0] + ws, rs + [0], [0] + rs)
+        w != wp or r != rp
+        for w, wp, r, rp in zip(ws + [0], [0] + ws, rs + [0], [0] + rs)
     ]
     s_ws = [w for w, t in zip(ws, ts[:-1]) if t]
     s_ds = np.diff([d for d, t in zip(range(len(ts)), ts) if t]).tolist()
@@ -64,22 +64,23 @@ class RegNet(AnyNet):
         # Convert to per stage format
         ws, ds = get_stages_from_blocks(b_ws, b_ws)
         # Generate group widths and bot muls
-        gs = [cfg.REGNET.GROUP_W for _ in range(num_s)]
+        gws = [cfg.REGNET.GROUP_W for _ in range(num_s)]
         bms = [cfg.REGNET.BOT_MUL for _ in range(num_s)]
-        # Adjust the compatibility of ws and gs
-        ws, gs = adjust_ws_gs_comp(ws, bms, gs)
+        # Adjust the compatibility of ws and gws
+        ws, gws = adjust_ws_gs_comp(ws, bms, gws)
         # Use the same stride for each stage
         ss = [cfg.REGNET.STRIDE for _ in range(num_s)]
         # Construct the model
-        super(RegNet, self).__init__(**{
-            "stem_type": cfg.REGNET.STEM_TYPE,
-            "stem_w": cfg.REGNET.STEM_W,
-            "block_type": cfg.REGNET.BLOCK_TYPE,
-            "ss": ss,
-            "ds": ds,
-            "ws": ws,
-            "bms": bms,
-            "gs": gs,
-            "gw": cfg.REGNET.GW_PARAM,
-            "nc": cfg.MODEL.NUM_CLASSES,
-        })
+        super(RegNet, self).__init__(
+            **{
+                "stem_type": cfg.REGNET.STEM_TYPE,
+                "stem_w": cfg.REGNET.STEM_W,
+                "block_type": cfg.REGNET.BLOCK_TYPE,
+                "ss": ss,
+                "ds": ds,
+                "ws": ws,
+                "bms": bms,
+                "gws": gws,
+                "nc": cfg.MODEL.NUM_CLASSES,
+            }
+        )
