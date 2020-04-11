@@ -64,10 +64,10 @@ class RegNet(AnyNet):
         # Convert to per stage format
         ws, ds = get_stages_from_blocks(b_ws, b_ws)
         # Generate group widths and bot muls
-        gs = [cfg.REGNET.GROUP_W for _ in range(num_s)]
+        gws = [cfg.REGNET.GROUP_W for _ in range(num_s)]
         bms = [cfg.REGNET.BOT_MUL for _ in range(num_s)]
-        # Adjust the compatibility of ws and gs
-        ws, gs = adjust_ws_gs_comp(ws, bms, gs)
+        # Adjust the compatibility of ws and gws
+        ws, gws = adjust_ws_gs_comp(ws, bms, gws)
         # Use the same stride for each stage
         ss = [cfg.REGNET.STRIDE for _ in range(num_s)]
         # Construct the model
@@ -79,7 +79,6 @@ class RegNet(AnyNet):
             "ds": ds,
             "ws": ws,
             "bms": bms,
-            "gs": gs,
-            "gw": cfg.REGNET.GW_PARAM,
+            "gws": gws,
             "nc": cfg.MODEL.NUM_CLASSES,
         })
