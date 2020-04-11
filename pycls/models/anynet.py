@@ -82,9 +82,9 @@ class AnyHead(nn.Module):
 class VanillaBlock(nn.Module):
     """Vanilla block: [3x3 conv, BN, Relu] x2"""
 
-    def __init__(self, w_in, w_out, stride, bm=None, g=None):
+    def __init__(self, w_in, w_out, stride, bm=None, g=None, gw=None):
         assert (
-            bm is None and g is None
+            bm is None and g is None and gw is None
         ), "Vanilla block does not support bm and g options"
         super(VanillaBlock, self).__init__()
         self._construct(w_in, w_out, stride)
@@ -135,9 +135,9 @@ class BasicTransform(nn.Module):
 class ResBasicBlock(nn.Module):
     """Residual basic block: x + F(x), F = basic transform"""
 
-    def __init__(self, w_in, w_out, stride, bm=None, g=None):
+    def __init__(self, w_in, w_out, stride, bm=None, g=None, gw=None):
         assert (
-            bm is None and g is None
+            bm is None and g is None and gw is None
         ), "Basic transform does not support bm and g options"
         super(ResBasicBlock, self).__init__()
         self._construct(w_in, w_out, stride)
@@ -168,15 +168,15 @@ class ResBasicBlock(nn.Module):
 class BottleneckTransform(nn.Module):
     """Bottlenect transformation: 1x1, 3x3, 1x1"""
 
-    def __init__(self, w_in, w_out, stride, bm, g):
+    def __init__(self, w_in, w_out, stride, bm, g, gw):
         super(BottleneckTransform, self).__init__()
-        self._construct(w_in, w_out, stride, bm, g)
+        self._construct(w_in, w_out, stride, bm, g, gw)
 
-    def _construct(self, w_in, w_out, stride, bm, g):
+    def _construct(self, w_in, w_out, stride, bm, g, gw):
         # Compute the bottleneck width
         w_b = int(round(w_out * bm))
         # Compute the number of groups
-        num_gs = w_b // g if cfg.ANYNET.GW_PARAM else g
+        num_gs = w_b // g if gw else g
         # 1x1, BN, ReLU
         self.a = nn.Conv2d(w_in, w_b, kernel_size=1, stride=1, padding=0, bias=False)
         self.a_bn = nn.BatchNorm2d(w_b, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
@@ -207,9 +207,9 @@ class BottleneckTransform(nn.Module):
 class ResBottleneckBlock(nn.Module):
     """Residual bottleneck block: x + F(x), F = bottleneck transform"""
 
-    def __init__(self, w_in, w_out, stride, bm=1.0, g=1):
+    def __init__(self, w_in, w_out, stride, bm=1.0, g=1, gw=False):
         super(ResBottleneckBlock, self).__init__()
-        self._construct(w_in, w_out, stride, bm, g)
+        self._construct(w_in, w_out, stride, bm, g, gw)
 
     def _add_skip_proj(self, w_in, w_out, stride):
         self.proj = nn.Conv2d(
@@ -217,12 +217,12 @@ class ResBottleneckBlock(nn.Module):
         )
         self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
 
-    def _construct(self, w_in, w_out, stride, bm, g):
+    def _construct(self, w_in, w_out, stride, bm, g, gw):
         # Use skip connection with projection if shape changes
         self.proj_block = (w_in != w_out) or (stride != 1)
         if self.proj_block:
             self._add_skip_proj(w_in, w_out, stride)
-        self.f = BottleneckTransform(w_in, w_out, stride, bm, g)
+        self.f = BottleneckTransform(w_in, w_out, stride, bm, g, gw)
         self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
 
     def forward(self, x):
@@ -301,11 +301,11 @@ class SimpleStemIN(nn.Module):
 class AnyStage(nn.Module):
     """AnyNet stage (sequence of blocks w/ the same output shape)."""
 
-    def __init__(self, w_in, w_out, stride, d, block_fun, bm, g):
+    def __init__(self, w_in, w_out, stride, d, block_fun, bm, g, gw):
         super(AnyStage, self).__init__()
-        self._construct(w_in, w_out, stride, d, block_fun, bm, g)
+        self._construct(w_in, w_out, stride, d, block_fun, bm, g, gw)
 
-    def _construct(self, w_in, w_out, stride, d, block_fun, bm, g):
+    def _construct(self, w_in, w_out, stride, d, block_fun, bm, g, gw):
         # Construct the blocks
         for i in range(d):
             # Stride and w_in apply to the first block of the stage
@@ -313,7 +313,7 @@ class AnyStage(nn.Module):
             b_w_in = w_in if i == 0 else w_out
             # Construct the block
             self.add_module(
-                "b{}".format(i + 1), block_fun(b_w_in, w_out, b_stride, bm, g)
+                "b{}".format(i + 1), block_fun(b_w_in, w_out, b_stride, bm, g, gw)
             )
 
     def forward(self, x):
@@ -325,34 +325,43 @@ class AnyStage(nn.Module):
 class AnyNet(nn.Module):
     """AnyNet model."""
 
-    def __init__(self):
-        assert len(cfg.ANYNET.DEPTHS) == len(
-            cfg.ANYNET.WIDTHS
-        ), "Depths and widths must be specified for each stage"
-        assert len(cfg.ANYNET.DEPTHS) == len(
-            cfg.ANYNET.STRIDES
-        ), "Depths and strides must be specified for each stage"
+    def __init__(self, **kwargs):
         super(AnyNet, self).__init__()
-        self._construct(
-            stem_type=cfg.ANYNET.STEM_TYPE,
-            stem_w=cfg.ANYNET.STEM_W,
-            block_type=cfg.ANYNET.BLOCK_TYPE,
-            ds=cfg.ANYNET.DEPTHS,
-            ws=cfg.ANYNET.WIDTHS,
-            ss=cfg.ANYNET.STRIDES,
-            bms=cfg.ANYNET.BOT_MULS,
-            gs=cfg.ANYNET.GROUPS,
-            nc=cfg.MODEL.NUM_CLASSES,
-        )
+        if kwargs:
+            self._construct(
+                stem_type=kwargs["stem_type"],
+                stem_w=kwargs["stem_w"],
+                block_type=kwargs["block_type"],
+                ds=kwargs["ds"],
+                ws=kwargs["ws"],
+                ss=kwargs["ss"],
+                bms=kwargs["bms"],
+                gs=kwargs["gs"],
+                gw=kwargs["gw"],
+                nc=kwargs["nc"],
+            )
+        else:
+            self._construct(
+                stem_type=cfg.ANYNET.STEM_TYPE,
+                stem_w=cfg.ANYNET.STEM_W,
+                block_type=cfg.ANYNET.BLOCK_TYPE,
+                ds=cfg.ANYNET.DEPTHS,
+                ws=cfg.ANYNET.WIDTHS,
+                ss=cfg.ANYNET.STRIDES,
+                bms=cfg.ANYNET.BOT_MULS,
+                gs=cfg.ANYNET.GROUPS,
+                gw=cfg.ANYNET.GW_PARAM,
+                nc=cfg.MODEL.NUM_CLASSES,
+            )
         self.apply(nu.init_weights)
 
-    def _construct(self, stem_type, stem_w, block_type, ds, ws, ss, bms, gs, nc):
+    def _construct(self, stem_type, stem_w, block_type, ds, ws, ss, bms, gs, gw, nc):
+        logger.info("Constructing AnyNet: ds={}, ws={}".format(ds, ws))
         # Generate dummy bot muls and gs for models that do not use them
         bms = bms if bms else [1.0 for _d in ds]
         gs = gs if gs else [1 for _d in ds]
         # Group params by stage
         stage_params = list(zip(ds, ws, ss, bms, gs))
-        logger.info("Constructing: AnyNet-{}".format(stage_params))
         # Construct the stem
         stem_fun = get_stem_fun(stem_type)
         self.stem = stem_fun(3, stem_w)
@@ -361,7 +370,7 @@ class AnyNet(nn.Module):
         prev_w = stem_w
         for i, (d, w, s, bm, g) in enumerate(stage_params):
             self.add_module(
-                "s{}".format(i + 1), AnyStage(prev_w, w, s, d, block_fun, bm, g)
+                "s{}".format(i + 1), AnyStage(prev_w, w, s, d, block_fun, bm, g, gw)
             )
             prev_w = w
         # Construct the head

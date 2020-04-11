@@ -96,6 +96,36 @@ _C.ANYNET.SE_ENABLED = False
 _C.ANYNET.SE_RATIO = 0.25
 
 # ---------------------------------------------------------------------------- #
+# RegNet options
+# ---------------------------------------------------------------------------- #
+_C.REGNET = CN()
+
+# Stem type
+_C.REGNET.STEM_TYPE = "simple_stem_in"
+# Stem width
+_C.REGNET.STEM_W = 32
+# Block type
+_C.REGNET.BLOCK_TYPE = "res_bottleneck_block"
+# Stride of each stage
+_C.REGNET.STRIDE = 2
+# Group width parametrization
+_C.REGNET.GW_PARAM = True
+
+# Depth
+_C.REGNET.DEPTH = 10
+# Initial width
+_C.REGNET.W0 = 32
+# Slope
+_C.REGNET.WA = 5.0
+# Quantization
+_C.REGNET.WM = 2.5
+# Group width
+_C.REGNET.GROUP_W = 16
+# Bottleneck multiplier (bm = 1 / b from the paper)
+_C.REGNET.BOT_MUL = 1.0
+
+
+# ---------------------------------------------------------------------------- #
 # EfficientNet options
 # ---------------------------------------------------------------------------- #
 _C.EN = CN()
