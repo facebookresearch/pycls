@@ -2,7 +2,7 @@
 
 This document covers how to install **pycls** and its dependencies.
 
-- For general information about **pycls**, please see [`README.md`](../README.md)
+- For general information about **pycls**, please see [`README.md`](README.md)
 
 **Requirements:**
 
