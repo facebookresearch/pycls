@@ -87,10 +87,10 @@ _C.ANYNET.BOT_MULS = []
 _C.ANYNET.GROUP_WS = []
 
 # Whether SE is enabled for res_bottleneck_block
-_C.ANYNET.SE_ENABLED = False
+_C.ANYNET.SE_ON = False
 
 # SE ratio
-_C.ANYNET.SE_RATIO = 0.25
+_C.ANYNET.SE_R = 0.25
 
 # ---------------------------------------------------------------------------- #
 # RegNet options
@@ -105,8 +105,9 @@ _C.REGNET.STEM_W = 32
 _C.REGNET.BLOCK_TYPE = "res_bottleneck_block"
 # Stride of each stage
 _C.REGNET.STRIDE = 2
-# Group width parametrization
-_C.REGNET.GW_PARAM = True
+# Squeeze-and-Excitation (RegNetY)
+_C.REGNET.SE_ON = False
+_C.REGNET.SE_R = 0.25
 
 # Depth
 _C.REGNET.DEPTH = 10
@@ -138,9 +139,6 @@ _C.EN.WIDTHS = []
 
 # Expansion ratios for MBConv blocks in each stage
 _C.EN.EXP_RATIOS = []
-
-# Squeeze-and-Excitation (SE) operation
-_C.EN.SE_ENABLED = True
 
 # Squeeze-and-Excitation (SE) ratio
 _C.EN.SE_RATIO = 0.25

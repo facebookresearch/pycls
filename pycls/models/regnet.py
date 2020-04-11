@@ -70,17 +70,19 @@ class RegNet(AnyNet):
         ws, gws = adjust_ws_gs_comp(ws, bms, gws)
         # Use the same stride for each stage
         ss = [cfg.REGNET.STRIDE for _ in range(num_s)]
+        # Use SE for RegNetY
+        se_r = cfg.REGNET.SE_R if cfg.REGNET.SE_ON else None
         # Construct the model
-        super(RegNet, self).__init__(
-            **{
-                "stem_type": cfg.REGNET.STEM_TYPE,
-                "stem_w": cfg.REGNET.STEM_W,
-                "block_type": cfg.REGNET.BLOCK_TYPE,
-                "ss": ss,
-                "ds": ds,
-                "ws": ws,
-                "bms": bms,
-                "gws": gws,
-                "nc": cfg.MODEL.NUM_CLASSES,
-            }
-        )
+        kwargs = {
+            "stem_type": cfg.REGNET.STEM_TYPE,
+            "stem_w": cfg.REGNET.STEM_W,
+            "block_type": cfg.REGNET.BLOCK_TYPE,
+            "ss": ss,
+            "ds": ds,
+            "ws": ws,
+            "bms": bms,
+            "gws": gws,
+            "se_r": se_r,
+            "nc": cfg.MODEL.NUM_CLASSES,
+        }
+        super(RegNet, self).__init__(**kwargs)
