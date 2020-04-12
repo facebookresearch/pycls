@@ -112,7 +112,7 @@ class MBConv(nn.Module):
         )
         self.dwise_bn = nn.BatchNorm2d(w_exp, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
         self.dwise_swish = Swish()
-        # SE
+        # Squeeze-and-Excitation (SE)
         w_se = int(w_in * se_r)
         self.se = SE(w_exp, w_se)
         # 1x1, BN
@@ -131,8 +131,7 @@ class MBConv(nn.Module):
         # Depthwise
         f_x = self.dwise_swish(self.dwise_bn(self.dwise(f_x)))
         # SE
-        if cfg.EN.SE_ENABLED:
-            f_x = self.se(f_x)
+        f_x = self.se(f_x)
         # Linear projection
         f_x = self.lin_proj_bn(self.lin_proj(f_x))
         # Skip connection
