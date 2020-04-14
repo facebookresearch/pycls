@@ -177,8 +177,9 @@ _C.BN.NUM_SAMPLES_PRECISE = 1024
 # Initialize the gamma of the final BN of each block to zero
 _C.BN.ZERO_INIT_FINAL_GAMMA = False
 
-# Weight decay on BN parameters
-_C.BN.WEIGHT_DECAY = 0.0
+# Use a different weight decay for BN layers
+_C.BN.USE_CUSTOM_WEIGHT_DECAY = False
+_C.BN.CUSTOM_WEIGHT_DECAY = 0.0
 
 # ---------------------------------------------------------------------------- #
 # Optimizer options
@@ -298,7 +299,7 @@ _C.CUDNN = CN()
 # Perform benchmarking to select the fastest CUDNN algorithms to use
 # Note that this may increase the memory usage and will likely not result
 # in overall speedups when variable size inputs are used (e.g. COCO training)
-_C.CUDNN.BENCHMARK = False
+_C.CUDNN.BENCHMARK = True
 
 
 # ---------------------------------------------------------------------------- #
