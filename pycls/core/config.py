@@ -141,7 +141,7 @@ _C.EN.WIDTHS = []
 _C.EN.EXP_RATIOS = []
 
 # Squeeze-and-Excitation (SE) ratio
-_C.EN.SE_RATIO = 0.25
+_C.EN.SE_R = 0.25
 
 # Strides for each stage (applies to the first block of each stage)
 _C.EN.STRIDES = []

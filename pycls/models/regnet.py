@@ -32,10 +32,8 @@ def adjust_ws_gs_comp(ws, bms, gs):
 
 def get_stages_from_blocks(ws, rs):
     """Gets ws/ds of network at each stage from per block values."""
-    ts = [
-        w != wp or r != rp
-        for w, wp, r, rp in zip(ws + [0], [0] + ws, rs + [0], [0] + rs)
-    ]
+    ts_temp = zip(ws + [0], [0] + ws, rs + [0], [0] + rs)
+    ts = [w != wp or r != rp for w, wp, r, rp in ts_temp]
     s_ws = [w for w, t in zip(ws, ts[:-1]) if t]
     s_ds = np.diff([d for d, t in zip(range(len(ts)), ts) if t]).tolist()
     return s_ws, s_ds

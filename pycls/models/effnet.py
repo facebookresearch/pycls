@@ -205,7 +205,7 @@ class EffNet(nn.Module):
             ds=cfg.EN.DEPTHS,
             ws=cfg.EN.WIDTHS,
             exp_rs=cfg.EN.EXP_RATIOS,
-            se_r=cfg.EN.SE_RATIO,
+            se_r=cfg.EN.SE_R,
             ss=cfg.EN.STRIDES,
             ks=cfg.EN.KERNELS,
             head_w=cfg.EN.HEAD_W,
