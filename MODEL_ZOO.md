@@ -58,8 +58,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">10</td>
 <td align="center">2.8</td>
 <td align="center">31.1</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160905981</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905981/RegNetX-200MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-400MF -->
 <tr>
@@ -71,8 +71,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">15</td>
 <td align="center">3.9</td>
 <td align="center">27.3</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160905967</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905967/RegNetX-400MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-600MF -->
 <tr>
@@ -84,8 +84,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">17</td>
 <td align="center">4.4</td>
 <td align="center">25.9</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906442</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906442/RegNetX-600MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-800MF -->
 <tr>
@@ -97,8 +97,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">21</td>
 <td align="center">5.7</td>
 <td align="center">24.8</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906036</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-1.6GF -->
 <tr>
@@ -110,8 +110,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">33</td>
 <td align="center">8.7</td>
 <td align="center">23.0</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160990626</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160990626/RegNetX-1.6GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-3.2GF -->
 <tr>
@@ -123,8 +123,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">57</td>
 <td align="center">14.3</td>
 <td align="center">21.7</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906139</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906139/RegNetX-3.2GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-4.0GF -->
 <tr>
@@ -136,8 +136,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">69</td>
 <td align="center">17.1</td>
 <td align="center">21.4</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906383</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906383/RegNetX-4.0GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-6.4GF -->
 <tr>
@@ -149,8 +149,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">92</td>
 <td align="center">23.5</td>
 <td align="center">20.8</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161116590</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161116590/RegNetX-6.4GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-8.0GF -->
 <tr>
@@ -162,8 +162,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">94</td>
 <td align="center">22.6</td>
 <td align="center">20.7</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161107726</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161107726/RegNetX-8.0GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-12GF -->
 <tr>
@@ -175,8 +175,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">137</td>
 <td align="center">32.9</td>
 <td align="center">20.3</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906020</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906020/RegNetX-12GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-16GF -->
 <tr>
@@ -188,8 +188,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">168</td>
 <td align="center">39.7</td>
 <td align="center">20.0</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">158460855</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/158460855/RegNetX-16GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetX-32GF -->
 <tr>
@@ -202,7 +202,7 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">76.9</td>
 <td align="center">19.5</td>
 <td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/158188473/RegNetX-32GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- END RegNetX TABLE -->
 </tbody></table>
@@ -233,8 +233,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">11</td>
 <td align="center">3.1</td>
 <td align="center">29.6</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">176245422</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/176245422/RegNetY-200MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-400MF -->
 <tr>
@@ -246,8 +246,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">19</td>
 <td align="center">5.1</td>
 <td align="center">25.9</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906449</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906449/RegNetY-400MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-600MF -->
 <tr>
@@ -259,8 +259,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">19</td>
 <td align="center">5.2</td>
 <td align="center">24.5</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160981443</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160981443/RegNetY-600MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-800MF -->
 <tr>
@@ -272,8 +272,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">22</td>
 <td align="center">6.0</td>
 <td align="center">23.7</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906567</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906567/RegNetY-800MF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-1.6GF -->
 <tr>
@@ -285,8 +285,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">39</td>
 <td align="center">10.1</td>
 <td align="center">22.0</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906681</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906681/RegNetY-1.6GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-3.2GF -->
 <tr>
@@ -298,8 +298,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">67</td>
 <td align="center">16.5</td>
 <td align="center">21.0</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906834</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906834/RegNetY-3.2GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-4.0GF -->
 <tr>
@@ -311,8 +311,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">68</td>
 <td align="center">16.8</td>
 <td align="center">20.6</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160906838</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906838/RegNetY-4.0GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-6.4GF -->
 <tr>
@@ -324,8 +324,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">104</td>
 <td align="center">26.1</td>
 <td align="center">20.1</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160907112</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160907112/RegNetY-6.4GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-8.0GF -->
 <tr>
@@ -337,8 +337,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">113</td>
 <td align="center">28.1</td>
 <td align="center">20.1</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161160905</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161160905/RegNetY-8.0GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-12GF -->
 <tr>
@@ -350,8 +350,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">150</td>
 <td align="center">36.0</td>
 <td align="center">19.7</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">160907100</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/160907100/RegNetY-12GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-16GF -->
 <tr>
@@ -363,8 +363,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">189</td>
 <td align="center">45.6</td>
 <td align="center">19.6</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161303400</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161303400/RegNetY-16GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW RegNetY-32GF -->
 <tr>
@@ -376,8 +376,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">319</td>
 <td align="center">76.0</td>
 <td align="center">19.0</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161277763</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161277763/RegNetY-32GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- END RegNetY TABLE -->
 </tbody></table>
@@ -408,8 +408,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">53</td>
 <td align="center">12.2</td>
 <td align="center">23.2</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161235311</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161235311/R-50-1x64d_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW ResNet-101 -->
 <tr>
@@ -421,8 +421,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">90</td>
 <td align="center">20.4</td>
 <td align="center">21.4</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161167170</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161167170/R-101-1x64d_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW ResNet-152 -->
 <tr>
@@ -434,8 +434,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">130</td>
 <td align="center">29.2</td>
 <td align="center">20.9</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161167467</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161167467/R-152-1x64d_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- END ResNet TABLE -->
 </tbody></table>
@@ -466,8 +466,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">78</td>
 <td align="center">18.0</td>
 <td align="center">21.9</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161167411</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161167411/X-50-32x4d_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW ResNeXt-101 -->
 <tr>
@@ -479,8 +479,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">137</td>
 <td align="center">31.8</td>
 <td align="center">20.7</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161167590</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161167590/X-101-32x4d_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW ResNeXt-152 -->
 <tr>
@@ -492,8 +492,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">197</td>
 <td align="center">45.7</td>
 <td align="center">20.4</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">162471172</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/162471172/X-152-32x4d_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- END ResNeXt TABLE -->
 </tbody></table>
@@ -524,8 +524,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">34</td>
 <td align="center">11.7</td>
 <td align="center">24.9</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161305613</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305613/EN-B0_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW EfficientNet-B1 -->
 <tr>
@@ -537,8 +537,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">52</td>
 <td align="center">15.6</td>
 <td align="center">24.1</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161304979</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161304979/EN-B1_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW EfficientNet-B2 -->
 <tr>
@@ -550,8 +550,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">68</td>
 <td align="center">18.4</td>
 <td align="center">23.4</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161305015</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305015/EN-B2_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW EfficientNet-B3 -->
 <tr>
@@ -563,8 +563,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">114</td>
 <td align="center">32.1</td>
 <td align="center">22.5</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161305060</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305060/EN-B3_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW EfficientNet-B4 -->
 <tr>
@@ -576,8 +576,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">240</td>
 <td align="center">65.1</td>
 <td align="center">21.2</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161305098</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305098/EN-B4_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- ROW EfficientNet-B5 -->
 <tr>
@@ -589,8 +589,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">504</td>
 <td align="center">135.1</td>
 <td align="center">21.5</td>
-<td align="center">000000000</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/<...>/model_epoch_0100.pyth">model</a></td>
+<td align="center">161305138</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305138/EN-B5_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- END EfficientNet TABLE -->
 </tbody></table>
