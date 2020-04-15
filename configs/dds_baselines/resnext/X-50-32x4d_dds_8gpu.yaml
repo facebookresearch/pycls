@@ -9,7 +9,7 @@ ANYNET:
   DEPTHS: [3, 4, 6, 3]
   WIDTHS: [256, 512, 1024, 2048]
   BOT_MULS: [0.5, 0.5, 0.5, 0.5]
-  GROUP_WS: [64, 8, 16, 32]
+  GROUP_WS: [4, 8, 16, 32]
 OPTIM:
   LR_POLICY: cos
   BASE_LR: 0.2

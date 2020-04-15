@@ -201,7 +201,7 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">318</td>
 <td align="center">76.9</td>
 <td align="center">19.5</td>
-<td align="center">000000000</td>
+<td align="center">158188473</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/158188473/RegNetX-32GF_dds_8gpu.pyth">model</a></td>
 </tr>
 <!-- END RegNetX TABLE -->
