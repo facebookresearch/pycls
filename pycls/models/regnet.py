@@ -54,33 +54,34 @@ def generate_regnet(w_a, w_0, w_m, d, q=8):
 class RegNet(AnyNet):
     """RegNet model."""
 
-    def __init__(self):
+    @staticmethod
+    def get_args():
+        """Convert RegNet to AnyNet parameter format."""
         # Generate RegNet ws per block
-        b_ws, num_s, _, _ = generate_regnet(
-            cfg.REGNET.WA, cfg.REGNET.W0, cfg.REGNET.WM, cfg.REGNET.DEPTH
-        )
+        w_a, w_0, w_m, d = cfg.REGNET.WA, cfg.REGNET.W0, cfg.REGNET.WM, cfg.REGNET.DEPTH
+        ws, num_stages, _, _ = generate_regnet(w_a, w_0, w_m, d)
         # Convert to per stage format
-        ws, ds = get_stages_from_blocks(b_ws, b_ws)
-        # Generate group widths and bot muls
-        gws = [cfg.REGNET.GROUP_W for _ in range(num_s)]
-        bms = [cfg.REGNET.BOT_MUL for _ in range(num_s)]
+        s_ws, s_ds = get_stages_from_blocks(ws, ws)
+        # Use the same gw, bm and ss for each stage
+        s_gs = [cfg.REGNET.GROUP_W for _ in range(num_stages)]
+        s_bs = [cfg.REGNET.BOT_MUL for _ in range(num_stages)]
+        s_ss = [cfg.REGNET.STRIDE for _ in range(num_stages)]
         # Adjust the compatibility of ws and gws
-        ws, gws = adjust_ws_gs_comp(ws, bms, gws)
-        # Use the same stride for each stage
-        ss = [cfg.REGNET.STRIDE for _ in range(num_s)]
-        # Use SE for RegNetY
-        se_r = cfg.REGNET.SE_R if cfg.REGNET.SE_ON else None
-        # Construct the model
-        kwargs = {
+        s_ws, s_gs = adjust_ws_gs_comp(s_ws, s_bs, s_gs)
+        # Get AnyNet arguments defining the RegNet
+        return {
             "stem_type": cfg.REGNET.STEM_TYPE,
             "stem_w": cfg.REGNET.STEM_W,
             "block_type": cfg.REGNET.BLOCK_TYPE,
-            "ss": ss,
-            "ds": ds,
-            "ws": ws,
-            "bms": bms,
-            "gws": gws,
-            "se_r": se_r,
+            "ds": s_ds,
+            "ws": s_ws,
+            "ss": s_ss,
+            "bms": s_bs,
+            "gws": s_gs,
+            "se_r": cfg.REGNET.SE_R if cfg.REGNET.SE_ON else None,
             "nc": cfg.MODEL.NUM_CLASSES,
         }
+
+    def __init__(self):
+        kwargs = RegNet.get_args()
         super(RegNet, self).__init__(**kwargs)

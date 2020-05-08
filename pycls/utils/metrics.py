@@ -65,7 +65,7 @@ def flops_count(model):
                 continue
             h_out = (h + 2 * m.padding[0] - m.kernel_size[0]) // m.stride[0] + 1
             w_out = (w + 2 * m.padding[1] - m.kernel_size[1]) // m.stride[1] + 1
-            count += np.prod([m.weight.numel(), h_out, w_out])
+            count += np.prod([m.weight.numel(), h_out, w_out]).item()
             if ".proj" not in n:
                 h, w = h_out, w_out
         elif isinstance(m, nn.MaxPool2d):
@@ -73,7 +73,7 @@ def flops_count(model):
             w = (w + 2 * m.padding - m.kernel_size) // m.stride + 1
         elif isinstance(m, nn.Linear):
             count += m.in_features * m.out_features + m.bias.numel()
-    return count.item()
+    return count
 
 
 def acts_count(model):
@@ -87,7 +87,7 @@ def acts_count(model):
                 continue
             h_out = (h + 2 * m.padding[0] - m.kernel_size[0]) // m.stride[0] + 1
             w_out = (w + 2 * m.padding[1] - m.kernel_size[1]) // m.stride[1] + 1
-            count += np.prod([m.out_channels, h_out, w_out])
+            count += np.prod([m.out_channels, h_out, w_out]).item()
             if ".proj" not in n:
                 h, w = h_out, w_out
         elif isinstance(m, nn.MaxPool2d):
@@ -95,7 +95,7 @@ def acts_count(model):
             w = (w + 2 * m.padding - m.kernel_size) // m.stride + 1
         elif isinstance(m, nn.Linear):
             count += m.out_features
-    return count.item()
+    return count
 
 
 def gpu_mem_usage():
