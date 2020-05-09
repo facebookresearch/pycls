@@ -30,9 +30,8 @@ def cache_url(url_or_file, cache_dir):
         return url_or_file
 
     url = url_or_file
-    assert url.startswith(_PYCLS_BASE_URL), (
-        "pycls only automatically caches URLs in the pycls S3 bucket: {}"
-    ).format(_PYCLS_BASE_URL)
+    err_str = "pycls only automatically caches URLs in the pycls S3 bucket: {}"
+    assert url.startswith(_PYCLS_BASE_URL), err_str.format(_PYCLS_BASE_URL)
 
     cache_file_path = url.replace(_PYCLS_BASE_URL, cache_dir)
     if os.path.exists(cache_file_path):

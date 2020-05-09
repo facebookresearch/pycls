@@ -367,43 +367,27 @@ _C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"
 
 def assert_and_infer_cfg(cache_urls=True):
     """Checks config values invariants."""
-    assert (
-        not _C.OPTIM.STEPS or _C.OPTIM.STEPS[0] == 0
-    ), "The first lr step must start at 0"
-    assert _C.TRAIN.SPLIT in [
-        "train",
-        "val",
-        "test",
-    ], "Train split '{}' not supported".format(_C.TRAIN.SPLIT)
-    assert (
-        _C.TRAIN.BATCH_SIZE % _C.NUM_GPUS == 0
-    ), "Train mini-batch size should be a multiple of NUM_GPUS."
-    assert _C.TEST.SPLIT in [
-        "train",
-        "val",
-        "test",
-    ], "Test split '{}' not supported".format(_C.TEST.SPLIT)
-    assert (
-        _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0
-    ), "Test mini-batch size should be a multiple of NUM_GPUS."
-    assert (
-        not _C.BN.USE_PRECISE_STATS or _C.NUM_GPUS == 1
-    ), "Precise BN stats computation not verified for > 1 GPU"
-    assert _C.LOG_DEST in [
-        "stdout",
-        "file",
-    ], "Log destination '{}' not supported".format(_C.LOG_DEST)
-    assert (
-        not _C.PREC_TIME.ENABLED or _C.NUM_GPUS == 1
-    ), "Precise iter time computation not verified for > 1 GPU"
+    err_str = "The first lr step must start at 0"
+    assert not _C.OPTIM.STEPS or _C.OPTIM.STEPS[0] == 0, err_str
+    data_splits = ["train", "val", "test"]
+    err_str = "Data split '{}' not supported"
+    assert _C.TRAIN.SPLIT in data_splits, err_str.format(_C.TRAIN.SPLIT)
+    assert _C.TEST.SPLIT in data_splits, err_str.format(_C.TEST.SPLIT)
+    err_str = "Mini-batch size should be a multiple of NUM_GPUS."
+    assert _C.TRAIN.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
+    assert _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
+    err_str = "Precise BN stats computation not verified for > 1 GPU"
+    assert not _C.BN.USE_PRECISE_STATS or _C.NUM_GPUS == 1, err_str
+    err_str = "Log destination '{}' not supported"
+    assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
+    err_str = "Precise iter time computation not verified for > 1 GPU"
+    assert not _C.PREC_TIME.ENABLED or _C.NUM_GPUS == 1, err_str
     if cache_urls:
         cache_cfg_urls()
 
 
 def cache_cfg_urls():
-    """Download URLs in the config, cache them locally, and rewrite cfg to make
-    use of the locally cached file.
-    """
+    """Download URLs in config, cache them, and rewrite cfg to use cached file."""
     _C.TRAIN.WEIGHTS = cache_url(_C.TRAIN.WEIGHTS, _C.DOWNLOAD_CACHE)
     _C.TEST.WEIGHTS = cache_url(_C.TEST.WEIGHTS, _C.DOWNLOAD_CACHE)
 

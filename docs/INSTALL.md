@@ -36,7 +36,7 @@ pip install -r $PYCLS/requirements.txt
 Set up Python modules:
 
 ```
-cd $PYCLS && make
+cd $PYCLS && python setup.py develop --user
 ```
 
 ## Datasets

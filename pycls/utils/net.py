@@ -70,7 +70,7 @@ def reset_bn_stats(model):
 
 
 def complexity_init(h, w):
-    """Initializes complexity counting data stuct cx = (h, w, flops, params, acts)."""
+    """Initializes complexity counting data struct cx = (h, w, flops, params, acts)."""
     return {"h": h, "w": w, "flops": 0, "params": 0, "acts": 0}
 
 
