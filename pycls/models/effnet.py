@@ -38,6 +38,14 @@ class EffHead(nn.Module):
         x = self.fc(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, nc):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 1, 1, 0)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx["h"], cx["w"] = 1, 1
+        cx = nu.complexity_conv2d(cx, w_out, nc, 1, 1, 0, bias=True)
+        return cx
+
 
 class Swish(nn.Module):
     """Swish activation function: x * sigmoid(x)."""
@@ -64,6 +72,15 @@ class SE(nn.Module):
 
     def forward(self, x):
         return x * self.f_ex(self.avg_pool(x))
+
+    @staticmethod
+    def complexity(cx, w_in, w_se):
+        h, w = cx["h"], cx["w"]
+        cx["h"], cx["w"] = 1, 1
+        cx = nu.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
+        cx = nu.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
+        cx["h"], cx["w"] = h, w
+        return cx
 
 
 class MBConv(nn.Module):
@@ -101,6 +118,20 @@ class MBConv(nn.Module):
             f_x = x + f_x
         return f_x
 
+    @staticmethod
+    def complexity(cx, w_in, exp_r, kernel, stride, se_r, w_out):
+        w_exp = int(w_in * exp_r)
+        if w_exp != w_in:
+            cx = nu.complexity_conv2d(cx, w_in, w_exp, 1, 1, 0)
+            cx = nu.complexity_batchnorm2d(cx, w_exp)
+        padding = (kernel - 1) // 2
+        cx = nu.complexity_conv2d(cx, w_exp, w_exp, kernel, stride, padding, w_exp)
+        cx = nu.complexity_batchnorm2d(cx, w_exp)
+        cx = SE.complexity(cx, w_exp, int(w_in * se_r))
+        cx = nu.complexity_conv2d(cx, w_exp, w_out, 1, 1, 0)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
+
 
 class EffStage(nn.Module):
     """EfficientNet stage."""
@@ -118,6 +149,14 @@ class EffStage(nn.Module):
             x = block(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, exp_r, kernel, stride, se_r, w_out, d):
+        for i in range(d):
+            b_stride = stride if i == 0 else 1
+            b_w_in = w_in if i == 0 else w_out
+            cx = MBConv.complexity(cx, b_w_in, exp_r, kernel, b_stride, se_r, w_out)
+        return cx
+
 
 class StemIN(nn.Module):
     """EfficientNet stem for ImageNet: 3x3, BN, Swish."""
@@ -132,6 +171,12 @@ class StemIN(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
 
 
 class EffNet(nn.Module):
@@ -174,3 +219,19 @@ class EffNet(nn.Module):
         for module in self.children():
             x = module(x)
         return x
+
+    @staticmethod
+    def complexity(cx):
+        """Computes model complexity. If you alter the model, make sure to update."""
+        return EffNet._complexity(cx, **EffNet.get_args())
+
+    @staticmethod
+    def _complexity(cx, stem_w, ds, ws, exp_rs, se_r, ss, ks, head_w, nc):
+        stage_params = list(zip(ds, ws, exp_rs, ss, ks))
+        cx = StemIN.complexity(cx, 3, stem_w)
+        prev_w = stem_w
+        for d, w, exp_r, stride, kernel in stage_params:
+            cx = EffStage.complexity(cx, prev_w, exp_r, kernel, stride, se_r, w, d)
+            prev_w = w
+        cx = EffHead.complexity(cx, prev_w, head_w, nc)
+        return cx

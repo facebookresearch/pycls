@@ -45,6 +45,12 @@ class ResHead(nn.Module):
         x = self.fc(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, nc):
+        cx["h"], cx["w"] = 1, 1
+        cx = nu.complexity_conv2d(cx, w_in, nc, 1, 1, 0, bias=True)
+        return cx
+
 
 class BasicTransform(nn.Module):
     """Basic transformation: 3x3, BN, ReLU, 3x3, BN."""
@@ -64,6 +70,16 @@ class BasicTransform(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, w_b=None, num_gs=1):
+        err_str = "Basic transform does not support w_b and num_gs options"
+        assert w_b is None and num_gs == 1, err_str
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = nu.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
 
 
 class BottleneckTransform(nn.Module):
@@ -88,6 +104,17 @@ class BottleneckTransform(nn.Module):
             x = layer(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, w_b, num_gs):
+        (s1, s3) = (stride, 1) if cfg.RESNET.STRIDE_1X1 else (1, stride)
+        cx = nu.complexity_conv2d(cx, w_in, w_b, 1, s1, 0)
+        cx = nu.complexity_batchnorm2d(cx, w_b)
+        cx = nu.complexity_conv2d(cx, w_b, w_b, 3, s3, 1, num_gs)
+        cx = nu.complexity_batchnorm2d(cx, w_b)
+        cx = nu.complexity_conv2d(cx, w_b, w_out, 1, 1, 0)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
+
 
 class ResBlock(nn.Module):
     """Residual block: x + F(x)."""
@@ -110,6 +137,17 @@ class ResBlock(nn.Module):
         x = self.relu(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, trans_fun, w_b, num_gs):
+        proj_block = (w_in != w_out) or (stride != 1)
+        if proj_block:
+            h, w = cx["h"], cx["w"]
+            cx = nu.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
+            cx = nu.complexity_batchnorm2d(cx, w_out)
+            cx["h"], cx["w"] = h, w  # parallel branch
+        cx = trans_fun.complexity(cx, w_in, w_out, stride, w_b, num_gs)
+        return cx
+
 
 class ResStage(nn.Module):
     """Stage of ResNet."""
@@ -128,6 +166,15 @@ class ResStage(nn.Module):
             x = block(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, d, w_b=None, num_gs=1):
+        for i in range(d):
+            b_stride = stride if i == 0 else 1
+            b_w_in = w_in if i == 0 else w_out
+            trans_f = get_trans_fun(cfg.RESNET.TRANS_FUN)
+            cx = ResBlock.complexity(cx, b_w_in, w_out, b_stride, trans_f, w_b, num_gs)
+        return cx
+
 
 class ResStemCifar(nn.Module):
     """ResNet stem for CIFAR: 3x3, BN, ReLU."""
@@ -142,6 +189,12 @@ class ResStemCifar(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, 1, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
 
 
 class ResStemIN(nn.Module):
@@ -158,6 +211,13 @@ class ResStemIN(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 7, 2, 3)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = nu.complexity_maxpool2d(cx, 3, 2, 1)
+        return cx
 
 
 class ResNet(nn.Module):
@@ -203,3 +263,25 @@ class ResNet(nn.Module):
         for module in self.children():
             x = module(x)
         return x
+
+    @staticmethod
+    def complexity(cx):
+        """Computes model complexity. If you alter the model, make sure to update."""
+        if "cifar" in cfg.TRAIN.DATASET:
+            d = int((cfg.MODEL.DEPTH - 2) / 6)
+            cx = ResStemCifar.complexity(cx, 3, 16)
+            cx = ResStage.complexity(cx, 16, 16, stride=1, d=d)
+            cx = ResStage.complexity(cx, 16, 32, stride=2, d=d)
+            cx = ResStage.complexity(cx, 32, 64, stride=2, d=d)
+            cx = ResHead.complexity(cx, 64, nc=cfg.MODEL.NUM_CLASSES)
+        else:
+            g, gw = cfg.RESNET.NUM_GROUPS, cfg.RESNET.WIDTH_PER_GROUP
+            (d1, d2, d3, d4) = _IN_STAGE_DS[cfg.MODEL.DEPTH]
+            w_b = gw * g
+            cx = ResStemIN.complexity(cx, 3, 64)
+            cx = ResStage.complexity(cx, 64, 256, 1, d=d1, w_b=w_b, num_gs=g)
+            cx = ResStage.complexity(cx, 256, 512, 2, d=d2, w_b=w_b * 2, num_gs=g)
+            cx = ResStage.complexity(cx, 512, 1024, 2, d=d3, w_b=w_b * 4, num_gs=g)
+            cx = ResStage.complexity(cx, 1024, 2048, 2, d=d4, w_b=w_b * 8, num_gs=g)
+            cx = ResHead.complexity(cx, 2048, nc=cfg.MODEL.NUM_CLASSES)
+        return cx

@@ -54,6 +54,12 @@ class AnyHead(nn.Module):
         x = self.fc(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, nc):
+        cx["h"], cx["w"] = 1, 1
+        cx = nu.complexity_conv2d(cx, w_in, nc, 1, 1, 0, bias=True)
+        return cx
+
 
 class VanillaBlock(nn.Module):
     """Vanilla block: [3x3 conv, BN, Relu] x2."""
@@ -74,6 +80,16 @@ class VanillaBlock(nn.Module):
             x = layer(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, bm=None, gw=None, se_r=None):
+        err_str = "Vanilla block does not support bm, gw, and se_r options"
+        assert bm is None and gw is None and se_r is None, err_str
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = nu.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
+
 
 class BasicTransform(nn.Module):
     """Basic transformation: [3x3 conv, BN, Relu] x2."""
@@ -91,6 +107,14 @@ class BasicTransform(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = nu.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
 
 
 class ResBasicBlock(nn.Module):
@@ -115,6 +139,19 @@ class ResBasicBlock(nn.Module):
         x = self.relu(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, bm=None, gw=None, se_r=None):
+        err_str = "Basic transform does not support bm, gw, and se_r options"
+        assert bm is None and gw is None and se_r is None, err_str
+        proj_block = (w_in != w_out) or (stride != 1)
+        if proj_block:
+            h, w = cx["h"], cx["w"]
+            cx = nu.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
+            cx = nu.complexity_batchnorm2d(cx, w_out)
+            cx["h"], cx["w"] = h, w  # parallel branch
+        cx = BasicTransform.complexity(cx, w_in, w_out, stride)
+        return cx
+
 
 class SE(nn.Module):
     """Squeeze-and-Excitation (SE) block: AvgPool, FC, ReLU, FC, Sigmoid."""
@@ -131,6 +168,15 @@ class SE(nn.Module):
 
     def forward(self, x):
         return x * self.f_ex(self.avg_pool(x))
+
+    @staticmethod
+    def complexity(cx, w_in, w_se):
+        h, w = cx["h"], cx["w"]
+        cx["h"], cx["w"] = 1, 1
+        cx = nu.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
+        cx = nu.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
+        cx["h"], cx["w"] = h, w
+        return cx
 
 
 class BottleneckTransform(nn.Module):
@@ -158,6 +204,21 @@ class BottleneckTransform(nn.Module):
             x = layer(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, bm, gw, se_r):
+        w_b = int(round(w_out * bm))
+        g = w_b // gw
+        cx = nu.complexity_conv2d(cx, w_in, w_b, 1, 1, 0)
+        cx = nu.complexity_batchnorm2d(cx, w_b)
+        cx = nu.complexity_conv2d(cx, w_b, w_b, 3, stride, 1, g)
+        cx = nu.complexity_batchnorm2d(cx, w_b)
+        if se_r:
+            w_se = int(round(w_in * se_r))
+            cx = SE.complexity(cx, w_b, w_se)
+        cx = nu.complexity_conv2d(cx, w_b, w_out, 1, 1, 0)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
+
 
 class ResBottleneckBlock(nn.Module):
     """Residual bottleneck block: x + F(x), F = bottleneck transform."""
@@ -180,6 +241,17 @@ class ResBottleneckBlock(nn.Module):
         x = self.relu(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, bm=1.0, gw=1, se_r=None):
+        proj_block = (w_in != w_out) or (stride != 1)
+        if proj_block:
+            h, w = cx["h"], cx["w"]
+            cx = nu.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
+            cx = nu.complexity_batchnorm2d(cx, w_out)
+            cx["h"], cx["w"] = h, w  # parallel branch
+        cx = BottleneckTransform.complexity(cx, w_in, w_out, stride, bm, gw, se_r)
+        return cx
+
 
 class ResStemCifar(nn.Module):
     """ResNet stem for CIFAR: 3x3, BN, ReLU."""
@@ -194,6 +266,12 @@ class ResStemCifar(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, 1, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
 
 
 class ResStemIN(nn.Module):
@@ -211,6 +289,13 @@ class ResStemIN(nn.Module):
             x = layer(x)
         return x
 
+    @staticmethod
+    def complexity(cx, w_in, w_out):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 7, 2, 3)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = nu.complexity_maxpool2d(cx, 3, 2, 1)
+        return cx
+
 
 class SimpleStemIN(nn.Module):
     """Simple stem for ImageNet: 3x3, BN, ReLU."""
@@ -225,6 +310,12 @@ class SimpleStemIN(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out):
+        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
+        cx = nu.complexity_batchnorm2d(cx, w_out)
+        return cx
 
 
 class AnyStage(nn.Module):
@@ -242,6 +333,14 @@ class AnyStage(nn.Module):
         for block in self.children():
             x = block(x)
         return x
+
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, d, block_fun, bm, gw, se_r):
+        for i in range(d):
+            b_stride = stride if i == 0 else 1
+            b_w_in = w_in if i == 0 else w_out
+            cx = block_fun.complexity(cx, b_w_in, w_out, b_stride, bm, gw, se_r)
+        return cx
 
 
 class AnyNet(nn.Module):
@@ -288,3 +387,24 @@ class AnyNet(nn.Module):
         for module in self.children():
             x = module(x)
         return x
+
+    @staticmethod
+    def complexity(cx, **kwargs):
+        """Computes model complexity. If you alter the model, make sure to update."""
+        kwargs = AnyNet.get_args() if not kwargs else kwargs
+        return AnyNet._complexity(cx, **kwargs)
+
+    @staticmethod
+    def _complexity(cx, stem_type, stem_w, block_type, ds, ws, ss, bms, gws, se_r, nc):
+        bms = bms if bms else [None for _d in ds]
+        gws = gws if gws else [None for _d in ds]
+        stage_params = list(zip(ds, ws, ss, bms, gws))
+        stem_fun = get_stem_fun(stem_type)
+        cx = stem_fun.complexity(cx, 3, stem_w)
+        block_fun = get_block_fun(block_type)
+        prev_w = stem_w
+        for d, w, s, bm, gw in stage_params:
+            cx = AnyStage.complexity(cx, prev_w, w, s, d, block_fun, bm, gw, se_r)
+            prev_w = w
+        cx = AnyHead.complexity(cx, prev_w, nc)
+        return cx

@@ -69,6 +69,39 @@ def reset_bn_stats(model):
             m.reset_running_stats()
 
 
+def complexity_init(h, w):
+    """Initializes complexity counting data stuct cx = (h, w, flops, params, acts)."""
+    return {"h": h, "w": w, "flops": 0, "params": 0, "acts": 0}
+
+
+def complexity_conv2d(cx, w_in, w_out, k, stride, padding, groups=1, bias=False):
+    """Accumulates complexity of Conv2D into cx = (h, w, flops, params, acts)."""
+    h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
+    h = (h + 2 * padding - k) // stride + 1
+    w = (w + 2 * padding - k) // stride + 1
+    flops += k * k * w_in * w_out * h * w // groups
+    params += k * k * w_in * w_out // groups
+    flops += w_out if bias else 0
+    params += w_out if bias else 0
+    acts += w_out * h * w
+    return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
+
+
+def complexity_batchnorm2d(cx, w_in):
+    """Accumulates complexity of BatchNorm2D into cx = (h, w, flops, params, acts)."""
+    h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
+    params += 2 * w_in
+    return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
+
+
+def complexity_maxpool2d(cx, k, stride, padding):
+    """Accumulates complexity of MaxPool2d into cx = (h, w, flops, params, acts)."""
+    h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
+    h = (h + 2 * padding - k) // stride + 1
+    w = (w + 2 * padding - k) // stride + 1
+    return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
+
+
 def drop_connect(x, drop_ratio):
     """Drop connect (adapted from DARTS)."""
     keep_ratio = 1.0 - drop_ratio
