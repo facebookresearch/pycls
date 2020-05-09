@@ -85,3 +85,9 @@ class RegNet(AnyNet):
     def __init__(self):
         kwargs = RegNet.get_args()
         super(RegNet, self).__init__(**kwargs)
+
+    @staticmethod
+    def complexity(cx, **kwargs):
+        """Computes model complexity. If you alter the model, make sure to update."""
+        kwargs = RegNet.get_args() if not kwargs else kwargs
+        return AnyNet.complexity(cx, **kwargs)
