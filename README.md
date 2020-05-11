@@ -3,7 +3,7 @@
 **pycls** is an image classification codebase, written in [PyTorch](https://pytorch.org/). It was originally developed for the [On Network Design Spaces for Visual Recognition](https://arxiv.org/abs/1905.13214) project. **pycls** has since matured and been adopted by a number of [projects](#projects) at Facebook AI Research.
 
 <div align="center">
-  <img src="figs/regnetx_nets.png" width="550px" />
+  <img src="docs/regnetx_nets.png" width="550px" />
   <p align="center"><b>pycls</b> provides a large set of baseline models across a wide range of flop regimes.</p>
 </div>
 
@@ -35,7 +35,7 @@ If you are using **pycls** in your research and would like us to include your pr
 
 ## Citing pycls
 
-If you find **pycls** helpful in your research or refer to the baseline results in the [Model Zoo](MODEL_ZOO.md), please consider citing: 
+If you find **pycls** helpful in your research or refer to the baseline results in the [Model Zoo](MODEL_ZOO.md), please consider citing:
 
 ```
 @InProceedings{Radosavovic2019,
@@ -56,3 +56,7 @@ If you find **pycls** helpful in your research or refer to the baseline results 
 ## License
 
 **pycls** is released under the MIT license. Please see the [LICENSE](LICENSE) file for more information.
+
+## Contributing
+
+We actively welcome your pull requests! Please see [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](docs/CODE_OF_CONDUCT.md) for more info.

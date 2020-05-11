@@ -19,7 +19,7 @@ This file documents a collection of baselines trained with **pycls**, primarily 
 
 Our primary goal is to provide simple and strong baselines that are easy to reproduce. For all models, we use our basic training settings without any training enhancements (e.g., DropOut, DropConnect, AutoAugment, EMA, etc.) or testing enhancements (e.g., multi-crop, multi-scale, flipping, etc.); please see our [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678) paper for more information.
 
-- We use SGD with mometum of 0.9, a half-period cosine schedule, and train for 100 epochs.
+- We use SGD with momentum of 0.9, a half-period cosine schedule, and train for 100 epochs.
 - For ResNet/ResNeXt/RegNet, we use a *reference* learning rate of 0.1 and a weight decay of 5e-5 (see [Figure 21](https://arxiv.org/abs/2003.13678)).
 - For EfficientNet, we use a *reference* learning rate of 0.2 and a weight decay of 1e-5 (see [Figure 22](https://arxiv.org/abs/2003.13678)).
 - The actual learning rate for each model is computed as (batch-size / 128) * reference-lr.
@@ -28,7 +28,7 @@ Our primary goal is to provide simple and strong baselines that are easy to repr
 - For ResNet/ResNeXt/RegNet, we use the image size of 224x224 for training.
 - For EfficientNet, the training image size varies following the original paper.
 
-For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 1 Hour](https://arxiv.org/abs/1706.02677) paper. Note that the learning rate scaling rule described above is similar to the one from the [ImageNet in 1 Hour](https://arxiv.org/abs/1706.02677) paper but the number of images per GPU varies among models. To understand how the configs are adjusted, please see the examples in the `configs/lr_scaling` directory.
+For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 1 Hour](https://arxiv.org/abs/1706.02677) paper. Note that the learning rate scaling rule described above is similar to the one from the [ImageNet in 1 Hour](https://arxiv.org/abs/1706.02677) paper but the number of images per GPU varies among models. To understand how the configs are adjusted, please see the examples in the `configs/lr_scaling` directory (coming soon).
 
 ## Baselines
 
@@ -38,13 +38,13 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <!-- START RegNetX TABLE -->
 <!-- TABLE HEADER -->
 <th valign="bottom">model</th>
-<th valign="bottom">flops</br>(B)</th>
-<th valign="bottom">params</br>(M)</th>
-<th valign="bottom">acts</br>(M)</th>
-<th valign="bottom">batch</br>size</th>
-<th valign="bottom">infer</br>(ms)</th>
-<th valign="bottom">train</br>(hr)</th>
-<th valign="bottom">error</br>(top-1)</th>
+<th valign="bottom">flops<br/>(B)</th>
+<th valign="bottom">params<br/>(M)</th>
+<th valign="bottom">acts<br/>(M)</th>
+<th valign="bottom">batch<br/>size</th>
+<th valign="bottom">infer<br/>(ms)</th>
+<th valign="bottom">train<br/>(hr)</th>
+<th valign="bottom">error<br/>(top-1)</th>
 <th valign="bottom">model id</th>
 <th valign="bottom">download</th>
 <!-- TABLE BODY -->
@@ -213,13 +213,13 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <!-- START RegNetY TABLE -->
 <!-- TABLE HEADER -->
 <th valign="bottom">model</th>
-<th valign="bottom">flops</br>(B)</th>
-<th valign="bottom">params</br>(M)</th>
-<th valign="bottom">acts</br>(M)</th>
-<th valign="bottom">batch</br>size</th>
-<th valign="bottom">infer</br>(ms)</th>
-<th valign="bottom">train</br>(hr)</th>
-<th valign="bottom">error</br>(top-1)</th>
+<th valign="bottom">flops<br/>(B)</th>
+<th valign="bottom">params<br/>(M)</th>
+<th valign="bottom">acts<br/>(M)</th>
+<th valign="bottom">batch<br/>size</th>
+<th valign="bottom">infer<br/>(ms)</th>
+<th valign="bottom">train<br/>(hr)</th>
+<th valign="bottom">error<br/>(top-1)</th>
 <th valign="bottom">model id</th>
 <th valign="bottom">download</th>
 <!-- TABLE BODY -->
@@ -388,13 +388,13 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <!-- START ResNet TABLE -->
 <!-- TABLE HEADER -->
 <th valign="bottom">model</th>
-<th valign="bottom">flops</br>(B)</th>
-<th valign="bottom">params</br>(M)</th>
-<th valign="bottom">acts</br>(M)</th>
-<th valign="bottom">batch</br>size</th>
-<th valign="bottom">infer</br>(ms)</th>
-<th valign="bottom">train</br>(hr)</th>
-<th valign="bottom">error</br>(top-1)</th>
+<th valign="bottom">flops<br/>(B)</th>
+<th valign="bottom">params<br/>(M)</th>
+<th valign="bottom">acts<br/>(M)</th>
+<th valign="bottom">batch<br/>size</th>
+<th valign="bottom">infer<br/>(ms)</th>
+<th valign="bottom">train<br/>(hr)</th>
+<th valign="bottom">error<br/>(top-1)</th>
 <th valign="bottom">model id</th>
 <th valign="bottom">download</th>
 <!-- TABLE BODY -->
@@ -446,13 +446,13 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <!-- START ResNeXt TABLE -->
 <!-- TABLE HEADER -->
 <th valign="bottom">model</th>
-<th valign="bottom">flops</br>(B)</th>
-<th valign="bottom">params</br>(M)</th>
-<th valign="bottom">acts</br>(M)</th>
-<th valign="bottom">batch</br>size</th>
-<th valign="bottom">infer</br>(ms)</th>
-<th valign="bottom">train</br>(hr)</th>
-<th valign="bottom">error</br>(top-1)</th>
+<th valign="bottom">flops<br/>(B)</th>
+<th valign="bottom">params<br/>(M)</th>
+<th valign="bottom">acts<br/>(M)</th>
+<th valign="bottom">batch<br/>size</th>
+<th valign="bottom">infer<br/>(ms)</th>
+<th valign="bottom">train<br/>(hr)</th>
+<th valign="bottom">error<br/>(top-1)</th>
 <th valign="bottom">model id</th>
 <th valign="bottom">download</th>
 <!-- TABLE BODY -->
@@ -504,13 +504,13 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <!-- START EfficientNet TABLE -->
 <!-- TABLE HEADER -->
 <th valign="bottom">model</th>
-<th valign="bottom">flops</br>(B)</th>
-<th valign="bottom">params</br>(M)</th>
-<th valign="bottom">acts</br>(M)</th>
-<th valign="bottom">batch</br>size</th>
-<th valign="bottom">infer</br>(ms)</th>
-<th valign="bottom">train</br>(hr)</th>
-<th valign="bottom">error</br>(top-1)</th>
+<th valign="bottom">flops<br/>(B)</th>
+<th valign="bottom">params<br/>(M)</th>
+<th valign="bottom">acts<br/>(M)</th>
+<th valign="bottom">batch<br/>size</th>
+<th valign="bottom">infer<br/>(ms)</th>
+<th valign="bottom">train<br/>(hr)</th>
+<th valign="bottom">error<br/>(top-1)</th>
 <th valign="bottom">model id</th>
 <th valign="bottom">download</th>
 <!-- TABLE BODY -->

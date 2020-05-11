@@ -11,16 +11,16 @@
 }
 
 echo "Running isort..."
-isort -y -sp .
+isort -y -sp ./dev
 
 echo "Running black..."
 black .
 
 echo "Running flake8..."
 if [ -x "$(command -v flake8-3)" ]; then
-  flake8-3 .
+  flake8-3 . --config ./dev/.flake8
 else
-  python3 -m flake8 .
+  python3 -m flake8 . --config ./dev/.flake8
 fi
 
 command -v arc > /dev/null && {
