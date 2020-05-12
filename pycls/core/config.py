@@ -7,7 +7,9 @@
 
 """Configuration file (powered by YACS)."""
 
+import argparse
 import os
+import sys
 
 from pycls.utils.io import cache_url
 from yacs.config import CfgNode as CN
@@ -403,3 +405,18 @@ def load_cfg(out_dir, cfg_dest="config.yaml"):
     """Loads config from specified output directory."""
     cfg_file = os.path.join(out_dir, cfg_dest)
     _C.merge_from_file(cfg_file)
+
+
+def load_cfg_fom_args(description="Config file options."):
+    """Load config from command line arguments and set any specified options."""
+    parser = argparse.ArgumentParser(description=description)
+    help_s = "Config file location"
+    parser.add_argument("--cfg", dest="cfg_file", help=help_s, required=True, type=str)
+    help_s = "See pycls/core/config.py for all options"
+    parser.add_argument("opts", help=help_s, default=None, nargs=argparse.REMAINDER)
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+    args = parser.parse_args()
+    _C.merge_from_file(args.cfg_file)
+    _C.merge_from_list(args.opts)

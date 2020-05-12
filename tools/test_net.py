@@ -7,9 +7,6 @@
 
 """Test a trained classification model."""
 
-import argparse
-import sys
-
 import numpy as np
 import pycls.core.losses as losses
 import pycls.core.model_builder as model_builder
@@ -22,29 +19,11 @@ import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
 import pycls.utils.net as nu
 import torch
-from pycls.core.config import assert_and_infer_cfg, cfg
+from pycls.core.config import assert_and_infer_cfg, cfg, load_cfg_fom_args
 from pycls.utils.meters import TestMeter
 
 
 logger = lu.get_logger(__name__)
-
-
-def parse_args():
-    """Parses the arguments."""
-    parser = argparse.ArgumentParser(description="Test a trained classification model")
-    parser.add_argument(
-        "--cfg", dest="cfg_file", help="Config file", required=True, type=str
-    )
-    parser.add_argument(
-        "opts",
-        help="See pycls/core/config.py for all options",
-        default=None,
-        nargs=argparse.REMAINDER,
-    )
-    if len(sys.argv) == 1:
-        parser.logger.info_help()
-        sys.exit(1)
-    return parser.parse_args()
 
 
 def log_model_info(model):
@@ -89,6 +68,17 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
 def test_model():
     """Evaluates the model."""
 
+    # Setup logging
+    lu.setup_logging()
+    # Show the config
+    logger.info("Config:\n{}".format(cfg))
+
+    # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
+    np.random.seed(cfg.RNG_SEED)
+    torch.manual_seed(cfg.RNG_SEED)
+    # Configure the CUDNN backend
+    torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
+
     # Build the model (before the loaders to speed up debugging)
     model = model_builder.build_model()
     log_model_info(model)
@@ -114,39 +104,17 @@ def test_model():
     test_epoch(test_loader, model, test_meter, 0)
 
 
-def single_proc_test():
-    """Performs single process evaluation."""
-
-    # Setup logging
-    lu.setup_logging()
-    # Show the config
-    logger.info("Config:\n{}".format(cfg))
-
-    # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
-    np.random.seed(cfg.RNG_SEED)
-    torch.manual_seed(cfg.RNG_SEED)
-    # Configure the CUDNN backend
-    torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
-
-    # Evaluate the model
-    test_model()
-
-
 def main():
-    # Parse cmd line args
-    args = parse_args()
-
     # Load config options
-    cfg.merge_from_file(args.cfg_file)
-    cfg.merge_from_list(args.opts)
+    load_cfg_fom_args("Test a trained classification model.")
     assert_and_infer_cfg()
     cfg.freeze()
 
     # Perform evaluation
     if cfg.NUM_GPUS > 1:
-        mpu.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=single_proc_test)
+        mpu.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=test_model)
     else:
-        single_proc_test()
+        test_model()
 
 
 if __name__ == "__main__":
