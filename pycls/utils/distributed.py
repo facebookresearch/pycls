@@ -7,6 +7,12 @@
 
 """Distributed helpers."""
 
+import multiprocessing
+import os
+import signal
+import threading
+import traceback
+
 import torch
 from pycls.core.config import cfg
 
@@ -59,3 +65,93 @@ def scaled_all_reduce(tensors):
     for tensor in tensors:
         tensor.mul_(1.0 / cfg.NUM_GPUS)
     return tensors
+
+
+class ChildException(Exception):
+    """Wraps an exception from a child process."""
+
+    def __init__(self, child_trace):
+        super(ChildException, self).__init__(child_trace)
+
+
+class ErrorHandler(object):
+    """Multiprocessing error handler (based on fairseq's).
+
+    Listens for errors in child processes and
+    propagates the tracebacks to the parent process.
+    """
+
+    def __init__(self, error_queue):
+        # Shared error queue
+        self.error_queue = error_queue
+        # Children processes sharing the error queue
+        self.children_pids = []
+        # Start a thread listening to errors
+        self.error_listener = threading.Thread(target=self.listen, daemon=True)
+        self.error_listener.start()
+        # Register the signal handler
+        signal.signal(signal.SIGUSR1, self.signal_handler)
+
+    def add_child(self, pid):
+        """Registers a child process."""
+        self.children_pids.append(pid)
+
+    def listen(self):
+        """Listens for errors in the error queue."""
+        # Wait until there is an error in the queue
+        child_trace = self.error_queue.get()
+        # Put the error back for the signal handler
+        self.error_queue.put(child_trace)
+        # Invoke the signal handler
+        os.kill(os.getpid(), signal.SIGUSR1)
+
+    def signal_handler(self, _sig_num, _stack_frame):
+        """Signal handler."""
+        # Kill children processes
+        for pid in self.children_pids:
+            os.kill(pid, signal.SIGINT)
+        # Propagate the error from the child process
+        raise ChildException(self.error_queue.get())
+
+
+def run(proc_rank, world_size, error_queue, fun, fun_args, fun_kwargs):
+    """Runs a function from a child process."""
+    try:
+        # Initialize the process group
+        init_process_group(proc_rank, world_size)
+        # Run the function
+        fun(*fun_args, **fun_kwargs)
+    except KeyboardInterrupt:
+        # Killed by the parent process
+        pass
+    except Exception:
+        # Propagate exception to the parent process
+        error_queue.put(traceback.format_exc())
+    finally:
+        # Destroy the process group
+        destroy_process_group()
+
+
+def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs=None):
+    """Runs a function in a multi-proc setting."""
+
+    if fun_kwargs is None:
+        fun_kwargs = {}
+
+    # Handle errors from training subprocesses
+    error_queue = multiprocessing.SimpleQueue()
+    error_handler = ErrorHandler(error_queue)
+
+    # Run each training subprocess
+    ps = []
+    for i in range(num_proc):
+        p_i = multiprocessing.Process(
+            target=run, args=(i, num_proc, error_queue, fun, fun_args, fun_kwargs)
+        )
+        ps.append(p_i)
+        p_i.start()
+        error_handler.add_child(p_i.pid)
+
+    # Wait for each subprocess to finish
+    for p in ps:
+        p.join()

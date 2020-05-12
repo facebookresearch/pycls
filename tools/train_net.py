@@ -17,7 +17,6 @@ import pycls.datasets.loader as loader
 import pycls.utils.checkpoint as cu
 import pycls.utils.distributed as du
 import pycls.utils.logging as lu
-import pycls.utils.multiprocessing as mpu
 import pycls.utils.net as nu
 import torch
 from pycls.core.config import assert_and_infer_cfg, cfg, dump_cfg, load_cfg_fom_args
@@ -190,7 +189,7 @@ def main():
 
     # Perform training
     if cfg.NUM_GPUS > 1:
-        mpu.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=train_model)
+        du.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=train_model)
     else:
         train_model()
 
