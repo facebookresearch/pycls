@@ -12,7 +12,7 @@ from collections import deque
 
 import numpy as np
 import pycls.utils.logging as lu
-import pycls.utils.metrics as metrics
+import torch
 from pycls.core.config import cfg
 from pycls.utils.timer import Timer
 
@@ -23,6 +23,31 @@ def eta_str(eta_td):
     hrs, rem = divmod(eta_td.seconds, 3600)
     mins, secs = divmod(rem, 60)
     return "{0:02},{1:02}:{2:02}:{3:02}".format(days, hrs, mins, secs)
+
+
+def topk_errors(preds, labels, ks):
+    """Computes the top-k error for each k."""
+    err_str = "Batch dim of predictions and labels must match"
+    assert preds.size(0) == labels.size(0), err_str
+    # Find the top max_k predictions for each sample
+    _top_max_k_vals, top_max_k_inds = torch.topk(
+        preds, max(ks), dim=1, largest=True, sorted=True
+    )
+    # (batch_size, max_k) -> (max_k, batch_size)
+    top_max_k_inds = top_max_k_inds.t()
+    # (batch_size, ) -> (max_k, batch_size)
+    rep_max_k_labels = labels.view(1, -1).expand_as(top_max_k_inds)
+    # (i, j) = 1 if top i-th prediction for the j-th sample is correct
+    top_max_k_correct = top_max_k_inds.eq(rep_max_k_labels)
+    # Compute the number of topk correct predictions for each k
+    topks_correct = [top_max_k_correct[:k, :].view(-1).float().sum() for k in ks]
+    return [(1.0 - x / preds.size(0)) * 100.0 for x in topks_correct]
+
+
+def gpu_mem_usage():
+    """Computes the GPU memory usage for the current device (MB)."""
+    mem_usage_bytes = torch.cuda.max_memory_allocated()
+    return mem_usage_bytes / 1024 / 1024
 
 
 class ScalarMeter(object):
@@ -106,7 +131,7 @@ class TrainMeter(object):
             self.max_iter - (cur_epoch * self.epoch_iters + cur_iter + 1)
         )
         eta_td = datetime.timedelta(seconds=int(eta_sec))
-        mem_usage = metrics.gpu_mem_usage()
+        mem_usage = gpu_mem_usage()
         stats = {
             "_type": "train_iter",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
@@ -133,7 +158,7 @@ class TrainMeter(object):
             self.max_iter - (cur_epoch + 1) * self.epoch_iters
         )
         eta_td = datetime.timedelta(seconds=int(eta_sec))
-        mem_usage = metrics.gpu_mem_usage()
+        mem_usage = gpu_mem_usage()
         top1_err = self.num_top1_mis / self.num_samples
         top5_err = self.num_top5_mis / self.num_samples
         avg_loss = self.loss_total / self.num_samples
@@ -197,7 +222,7 @@ class TestMeter(object):
         self.num_samples += mb_size
 
     def get_iter_stats(self, cur_epoch, cur_iter):
-        mem_usage = metrics.gpu_mem_usage()
+        mem_usage = gpu_mem_usage()
         iter_stats = {
             "_type": "test_iter",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
@@ -221,7 +246,7 @@ class TestMeter(object):
         top5_err = self.num_top5_mis / self.num_samples
         self.min_top1_err = min(self.min_top1_err, top1_err)
         self.min_top5_err = min(self.min_top5_err, top5_err)
-        mem_usage = metrics.gpu_mem_usage()
+        mem_usage = gpu_mem_usage()
         stats = {
             "_type": "test_epoch",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),

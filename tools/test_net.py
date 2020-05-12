@@ -11,27 +11,17 @@ import numpy as np
 import pycls.core.losses as losses
 import pycls.core.model_builder as model_builder
 import pycls.datasets.loader as loader
-import pycls.utils.benchmark as bu
 import pycls.utils.checkpoint as cu
 import pycls.utils.distributed as du
 import pycls.utils.logging as lu
-import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
 import pycls.utils.net as nu
 import torch
 from pycls.core.config import assert_and_infer_cfg, cfg, load_cfg_fom_args
-from pycls.utils.meters import TestMeter
+from pycls.utils.meters import TestMeter, topk_errors
 
 
 logger = lu.get_logger(__name__)
-
-
-def log_model_info(model):
-    """Logs model info"""
-    logger.info("Model:\n{}".format(model))
-    logger.info("Params: {:,}".format(mu.params_count(model)))
-    logger.info("Flops: {:,}".format(mu.flops_count(model)))
-    logger.info("Acts: {:,}".format(mu.acts_count(model)))
 
 
 @torch.no_grad()
@@ -48,7 +38,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         # Compute the predictions
         preds = model(inputs)
         # Compute the errors
-        top1_err, top5_err = mu.topk_errors(preds, labels, [1, 5])
+        top1_err, top5_err = topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs
         if cfg.NUM_GPUS > 1:
             top1_err, top5_err = du.scaled_all_reduce([top1_err, top5_err])
@@ -81,13 +71,15 @@ def test_model():
 
     # Build the model (before the loaders to speed up debugging)
     model = model_builder.build_model()
-    log_model_info(model)
+    logger.info("Model:\n{}".format(model))
+    lu.log_json_stats(nu.complexity(model))
 
     # Compute precise time
     if cfg.PREC_TIME.ENABLED:
         logger.info("Computing precise time...")
         loss_fun = losses.get_loss_fun()
-        bu.compute_precise_time(model, loss_fun)
+        prec_time = nu.compute_precise_time(model, loss_fun)
+        lu.log_json_stats(prec_time)
         nu.reset_bn_stats(model)
 
     # Load model weights

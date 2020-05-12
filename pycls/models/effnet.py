@@ -7,14 +7,10 @@
 
 """EfficientNet models."""
 
-import pycls.utils.logging as lu
 import pycls.utils.net as nu
 import torch
 import torch.nn as nn
 from pycls.core.config import cfg
-
-
-logger = lu.get_logger(__name__)
 
 
 class EffHead(nn.Module):
@@ -206,7 +202,6 @@ class EffNet(nn.Module):
 
     def _construct(self, stem_w, ds, ws, exp_rs, se_r, ss, ks, head_w, nc):
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        logger.info("Constructing: EfficientNet-{}".format(stage_params))
         self.stem = StemIN(3, stem_w)
         prev_w = stem_w
         for i, (d, w, exp_r, stride, kernel) in enumerate(stage_params):

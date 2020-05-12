@@ -7,13 +7,9 @@
 
 """AnyNet models."""
 
-import pycls.utils.logging as lu
 import pycls.utils.net as nu
 import torch.nn as nn
 from pycls.core.config import cfg
-
-
-logger = lu.get_logger(__name__)
 
 
 def get_stem_fun(stem_type):
@@ -368,7 +364,6 @@ class AnyNet(nn.Module):
         self.apply(nu.init_weights)
 
     def _construct(self, stem_type, stem_w, block_type, ds, ws, ss, bms, gws, se_r, nc):
-        logger.info("Constructing AnyNet: ds={}, ws={}".format(ds, ws))
         # Generate dummy bot muls and gs for models that do not use them
         bms = bms if bms else [None for _d in ds]
         gws = gws if gws else [None for _d in ds]

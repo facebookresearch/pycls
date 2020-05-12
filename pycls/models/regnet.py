@@ -8,12 +8,8 @@
 """RegNet models."""
 
 import numpy as np
-import pycls.utils.logging as lu
 from pycls.core.config import cfg
 from pycls.models.anynet import AnyNet
-
-
-logger = lu.get_logger(__name__)
 
 
 def quantize_float(f, q):

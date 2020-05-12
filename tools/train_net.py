@@ -14,16 +14,14 @@ import pycls.core.losses as losses
 import pycls.core.model_builder as model_builder
 import pycls.core.optimizer as optim
 import pycls.datasets.loader as loader
-import pycls.utils.benchmark as bu
 import pycls.utils.checkpoint as cu
 import pycls.utils.distributed as du
 import pycls.utils.logging as lu
-import pycls.utils.metrics as mu
 import pycls.utils.multiprocessing as mpu
 import pycls.utils.net as nu
 import torch
 from pycls.core.config import assert_and_infer_cfg, cfg, dump_cfg, load_cfg_fom_args
-from pycls.utils.meters import TestMeter, TrainMeter
+from pycls.utils.meters import TestMeter, TrainMeter, topk_errors
 
 
 logger = lu.get_logger(__name__)
@@ -34,14 +32,6 @@ def is_eval_epoch(cur_epoch):
     return (cur_epoch + 1) % cfg.TRAIN.EVAL_PERIOD == 0 or (
         cur_epoch + 1
     ) == cfg.OPTIM.MAX_EPOCH
-
-
-def log_model_info(model):
-    """Logs model info"""
-    logger.info("Model:\n{}".format(model))
-    logger.info("Params: {:,}".format(mu.params_count(model)))
-    logger.info("Flops: {:,}".format(mu.flops_count(model)))
-    logger.info("Acts: {:,}".format(mu.acts_count(model)))
 
 
 def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch):
@@ -69,7 +59,7 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
         # Update the parameters
         optimizer.step()
         # Compute the errors
-        top1_err, top5_err = mu.topk_errors(preds, labels, [1, 5])
+        top1_err, top5_err = topk_errors(preds, labels, [1, 5])
         # Combine the stats across the GPUs
         if cfg.NUM_GPUS > 1:
             loss, top1_err, top5_err = du.scaled_all_reduce([loss, top1_err, top5_err])
@@ -102,7 +92,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         # Compute the predictions
         preds = model(inputs)
         # Compute the errors
-        top1_err, top5_err = mu.topk_errors(preds, labels, [1, 5])
+        top1_err, top5_err = topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs
         if cfg.NUM_GPUS > 1:
             top1_err, top5_err = du.scaled_all_reduce([top1_err, top5_err])
@@ -135,7 +125,8 @@ def train_model():
 
     # Build the model (before the loaders to speed up debugging)
     model = model_builder.build_model()
-    log_model_info(model)
+    logger.info("Model:\n{}".format(model))
+    lu.log_json_stats(nu.complexity(model))
 
     # Define the loss function
     loss_fun = losses.get_loss_fun()
@@ -156,7 +147,8 @@ def train_model():
     # Compute precise time
     if start_epoch == 0 and cfg.PREC_TIME.ENABLED:
         logger.info("Computing precise time...")
-        bu.compute_precise_time(model, loss_fun)
+        prec_time = nu.compute_precise_time(model, loss_fun)
+        lu.log_json_stats(prec_time)
         nu.reset_bn_stats(model)
 
     # Create data loaders
