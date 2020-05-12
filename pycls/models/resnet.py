@@ -7,13 +7,9 @@
 
 """ResNe(X)t models."""
 
-import pycls.utils.logging as lu
 import pycls.utils.net as nu
 import torch.nn as nn
 from pycls.core.config import cfg
-
-
-logger = lu.get_logger(__name__)
 
 
 # Stage depths for ImageNet models
@@ -238,7 +234,6 @@ class ResNet(nn.Module):
     def _construct_cifar(self):
         err_str = "Model depth should be of the format 6n + 2 for cifar"
         assert (cfg.MODEL.DEPTH - 2) % 6 == 0, err_str
-        logger.info("Constructing: ResNet-{}".format(cfg.MODEL.DEPTH))
         d = int((cfg.MODEL.DEPTH - 2) / 6)
         self.stem = ResStemCifar(3, 16)
         self.s1 = ResStage(16, 16, stride=1, d=d)
@@ -248,8 +243,6 @@ class ResNet(nn.Module):
 
     def _construct_imagenet(self):
         g, gw = cfg.RESNET.NUM_GROUPS, cfg.RESNET.WIDTH_PER_GROUP
-        out_str = "Constructing: ResNe(X)t-{}-{}x{}, {}"
-        logger.info(out_str.format(cfg.MODEL.DEPTH, g, gw, cfg.RESNET.TRANS_FUN))
         (d1, d2, d3, d4) = _IN_STAGE_DS[cfg.MODEL.DEPTH]
         w_b = gw * g
         self.stem = ResStemIN(3, 64)

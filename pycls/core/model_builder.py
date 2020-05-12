@@ -7,7 +7,6 @@
 
 """Model construction functions."""
 
-import pycls.utils.logging as lu
 import torch
 from pycls.core.config import cfg
 from pycls.models.anynet import AnyNet
@@ -16,13 +15,11 @@ from pycls.models.regnet import RegNet
 from pycls.models.resnet import ResNet
 
 
-logger = lu.get_logger(__name__)
-
 # Supported models
 _models = {"anynet": AnyNet, "effnet": EffNet, "resnet": ResNet, "regnet": RegNet}
 
 
-def get_model():
+def get_model_class():
     """Gets the model specified in the config."""
     model_type = cfg.MODEL.TYPE
     err_str = "Model type '{}' not supported"
@@ -33,7 +30,7 @@ def get_model():
 def build_model():
     """Builds the model."""
     # Construct the model
-    model = get_model()()
+    model = get_model_class()()
     # Transfer the model to the current GPU device
     err_str = "Cannot use more GPU devices than available"
     assert cfg.NUM_GPUS <= torch.cuda.device_count(), err_str
