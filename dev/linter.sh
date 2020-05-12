@@ -14,7 +14,7 @@ echo "Running isort..."
 isort -y -sp ./dev
 
 echo "Running black..."
-black .
+black . --exclude pycls/datasets/data/
 
 echo "Running flake8..."
 if [ -x "$(command -v flake8-3)" ]; then

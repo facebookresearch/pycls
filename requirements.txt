@@ -1,3 +1,6 @@
+black==19.3b0
+flake8
+isort
 numpy
 opencv-python
 setuptools
