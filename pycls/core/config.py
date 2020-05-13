@@ -11,7 +11,7 @@ import argparse
 import os
 import sys
 
-from pycls.utils.io import cache_url
+from pycls.core.io import cache_url
 from yacs.config import CfgNode as CN
 
 

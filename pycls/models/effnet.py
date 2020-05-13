@@ -7,7 +7,7 @@
 
 """EfficientNet models."""
 
-import pycls.utils.net as nu
+import pycls.core.net as nu
 import torch
 import torch.nn as nn
 from pycls.core.config import cfg
