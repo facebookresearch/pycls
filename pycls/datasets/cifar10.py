@@ -11,8 +11,8 @@ import os
 import pickle
 
 import numpy as np
+import pycls.core.logging as lu
 import pycls.datasets.transforms as transforms
-import pycls.utils.logging as lu
 import torch
 import torch.utils.data
 from pycls.core.config import cfg

@@ -11,14 +11,14 @@ import os
 
 import numpy as np
 import pycls.core.builders as builders
+import pycls.core.checkpoint as cu
 import pycls.core.config as config
+import pycls.core.distributed as du
+import pycls.core.logging as lu
+import pycls.core.meters as meters
+import pycls.core.net as nu
 import pycls.core.optimizer as optim
 import pycls.datasets.loader as loader
-import pycls.utils.checkpoint as cu
-import pycls.utils.distributed as du
-import pycls.utils.logging as lu
-import pycls.utils.meters as meters
-import pycls.utils.net as nu
 import torch
 from pycls.core.config import cfg
 

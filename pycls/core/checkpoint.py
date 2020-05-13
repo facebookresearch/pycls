@@ -9,7 +9,7 @@
 
 import os
 
-import pycls.utils.distributed as du
+import pycls.core.distributed as du
 import torch
 from pycls.core.config import cfg
 

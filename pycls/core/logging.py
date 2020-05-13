@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 
-import pycls.utils.distributed as du
+import pycls.core.distributed as du
 import simplejson
 from pycls.core.config import cfg
 

@@ -11,10 +11,10 @@ import datetime
 from collections import deque
 
 import numpy as np
-import pycls.utils.logging as lu
+import pycls.core.logging as lu
 import torch
 from pycls.core.config import cfg
-from pycls.utils.timer import Timer
+from pycls.core.timer import Timer
 
 
 logger = lu.get_logger(__name__)

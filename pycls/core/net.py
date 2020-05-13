@@ -13,7 +13,7 @@ import math
 import torch
 import torch.nn as nn
 from pycls.core.config import cfg
-from pycls.utils.timer import Timer
+from pycls.core.timer import Timer
 
 
 def init_weights(m):
