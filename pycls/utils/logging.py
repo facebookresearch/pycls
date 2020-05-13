@@ -62,7 +62,7 @@ def get_logger(name):
     return logging.getLogger(name)
 
 
-def log_json_stats(stats):
+def dump_json_stats(stats):
     """Logs json stats."""
     # Decimal + string workaround for having fixed len float vals in logs
     stats = {
@@ -70,8 +70,7 @@ def log_json_stats(stats):
         for k, v in stats.items()
     }
     json_stats = simplejson.dumps(stats, sort_keys=True, use_decimal=True)
-    logger = get_logger(__name__)
-    logger.info("{:s}{:s}".format(_TAG, json_stats))
+    return json_stats
 
 
 def load_json_stats(log_file):

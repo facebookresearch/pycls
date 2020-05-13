@@ -8,16 +8,16 @@
 """Test a trained classification model."""
 
 import numpy as np
-import pycls.core.losses as losses
-import pycls.core.model_builder as model_builder
+import pycls.core.builders as builders
+import pycls.core.config as config
 import pycls.datasets.loader as loader
 import pycls.utils.checkpoint as cu
 import pycls.utils.distributed as du
 import pycls.utils.logging as lu
+import pycls.utils.meters as meters
 import pycls.utils.net as nu
 import torch
-from pycls.core.config import assert_and_infer_cfg, cfg, load_cfg_fom_args
-from pycls.utils.meters import TestMeter, topk_errors
+from pycls.core.config import cfg
 
 
 logger = lu.get_logger(__name__)
@@ -37,7 +37,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         # Compute the predictions
         preds = model(inputs)
         # Compute the errors
-        top1_err, top5_err = topk_errors(preds, labels, [1, 5])
+        top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs
         if cfg.NUM_GPUS > 1:
             top1_err, top5_err = du.scaled_all_reduce([top1_err, top5_err])
@@ -69,16 +69,16 @@ def test_model():
     torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
 
     # Build the model (before the loaders to speed up debugging)
-    model = model_builder.build_model()
+    model = builders.build_model()
     logger.info("Model:\n{}".format(model))
-    lu.log_json_stats(nu.complexity(model))
+    logger.info(lu.dump_json_stats(nu.complexity(model)))
 
     # Compute precise time
     if cfg.PREC_TIME.ENABLED:
         logger.info("Computing precise time...")
-        loss_fun = losses.get_loss_fun()
+        loss_fun = builders.build_loss_fun()
         prec_time = nu.compute_precise_time(model, loss_fun)
-        lu.log_json_stats(prec_time)
+        logger.info(lu.dump_json_stats(prec_time))
         nu.reset_bn_stats(model)
 
     # Load model weights
@@ -89,7 +89,7 @@ def test_model():
     test_loader = loader.construct_test_loader()
 
     # Create meters
-    test_meter = TestMeter(len(test_loader))
+    test_meter = meters.TestMeter(len(test_loader))
 
     # Evaluate the model
     test_epoch(test_loader, model, test_meter, 0)
@@ -97,8 +97,8 @@ def test_model():
 
 def main():
     # Load config options
-    load_cfg_fom_args("Test a trained classification model.")
-    assert_and_infer_cfg()
+    config.load_cfg_fom_args("Test a trained classification model.")
+    config.assert_and_infer_cfg()
     cfg.freeze()
 
     # Perform evaluation
