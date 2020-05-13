@@ -133,10 +133,13 @@ def run(proc_rank, world_size, error_queue, fun, fun_args, fun_kwargs):
 
 
 def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs=None):
-    """Runs a function in a multi-proc setting."""
+    """Runs a function in a multi-proc setting (unless num_proc == 1)."""
 
-    if fun_kwargs is None:
-        fun_kwargs = {}
+    # There is no need for multi-proc in the single-proc case
+    fun_kwargs = fun_kwargs if fun_kwargs else {}
+    if num_proc == 1:
+        fun(*fun_args, **fun_kwargs)
+        return
 
     # Handle errors from training subprocesses
     error_queue = multiprocessing.SimpleQueue()
