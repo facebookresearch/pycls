@@ -106,6 +106,8 @@ def complexity_maxpool2d(cx, k, stride, padding):
 def complexity(model):
     """Compute model complexity (model can be model instance or model class)."""
     cx = complexity_init(cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE)
+    if cfg.NUM_GPUS > 1:
+        model = model.module
     cx = model.complexity(cx)
     return {"flops": cx["flops"], "params": cx["params"], "acts": cx["acts"]}
 
