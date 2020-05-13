@@ -7,7 +7,7 @@
 
 """EfficientNet models."""
 
-import pycls.core.net as nu
+import pycls.core.net as net
 import torch
 import torch.nn as nn
 from pycls.core.config import cfg
@@ -36,10 +36,10 @@ class EffHead(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out, nc):
-        cx = nu.complexity_conv2d(cx, w_in, w_out, 1, 1, 0)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_in, w_out, 1, 1, 0)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         cx["h"], cx["w"] = 1, 1
-        cx = nu.complexity_conv2d(cx, w_out, nc, 1, 1, 0, bias=True)
+        cx = net.complexity_conv2d(cx, w_out, nc, 1, 1, 0, bias=True)
         return cx
 
 
@@ -73,8 +73,8 @@ class SE(nn.Module):
     def complexity(cx, w_in, w_se):
         h, w = cx["h"], cx["w"]
         cx["h"], cx["w"] = 1, 1
-        cx = nu.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
-        cx = nu.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
+        cx = net.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
+        cx = net.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
         cx["h"], cx["w"] = h, w
         return cx
 
@@ -110,7 +110,7 @@ class MBConv(nn.Module):
         f_x = self.lin_proj_bn(self.lin_proj(f_x))
         if self.has_skip:
             if self.training and cfg.EN.DC_RATIO > 0.0:
-                f_x = nu.drop_connect(f_x, cfg.EN.DC_RATIO)
+                f_x = net.drop_connect(f_x, cfg.EN.DC_RATIO)
             f_x = x + f_x
         return f_x
 
@@ -118,14 +118,14 @@ class MBConv(nn.Module):
     def complexity(cx, w_in, exp_r, kernel, stride, se_r, w_out):
         w_exp = int(w_in * exp_r)
         if w_exp != w_in:
-            cx = nu.complexity_conv2d(cx, w_in, w_exp, 1, 1, 0)
-            cx = nu.complexity_batchnorm2d(cx, w_exp)
+            cx = net.complexity_conv2d(cx, w_in, w_exp, 1, 1, 0)
+            cx = net.complexity_batchnorm2d(cx, w_exp)
         padding = (kernel - 1) // 2
-        cx = nu.complexity_conv2d(cx, w_exp, w_exp, kernel, stride, padding, w_exp)
-        cx = nu.complexity_batchnorm2d(cx, w_exp)
+        cx = net.complexity_conv2d(cx, w_exp, w_exp, kernel, stride, padding, w_exp)
+        cx = net.complexity_batchnorm2d(cx, w_exp)
         cx = SE.complexity(cx, w_exp, int(w_in * se_r))
-        cx = nu.complexity_conv2d(cx, w_exp, w_out, 1, 1, 0)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_exp, w_out, 1, 1, 0)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         return cx
 
 
@@ -170,8 +170,8 @@ class StemIN(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         return cx
 
 
@@ -198,7 +198,7 @@ class EffNet(nn.Module):
         assert cfg.TEST.DATASET in ["imagenet"], err_str.format(cfg.TEST.DATASET)
         super(EffNet, self).__init__()
         self._construct(**EffNet.get_args())
-        self.apply(nu.init_weights)
+        self.apply(net.init_weights)
 
     def _construct(self, stem_w, ds, ws, exp_rs, se_r, ss, ks, head_w, nc):
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))

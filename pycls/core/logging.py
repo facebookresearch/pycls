@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 
-import pycls.core.distributed as du
+import pycls.core.distributed as dist
 import simplejson
 from pycls.core.config import cfg
 
@@ -40,7 +40,7 @@ def _suppress_print():
 def setup_logging():
     """Sets up the logging."""
     # Enable logging only for the master process
-    if du.is_master_proc():
+    if dist.is_master_proc():
         # Clear the root logger to prevent any existing logging config
         # (e.g. set by another module) from messing with our setup
         logging.root.handlers = []

@@ -9,18 +9,18 @@
 
 import numpy as np
 import pycls.core.builders as builders
-import pycls.core.checkpoint as cu
+import pycls.core.checkpoint as checkpoint
 import pycls.core.config as config
-import pycls.core.distributed as du
-import pycls.core.logging as lu
+import pycls.core.distributed as dist
+import pycls.core.logging as logging
 import pycls.core.meters as meters
-import pycls.core.net as nu
+import pycls.core.net as net
 import pycls.datasets.loader as loader
 import torch
 from pycls.core.config import cfg
 
 
-logger = lu.get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 @torch.no_grad()
@@ -40,7 +40,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs
         if cfg.NUM_GPUS > 1:
-            top1_err, top5_err = du.scaled_all_reduce([top1_err, top5_err])
+            top1_err, top5_err = dist.scaled_all_reduce([top1_err, top5_err])
         # Copy the errors from GPU to CPU (sync point)
         top1_err, top5_err = top1_err.item(), top5_err.item()
         test_meter.iter_toc()
@@ -58,7 +58,7 @@ def test_model():
     """Evaluates the model."""
 
     # Setup logging
-    lu.setup_logging()
+    logging.setup_logging()
     # Show the config
     logger.info("Config:\n{}".format(cfg))
 
@@ -71,18 +71,18 @@ def test_model():
     # Build the model (before the loaders to speed up debugging)
     model = builders.build_model()
     logger.info("Model:\n{}".format(model))
-    logger.info(lu.dump_json_stats(nu.complexity(model)))
+    logger.info(logging.dump_json_stats(net.complexity(model)))
 
     # Compute precise time
     if cfg.PREC_TIME.ENABLED:
         logger.info("Computing precise time...")
         loss_fun = builders.build_loss_fun()
-        prec_time = nu.compute_precise_time(model, loss_fun)
-        logger.info(lu.dump_json_stats(prec_time))
-        nu.reset_bn_stats(model)
+        prec_time = net.compute_precise_time(model, loss_fun)
+        logger.info(logging.dump_json_stats(prec_time))
+        net.reset_bn_stats(model)
 
     # Load model weights
-    cu.load_checkpoint(cfg.TEST.WEIGHTS, model)
+    checkpoint.load_checkpoint(cfg.TEST.WEIGHTS, model)
     logger.info("Loaded model weights from: {}".format(cfg.TEST.WEIGHTS))
 
     # Create data loaders
@@ -103,7 +103,7 @@ def main():
 
     # Perform evaluation
     if cfg.NUM_GPUS > 1:
-        du.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=test_model)
+        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=test_model)
     else:
         test_model()
 

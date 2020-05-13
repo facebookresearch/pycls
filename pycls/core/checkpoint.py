@@ -9,7 +9,7 @@
 
 import os
 
-import pycls.core.distributed as du
+import pycls.core.distributed as dist
 import torch
 from pycls.core.config import cfg
 
@@ -56,7 +56,7 @@ def is_checkpoint_epoch(cur_epoch):
 def save_checkpoint(model, optimizer, epoch):
     """Saves a checkpoint."""
     # Save checkpoints only from the master process
-    if not du.is_master_proc():
+    if not dist.is_master_proc():
         return
     # Ensure that the checkpoint dir exists
     os.makedirs(get_checkpoint_dir(), exist_ok=True)
