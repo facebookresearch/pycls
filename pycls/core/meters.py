@@ -11,13 +11,13 @@ import datetime
 from collections import deque
 
 import numpy as np
-import pycls.core.logging as lu
+import pycls.core.logging as logging
 import torch
 from pycls.core.config import cfg
 from pycls.core.timer import Timer
 
 
-logger = lu.get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 def eta_str(eta_td):
@@ -154,7 +154,7 @@ class TrainMeter(object):
         if (cur_iter + 1) % cfg.LOG_PERIOD != 0:
             return
         stats = self.get_iter_stats(cur_epoch, cur_iter)
-        logger.info(lu.dump_json_stats(stats))
+        logger.info(logging.dump_json_stats(stats))
 
     def get_epoch_stats(self, cur_epoch):
         eta_sec = self.iter_timer.average_time * (
@@ -180,7 +180,7 @@ class TrainMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logger.info(lu.dump_json_stats(stats))
+        logger.info(logging.dump_json_stats(stats))
 
 
 class TestMeter(object):
@@ -242,7 +242,7 @@ class TestMeter(object):
         if (cur_iter + 1) % cfg.LOG_PERIOD != 0:
             return
         stats = self.get_iter_stats(cur_epoch, cur_iter)
-        logger.info(lu.dump_json_stats(stats))
+        logger.info(logging.dump_json_stats(stats))
 
     def get_epoch_stats(self, cur_epoch):
         top1_err = self.num_top1_mis / self.num_samples
@@ -264,4 +264,4 @@ class TestMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logger.info(lu.dump_json_stats(stats))
+        logger.info(logging.dump_json_stats(stats))

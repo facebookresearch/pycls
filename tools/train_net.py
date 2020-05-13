@@ -11,19 +11,19 @@ import os
 
 import numpy as np
 import pycls.core.builders as builders
-import pycls.core.checkpoint as cu
+import pycls.core.checkpoint as checkpoint
 import pycls.core.config as config
-import pycls.core.distributed as du
-import pycls.core.logging as lu
+import pycls.core.distributed as dist
+import pycls.core.logging as logging
 import pycls.core.meters as meters
-import pycls.core.net as nu
+import pycls.core.net as net
 import pycls.core.optimizer as optim
 import pycls.datasets.loader as loader
 import torch
 from pycls.core.config import cfg
 
 
-logger = lu.get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 def is_eval_epoch(cur_epoch):
@@ -61,7 +61,9 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the stats across the GPUs
         if cfg.NUM_GPUS > 1:
-            loss, top1_err, top5_err = du.scaled_all_reduce([loss, top1_err, top5_err])
+            loss, top1_err, top5_err = dist.scaled_all_reduce(
+                [loss, top1_err, top5_err]
+            )
         # Copy the stats from GPU to CPU (sync point)
         loss, top1_err, top5_err = loss.item(), top1_err.item(), top5_err.item()
         train_meter.iter_toc()
@@ -94,7 +96,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs
         if cfg.NUM_GPUS > 1:
-            top1_err, top5_err = du.scaled_all_reduce([top1_err, top5_err])
+            top1_err, top5_err = dist.scaled_all_reduce([top1_err, top5_err])
         # Copy the errors from GPU to CPU (sync point)
         top1_err, top5_err = top1_err.item(), top5_err.item()
         test_meter.iter_toc()
@@ -112,7 +114,7 @@ def train_model():
     """Trains the model."""
 
     # Setup logging
-    lu.setup_logging()
+    logging.setup_logging()
     # Show the config
     logger.info("Config:\n{}".format(cfg))
 
@@ -125,7 +127,7 @@ def train_model():
     # Build the model (before the loaders to speed up debugging)
     model = builders.build_model()
     logger.info("Model:\n{}".format(model))
-    logger.info(lu.dump_json_stats(nu.complexity(model)))
+    logger.info(logging.dump_json_stats(net.complexity(model)))
 
     # Define the loss function
     loss_fun = builders.build_loss_fun()
@@ -134,21 +136,21 @@ def train_model():
 
     # Load checkpoint or initial weights
     start_epoch = 0
-    if cfg.TRAIN.AUTO_RESUME and cu.has_checkpoint():
-        last_checkpoint = cu.get_last_checkpoint()
-        checkpoint_epoch = cu.load_checkpoint(last_checkpoint, model, optimizer)
+    if cfg.TRAIN.AUTO_RESUME and checkpoint.has_checkpoint():
+        last_checkpoint = checkpoint.get_last_checkpoint()
+        checkpoint_epoch = checkpoint.load_checkpoint(last_checkpoint, model, optimizer)
         logger.info("Loaded checkpoint from: {}".format(last_checkpoint))
         start_epoch = checkpoint_epoch + 1
     elif cfg.TRAIN.WEIGHTS:
-        cu.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
+        checkpoint.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
         logger.info("Loaded initial weights from: {}".format(cfg.TRAIN.WEIGHTS))
 
     # Compute precise time
     if start_epoch == 0 and cfg.PREC_TIME.ENABLED:
         logger.info("Computing precise time...")
-        prec_time = nu.compute_precise_time(model, loss_fun)
-        logger.info(lu.dump_json_stats(prec_time))
-        nu.reset_bn_stats(model)
+        prec_time = net.compute_precise_time(model, loss_fun)
+        logger.info(logging.dump_json_stats(prec_time))
+        net.reset_bn_stats(model)
 
     # Create data loaders
     train_loader = loader.construct_train_loader()
@@ -166,10 +168,10 @@ def train_model():
         train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch)
         # Compute precise BN stats
         if cfg.BN.USE_PRECISE_STATS:
-            nu.compute_precise_bn_stats(model, train_loader)
+            net.compute_precise_bn_stats(model, train_loader)
         # Save a checkpoint
-        if cu.is_checkpoint_epoch(cur_epoch):
-            checkpoint_file = cu.save_checkpoint(model, optimizer, cur_epoch)
+        if checkpoint.is_checkpoint_epoch(cur_epoch):
+            checkpoint_file = checkpoint.save_checkpoint(model, optimizer, cur_epoch)
             logger.info("Wrote checkpoint to: {}".format(checkpoint_file))
         # Evaluate the model
         if is_eval_epoch(cur_epoch):
@@ -189,7 +191,7 @@ def main():
 
     # Perform training
     if cfg.NUM_GPUS > 1:
-        du.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=train_model)
+        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=train_model)
     else:
         train_model()
 

@@ -11,14 +11,14 @@ import os
 import pickle
 
 import numpy as np
-import pycls.core.logging as lu
+import pycls.core.logging as logging
 import pycls.datasets.transforms as transforms
 import torch
 import torch.utils.data
 from pycls.core.config import cfg
 
 
-logger = lu.get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 # Per-channel mean and SD values in BGR order
 _MEAN = [125.3, 123.0, 113.9]

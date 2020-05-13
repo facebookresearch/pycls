@@ -11,7 +11,7 @@ import colorlover as cl
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import plotly.offline as offline
-import pycls.core.logging as lu
+import pycls.core.logging as logging
 
 
 def get_plot_colors(max_colors, color_format="pyplot"):
@@ -28,10 +28,10 @@ def prepare_plot_data(log_files, names, key="top1_err"):
     """Load logs and extract data for plotting error curves."""
     plot_data = []
     for file, name in zip(log_files, names):
-        d, log = {}, lu.load_json_stats(file)
+        d, log = {}, logging.load_json_stats(file)
         for phase in ["train", "test"]:
-            x = lu.parse_json_stats(log, phase + "_epoch", "epoch")
-            y = lu.parse_json_stats(log, phase + "_epoch", key)
+            x = logging.parse_json_stats(log, phase + "_epoch", "epoch")
+            y = logging.parse_json_stats(log, phase + "_epoch", key)
             d["x_" + phase], d["y_" + phase] = x, y
             d[phase + "_label"] = "[{:5.2f}] ".format(min(y) if y else 0) + name
         plot_data.append(d)

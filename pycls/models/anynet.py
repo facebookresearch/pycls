@@ -7,7 +7,7 @@
 
 """AnyNet models."""
 
-import pycls.core.net as nu
+import pycls.core.net as net
 import torch.nn as nn
 from pycls.core.config import cfg
 
@@ -53,7 +53,7 @@ class AnyHead(nn.Module):
     @staticmethod
     def complexity(cx, w_in, nc):
         cx["h"], cx["w"] = 1, 1
-        cx = nu.complexity_conv2d(cx, w_in, nc, 1, 1, 0, bias=True)
+        cx = net.complexity_conv2d(cx, w_in, nc, 1, 1, 0, bias=True)
         return cx
 
 
@@ -80,10 +80,10 @@ class VanillaBlock(nn.Module):
     def complexity(cx, w_in, w_out, stride, bm=None, gw=None, se_r=None):
         err_str = "Vanilla block does not support bm, gw, and se_r options"
         assert bm is None and gw is None and se_r is None, err_str
-        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
-        cx = nu.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
+        cx = net.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         return cx
 
 
@@ -106,10 +106,10 @@ class BasicTransform(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out, stride):
-        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
-        cx = nu.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
+        cx = net.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         return cx
 
 
@@ -142,8 +142,8 @@ class ResBasicBlock(nn.Module):
         proj_block = (w_in != w_out) or (stride != 1)
         if proj_block:
             h, w = cx["h"], cx["w"]
-            cx = nu.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
-            cx = nu.complexity_batchnorm2d(cx, w_out)
+            cx = net.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
+            cx = net.complexity_batchnorm2d(cx, w_out)
             cx["h"], cx["w"] = h, w  # parallel branch
         cx = BasicTransform.complexity(cx, w_in, w_out, stride)
         return cx
@@ -169,8 +169,8 @@ class SE(nn.Module):
     def complexity(cx, w_in, w_se):
         h, w = cx["h"], cx["w"]
         cx["h"], cx["w"] = 1, 1
-        cx = nu.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
-        cx = nu.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
+        cx = net.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
+        cx = net.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
         cx["h"], cx["w"] = h, w
         return cx
 
@@ -204,15 +204,15 @@ class BottleneckTransform(nn.Module):
     def complexity(cx, w_in, w_out, stride, bm, gw, se_r):
         w_b = int(round(w_out * bm))
         g = w_b // gw
-        cx = nu.complexity_conv2d(cx, w_in, w_b, 1, 1, 0)
-        cx = nu.complexity_batchnorm2d(cx, w_b)
-        cx = nu.complexity_conv2d(cx, w_b, w_b, 3, stride, 1, g)
-        cx = nu.complexity_batchnorm2d(cx, w_b)
+        cx = net.complexity_conv2d(cx, w_in, w_b, 1, 1, 0)
+        cx = net.complexity_batchnorm2d(cx, w_b)
+        cx = net.complexity_conv2d(cx, w_b, w_b, 3, stride, 1, g)
+        cx = net.complexity_batchnorm2d(cx, w_b)
         if se_r:
             w_se = int(round(w_in * se_r))
             cx = SE.complexity(cx, w_b, w_se)
-        cx = nu.complexity_conv2d(cx, w_b, w_out, 1, 1, 0)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_b, w_out, 1, 1, 0)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         return cx
 
 
@@ -242,8 +242,8 @@ class ResBottleneckBlock(nn.Module):
         proj_block = (w_in != w_out) or (stride != 1)
         if proj_block:
             h, w = cx["h"], cx["w"]
-            cx = nu.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
-            cx = nu.complexity_batchnorm2d(cx, w_out)
+            cx = net.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
+            cx = net.complexity_batchnorm2d(cx, w_out)
             cx["h"], cx["w"] = h, w  # parallel branch
         cx = BottleneckTransform.complexity(cx, w_in, w_out, stride, bm, gw, se_r)
         return cx
@@ -265,8 +265,8 @@ class ResStemCifar(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, 1, 1)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_in, w_out, 3, 1, 1)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         return cx
 
 
@@ -287,9 +287,9 @@ class ResStemIN(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = nu.complexity_conv2d(cx, w_in, w_out, 7, 2, 3)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
-        cx = nu.complexity_maxpool2d(cx, 3, 2, 1)
+        cx = net.complexity_conv2d(cx, w_in, w_out, 7, 2, 3)
+        cx = net.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_maxpool2d(cx, 3, 2, 1)
         return cx
 
 
@@ -309,8 +309,8 @@ class SimpleStemIN(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = nu.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
-        cx = nu.complexity_batchnorm2d(cx, w_out)
+        cx = net.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
+        cx = net.complexity_batchnorm2d(cx, w_out)
         return cx
 
 
@@ -361,7 +361,7 @@ class AnyNet(nn.Module):
         super(AnyNet, self).__init__()
         kwargs = self.get_args() if not kwargs else kwargs
         self._construct(**kwargs)
-        self.apply(nu.init_weights)
+        self.apply(net.init_weights)
 
     def _construct(self, stem_type, stem_w, block_type, ds, ws, ss, bms, gws, se_r, nc):
         # Generate dummy bot muls and gs for models that do not use them
