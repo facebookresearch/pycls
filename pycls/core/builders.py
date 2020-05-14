@@ -38,25 +38,12 @@ def get_loss_fun():
 
 def build_model():
     """Builds the model."""
-    # Construct the model
-    model = get_model()()
-    # Transfer the model to the current GPU device
-    err_str = "Cannot use more GPU devices than available"
-    assert cfg.NUM_GPUS <= torch.cuda.device_count(), err_str
-    cur_device = torch.cuda.current_device()
-    model = model.cuda(device=cur_device)
-    # Use multi-process data parallel model in the multi-gpu setting
-    if cfg.NUM_GPUS > 1:
-        # Make model replica operate on the current device
-        model = torch.nn.parallel.DistributedDataParallel(
-            module=model, device_ids=[cur_device], output_device=cur_device
-        )
-    return model
+    return get_model()()
 
 
 def build_loss_fun():
     """Build the loss function."""
-    return get_loss_fun()().cuda()
+    return get_loss_fun()()
 
 
 def register_model(name, ctor):
