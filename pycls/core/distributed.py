@@ -53,6 +53,9 @@ def scaled_all_reduce(tensors):
     reduction operator. The reduced values are scaled by the inverse size of
     the process group (equivalent to cfg.NUM_GPUS).
     """
+    # There is no need for reduction in the single-proc case
+    if cfg.NUM_GPUS == 1:
+        return tensors
     # Queue the reductions
     reductions = []
     for tensor in tensors:
