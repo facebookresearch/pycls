@@ -1,0 +1,328 @@
+{
+    "configs/archive/cifar/anynet/R-110_nds_1gpu.yaml": {
+        "acts": 1060874,
+        "flops": 253149834,
+        "params": 1730714
+    },
+    "configs/archive/cifar/anynet/R-56_nds_1gpu.yaml": {
+        "acts": 544778,
+        "flops": 125747850,
+        "params": 855770
+    },
+    "configs/archive/cifar/anynet/V-56_nds_1gpu.yaml": {
+        "acts": 532490,
+        "flops": 125485706,
+        "params": 853018
+    },
+    "configs/archive/cifar/resnet/R-110_nds_1gpu.yaml": {
+        "acts": 1060874,
+        "flops": 253149834,
+        "params": 1730714
+    },
+    "configs/archive/cifar/resnet/R-56_nds_1gpu.yaml": {
+        "acts": 544778,
+        "flops": 125747850,
+        "params": 855770
+    },
+    "configs/archive/imagenet/anynet/R-101-1x64d_step_1gpu.yaml": {
+        "acts": 16232936,
+        "flops": 7801406440,
+        "params": 44549160
+    },
+    "configs/archive/imagenet/anynet/R-101-1x64d_step_2gpu.yaml": {
+        "acts": 16232936,
+        "flops": 7801406440,
+        "params": 44549160
+    },
+    "configs/archive/imagenet/anynet/R-101-1x64d_step_8gpu.yaml": {
+        "acts": 16232936,
+        "flops": 7801406440,
+        "params": 44549160
+    },
+    "configs/archive/imagenet/anynet/R-50-1x64d_step_1gpu.yaml": {
+        "acts": 11114984,
+        "flops": 4089185256,
+        "params": 25557032
+    },
+    "configs/archive/imagenet/anynet/R-50-1x64d_step_2gpu.yaml": {
+        "acts": 11114984,
+        "flops": 4089185256,
+        "params": 25557032
+    },
+    "configs/archive/imagenet/anynet/R-50-1x64d_step_8gpu.yaml": {
+        "acts": 11114984,
+        "flops": 4089185256,
+        "params": 25557032
+    },
+    "configs/archive/imagenet/anynet/X-101-32x4d_step_1gpu.yaml": {
+        "acts": 21225448,
+        "flops": 7969997800,
+        "params": 44177704
+    },
+    "configs/archive/imagenet/anynet/X-101-32x4d_step_2gpu.yaml": {
+        "acts": 21225448,
+        "flops": 7969997800,
+        "params": 44177704
+    },
+    "configs/archive/imagenet/anynet/X-101-32x4d_step_8gpu.yaml": {
+        "acts": 21225448,
+        "flops": 7969997800,
+        "params": 44177704
+    },
+    "configs/archive/imagenet/anynet/X-50-32x4d_step_1gpu.yaml": {
+        "acts": 14401512,
+        "flops": 4230480872,
+        "params": 25028904
+    },
+    "configs/archive/imagenet/anynet/X-50-32x4d_step_2gpu.yaml": {
+        "acts": 14401512,
+        "flops": 4230480872,
+        "params": 25028904
+    },
+    "configs/archive/imagenet/anynet/X-50-32x4d_step_8gpu.yaml": {
+        "acts": 14401512,
+        "flops": 4230480872,
+        "params": 25028904
+    },
+    "configs/archive/imagenet/resnet/R-101-1x64d_step_1gpu.yaml": {
+        "acts": 16232936,
+        "flops": 7801406440,
+        "params": 44549160
+    },
+    "configs/archive/imagenet/resnet/R-101-1x64d_step_2gpu.yaml": {
+        "acts": 16232936,
+        "flops": 7801406440,
+        "params": 44549160
+    },
+    "configs/archive/imagenet/resnet/R-101-1x64d_step_8gpu.yaml": {
+        "acts": 16232936,
+        "flops": 7801406440,
+        "params": 44549160
+    },
+    "configs/archive/imagenet/resnet/R-50-1x64d_step_1gpu.yaml": {
+        "acts": 11114984,
+        "flops": 4089185256,
+        "params": 25557032
+    },
+    "configs/archive/imagenet/resnet/R-50-1x64d_step_2gpu.yaml": {
+        "acts": 11114984,
+        "flops": 4089185256,
+        "params": 25557032
+    },
+    "configs/archive/imagenet/resnet/R-50-1x64d_step_8gpu.yaml": {
+        "acts": 11114984,
+        "flops": 4089185256,
+        "params": 25557032
+    },
+    "configs/archive/imagenet/resnet/X-101-32x4d_step_1gpu.yaml": {
+        "acts": 21225448,
+        "flops": 7969997800,
+        "params": 44177704
+    },
+    "configs/archive/imagenet/resnet/X-101-32x4d_step_2gpu.yaml": {
+        "acts": 21225448,
+        "flops": 7969997800,
+        "params": 44177704
+    },
+    "configs/archive/imagenet/resnet/X-101-32x4d_step_8gpu.yaml": {
+        "acts": 21225448,
+        "flops": 7969997800,
+        "params": 44177704
+    },
+    "configs/archive/imagenet/resnet/X-50-32x4d_step_1gpu.yaml": {
+        "acts": 14401512,
+        "flops": 4230480872,
+        "params": 25028904
+    },
+    "configs/archive/imagenet/resnet/X-50-32x4d_step_2gpu.yaml": {
+        "acts": 14401512,
+        "flops": 4230480872,
+        "params": 25028904
+    },
+    "configs/archive/imagenet/resnet/X-50-32x4d_step_8gpu.yaml": {
+        "acts": 14401512,
+        "flops": 4230480872,
+        "params": 25028904
+    },
+    "configs/dds_baselines/effnet/EN-B0_dds_8gpu.yaml": {
+        "acts": 6748036,
+        "flops": 385825092,
+        "params": 5288548
+    },
+    "configs/dds_baselines/effnet/EN-B1_dds_8gpu.yaml": {
+        "acts": 10884328,
+        "flops": 686817992,
+        "params": 7794184
+    },
+    "configs/dds_baselines/effnet/EN-B2_dds_8gpu.yaml": {
+        "acts": 13832834,
+        "flops": 993578282,
+        "params": 9109994
+    },
+    "configs/dds_baselines/effnet/EN-B3_dds_8gpu.yaml": {
+        "acts": 23831296,
+        "flops": 1827162472,
+        "params": 12233232
+    },
+    "configs/dds_baselines/effnet/EN-B4_dds_8gpu.yaml": {
+        "acts": 49489032,
+        "flops": 4393801064,
+        "params": 19341616
+    },
+    "configs/dds_baselines/effnet/EN-B5_dds_8gpu.yaml": {
+        "acts": 98857400,
+        "flops": 10266426072,
+        "params": 30389784
+    },
+    "configs/dds_baselines/regnetx/RegNetX-1.6GF_dds_8gpu.yaml": {
+        "acts": 7933512,
+        "flops": 1602850792,
+        "params": 9190136
+    },
+    "configs/dds_baselines/regnetx/RegNetX-12GF_dds_8gpu.yaml": {
+        "acts": 21366568,
+        "flops": 12086679016,
+        "params": 46106056
+    },
+    "configs/dds_baselines/regnetx/RegNetX-16GF_dds_8gpu.yaml": {
+        "acts": 25515496,
+        "flops": 15940756456,
+        "params": 54278536
+    },
+    "configs/dds_baselines/regnetx/RegNetX-200MF_dds_8gpu.yaml": {
+        "acts": 2164056,
+        "flops": 199040872,
+        "params": 2684792
+    },
+    "configs/dds_baselines/regnetx/RegNetX-3.2GF_dds_8gpu.yaml": {
+        "acts": 11367432,
+        "flops": 3176622952,
+        "params": 15296552
+    },
+    "configs/dds_baselines/regnetx/RegNetX-32GF_dds_8gpu.yaml": {
+        "acts": 36302160,
+        "flops": 31735930792,
+        "params": 107811560
+    },
+    "configs/dds_baselines/regnetx/RegNetX-4.0GF_dds_8gpu.yaml": {
+        "acts": 12201608,
+        "flops": 3964499816,
+        "params": 22118248
+    },
+    "configs/dds_baselines/regnetx/RegNetX-400MF_dds_8gpu.yaml": {
+        "acts": 3143272,
+        "flops": 397678568,
+        "params": 5157512
+    },
+    "configs/dds_baselines/regnetx/RegNetX-6.4GF_dds_8gpu.yaml": {
+        "acts": 16369744,
+        "flops": 6460292264,
+        "params": 26209256
+    },
+    "configs/dds_baselines/regnetx/RegNetX-600MF_dds_8gpu.yaml": {
+        "acts": 3975096,
+        "flops": 600891112,
+        "params": 6196040
+    },
+    "configs/dds_baselines/regnetx/RegNetX-8.0GF_dds_8gpu.yaml": {
+        "acts": 14059688,
+        "flops": 7995133416,
+        "params": 39572648
+    },
+    "configs/dds_baselines/regnetx/RegNetX-800MF_dds_8gpu.yaml": {
+        "acts": 5148744,
+        "flops": 799700712,
+        "params": 7259656
+    },
+    "configs/dds_baselines/regnety/RegNetY-1.6GF_dds_8gpu.yaml": {
+        "acts": 8044814,
+        "flops": 1612087326,
+        "params": 11202430
+    },
+    "configs/dds_baselines/regnety/RegNetY-12GF_dds_8gpu.yaml": {
+        "acts": 21384496,
+        "flops": 12092395504,
+        "params": 51822544
+    },
+    "configs/dds_baselines/regnety/RegNetY-16GF_dds_8gpu.yaml": {
+        "acts": 23041228,
+        "flops": 15911534044,
+        "params": 83590140
+    },
+    "configs/dds_baselines/regnety/RegNetY-200MF_dds_8gpu.yaml": {
+        "acts": 2168052,
+        "flops": 199519076,
+        "params": 3162996
+    },
+    "configs/dds_baselines/regnety/RegNetY-3.2GF_dds_8gpu.yaml": {
+        "acts": 11263418,
+        "flops": 3176496162,
+        "params": 19436338
+    },
+    "configs/dds_baselines/regnety/RegNetY-32GF_dds_8gpu.yaml": {
+        "acts": 30261570,
+        "flops": 32279583362,
+        "params": 145046770
+    },
+    "configs/dds_baselines/regnety/RegNetY-4.0GF_dds_8gpu.yaml": {
+        "acts": 12287200,
+        "flops": 3973301344,
+        "params": 20646656
+    },
+    "configs/dds_baselines/regnety/RegNetY-400MF_dds_8gpu.yaml": {
+        "acts": 3892496,
+        "flops": 401849056,
+        "params": 4344144
+    },
+    "configs/dds_baselines/regnety/RegNetY-6.4GF_dds_8gpu.yaml": {
+        "acts": 16407188,
+        "flops": 6355221876,
+        "params": 30583252
+    },
+    "configs/dds_baselines/regnety/RegNetY-600MF_dds_8gpu.yaml": {
+        "acts": 4334296,
+        "flops": 601227608,
+        "params": 6055160
+    },
+    "configs/dds_baselines/regnety/RegNetY-8.0GF_dds_8gpu.yaml": {
+        "acts": 17968916,
+        "flops": 7963074196,
+        "params": 39180068
+    },
+    "configs/dds_baselines/regnety/RegNetY-800MF_dds_8gpu.yaml": {
+        "acts": 5249888,
+        "flops": 797183328,
+        "params": 6263168
+    },
+    "configs/dds_baselines/resnet/R-101-1x64d_dds_8gpu.yaml": {
+        "acts": 16232936,
+        "flops": 7801406440,
+        "params": 44549160
+    },
+    "configs/dds_baselines/resnet/R-152-1x64d_dds_8gpu.yaml": {
+        "acts": 22555112,
+        "flops": 11513627624,
+        "params": 60192808
+    },
+    "configs/dds_baselines/resnet/R-50-1x64d_dds_8gpu.yaml": {
+        "acts": 11114984,
+        "flops": 4089185256,
+        "params": 25557032
+    },
+    "configs/dds_baselines/resnext/X-101-32x4d_dds_8gpu.yaml": {
+        "acts": 21225448,
+        "flops": 7969997800,
+        "params": 44177704
+    },
+    "configs/dds_baselines/resnext/X-152-32x4d_dds_8gpu.yaml": {
+        "acts": 29655016,
+        "flops": 11709514728,
+        "params": 59951400
+    },
+    "configs/dds_baselines/resnext/X-50-32x4d_dds_8gpu.yaml": {
+        "acts": 14401512,
+        "flops": 4230480872,
+        "params": 25028904
+    },
+    "date-created": "2020-05-14 17:26:08.797491"
+}
