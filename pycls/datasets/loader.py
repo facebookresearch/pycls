@@ -7,7 +7,8 @@
 
 """Data loader."""
 
-import pycls.datasets.paths as dp
+import os
+
 import torch
 from pycls.core.config import cfg
 from pycls.datasets.cifar10 import Cifar10
@@ -17,21 +18,23 @@ from torch.utils.data.sampler import RandomSampler
 
 
 # Supported datasets
-_DATASET_CATALOG = {"cifar10": Cifar10, "imagenet": ImageNet}
+_DATASETS = {"cifar10": Cifar10, "imagenet": ImageNet}
+
+# Default data directory (/path/pycls/pycls/datasets/data)
+_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+# Relative data paths to default data directory
+_PATHS = {"cifar10": "cifar10", "imagenet": "imagenet"}
 
 
 def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
     """Constructs the data loader for the given dataset."""
-    assert dataset_name in _DATASET_CATALOG.keys(), "Dataset '{}' not supported".format(
-        dataset_name
-    )
-    assert dp.has_data_path(dataset_name), "Dataset '{}' has no data path".format(
-        dataset_name
-    )
+    err_str = "Dataset '{}' not supported".format(dataset_name)
+    assert dataset_name in _DATASETS and dataset_name in _PATHS, err_str
     # Retrieve the data path for the dataset
-    data_path = dp.get_data_path(dataset_name)
+    data_path = os.path.join(_DATA_DIR, _PATHS[dataset_name])
     # Construct the dataset
-    dataset = _DATASET_CATALOG[dataset_name](data_path, split)
+    dataset = _DATASETS[dataset_name](data_path, split)
     # Create a sampler for multi-process training
     sampler = DistributedSampler(dataset) if cfg.NUM_GPUS > 1 else None
     # Create a loader
@@ -71,9 +74,8 @@ def construct_test_loader():
 
 def shuffle(loader, cur_epoch):
     """"Shuffles the data."""
-    assert isinstance(
-        loader.sampler, (RandomSampler, DistributedSampler)
-    ), "Sampler type '{}' not supported".format(type(loader.sampler))
+    err_str = "Sampler type '{}' not supported".format(type(loader.sampler))
+    assert isinstance(loader.sampler, (RandomSampler, DistributedSampler)), err_str
     # RandomSampler handles shuffling automatically
     if isinstance(loader.sampler, DistributedSampler):
         # DistributedSampler shuffles data based on epoch
