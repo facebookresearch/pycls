@@ -171,7 +171,7 @@ def train_model():
         if cfg.BN.USE_PRECISE_STATS:
             net.compute_precise_bn_stats(model, train_loader)
         # Save a checkpoint
-        if checkpoint.is_checkpoint_epoch(cur_epoch):
+        if (cur_epoch + 1) % cfg.TRAIN.CHECKPOINT_PERIOD == 0:
             checkpoint_file = checkpoint.save_checkpoint(model, optimizer, cur_epoch)
             logger.info("Wrote checkpoint to: {}".format(checkpoint_file))
         # Evaluate the model

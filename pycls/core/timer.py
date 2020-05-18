@@ -14,6 +14,11 @@ class Timer(object):
     """A simple timer (adapted from Detectron)."""
 
     def __init__(self):
+        self.total_time = None
+        self.calls = None
+        self.start_time = None
+        self.diff = None
+        self.average_time = None
         self.reset()
 
     def tic(self):

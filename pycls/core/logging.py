@@ -30,10 +30,8 @@ _TAG = "json_stats: "
 
 def _suppress_print():
     """Suppresses printing from the current process."""
-
     def ignore(*_objects, _sep=" ", _end="\n", _file=sys.stdout, _flush=False):
         pass
-
     builtins.print = ignore
 
 

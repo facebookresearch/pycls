@@ -89,7 +89,7 @@ def plot_error_curves_plotly(log_files, names, filename, key="top1_err"):
     titlefont = {"size": 18, "color": "#7f7f7f"}
     vis = [[True, True, False], [False, False, True], [False, True, False]]
     buttons = zip(["all", "train", "test"], [[{"visible": v}] for v in vis])
-    buttons = [{"label": l, "args": v, "method": "update"} for l, v in buttons]
+    buttons = [{"label": b, "args": v, "method": "update"} for b, v in buttons]
     layout = go.Layout(
         title=key + " vs. epoch<br>[dash=train, solid=test]",
         xaxis={"title": "epoch", "titlefont": titlefont},
