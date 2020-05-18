@@ -13,7 +13,6 @@ import pickle
 import numpy as np
 import pycls.core.logging as logging
 import pycls.datasets.transforms as transforms
-import torch
 import torch.utils.data
 from pycls.core.config import cfg
 
@@ -30,24 +29,14 @@ class Cifar10(torch.utils.data.Dataset):
 
     def __init__(self, data_path, split):
         assert os.path.exists(data_path), "Data path '{}' not found".format(data_path)
-        assert split in ["train", "test"], "Split '{}' not supported for cifar".format(
-            split
-        )
+        splits = ["train", "test"]
+        assert split in splits, "Split '{}' not supported for cifar".format(split)
         logger.info("Constructing CIFAR-10 {}...".format(split))
-        self._data_path = data_path
-        self._split = split
-        # Data format:
-        #   self._inputs - (split_size, 3, im_size, im_size) ndarray
-        #   self._labels - split_size list
+        self._data_path, self._split = data_path, split
         self._inputs, self._labels = self._load_data()
 
-    def _load_batch(self, batch_path):
-        with open(batch_path, "rb") as f:
-            d = pickle.load(f, encoding="bytes")
-        return d[b"data"], d[b"labels"]
-
     def _load_data(self):
-        """Loads data in memory."""
+        """Loads data into memory."""
         logger.info("{} data path: {}".format(self._split, self._data_path))
         # Compute data batch names
         if self._split == "train":
@@ -58,9 +47,10 @@ class Cifar10(torch.utils.data.Dataset):
         inputs, labels = [], []
         for batch_name in batch_names:
             batch_path = os.path.join(self._data_path, batch_name)
-            inputs_batch, labels_batch = self._load_batch(batch_path)
-            inputs.append(inputs_batch)
-            labels += labels_batch
+            with open(batch_path, "rb") as f:
+                data = pickle.load(f, encoding="bytes")
+            inputs.append(data[b"data"])
+            labels += data[b"labels"]
         # Combine and reshape the inputs
         inputs = np.vstack(inputs).astype(np.float32)
         inputs = inputs.reshape((-1, 3, cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE))

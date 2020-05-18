@@ -27,4 +27,4 @@ pycls/datasets/data/
 
 # Other
 logs/
-scratch/
+scratch*

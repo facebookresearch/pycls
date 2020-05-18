@@ -100,9 +100,9 @@ def lighting(im, alpha_std, eig_val, eig_vec):
     if alpha_std == 0:
         return im
     alpha = np.random.normal(0, alpha_std, size=(1, 3))
-    rgb = np.sum(
-        eig_vec * np.repeat(alpha, 3, axis=0) * np.repeat(eig_val, 3, axis=0), axis=1
-    )
+    alpha = np.repeat(alpha, 3, axis=0)
+    eig_val = np.repeat(eig_val, 3, axis=0)
+    rgb = np.sum(eig_vec * alpha * eig_val, axis=1)
     for i in range(im.shape[0]):
         im[i] = im[i] + rgb[2 - i]
     return im
