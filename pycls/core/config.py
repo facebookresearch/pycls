@@ -320,12 +320,6 @@ _C.CUDNN.BENCHMARK = True
 # ------------------------------------------------------------------------------------ #
 _C.PREC_TIME = CfgNode()
 
-# Perform precise timing at the start of training
-_C.PREC_TIME.ENABLED = False
-
-# Total mini-batch size
-_C.PREC_TIME.BATCH_SIZE = 128
-
 # Number of iterations to warm up the caches
 _C.PREC_TIME.WARMUP_ITER = 3
 
@@ -367,6 +361,14 @@ _C.PORT = 10001
 _C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"
 
 
+# ------------------------------------------------------------------------------------ #
+# Deprecated keys
+# ------------------------------------------------------------------------------------ #
+
+_C.register_deprecated_key("PREC_TIME.BATCH_SIZE")
+_C.register_deprecated_key("PREC_TIME.ENABLED")
+
+
 def assert_and_infer_cfg(cache_urls=True):
     """Checks config values invariants."""
     err_str = "The first lr step must start at 0"
@@ -382,8 +384,6 @@ def assert_and_infer_cfg(cache_urls=True):
     assert not _C.BN.USE_PRECISE_STATS or _C.NUM_GPUS == 1, err_str
     err_str = "Log destination '{}' not supported"
     assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
-    err_str = "Precise iter time computation not verified for > 1 GPU"
-    assert not _C.PREC_TIME.ENABLED or _C.NUM_GPUS == 1, err_str
     if cache_urls:
         cache_cfg_urls()
 

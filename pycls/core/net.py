@@ -69,11 +69,6 @@ def reset_bn_stats(model):
             m.reset_running_stats()
 
 
-def complexity_init(h, w):
-    """Initializes complexity counting data struct cx = (h, w, flops, params, acts)."""
-    return {"h": h, "w": w, "flops": 0, "params": 0, "acts": 0}
-
-
 def complexity_conv2d(cx, w_in, w_out, k, stride, padding, groups=1, bias=False):
     """Accumulates complexity of Conv2D into cx = (h, w, flops, params, acts)."""
     h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
@@ -104,48 +99,54 @@ def complexity_maxpool2d(cx, k, stride, padding):
 
 def complexity(model):
     """Compute model complexity (model can be model instance or model class)."""
-    cx = complexity_init(cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE)
+    size = cfg.TRAIN.IM_SIZE
+    cx = {"h": size, "w": size, "flops": 0, "params": 0, "acts": 0}
     cx = model.complexity(cx)
     return {"flops": cx["flops"], "params": cx["params"], "acts": cx["acts"]}
 
 
 @torch.no_grad()
-def compute_fw_test_time(model, inputs):
-    """Computes forward test time (no grad, eval mode)."""
+def compute_time_eval(model):
+    """Computes precise model forward test time using dummy data."""
     # Use eval mode
     model.eval()
-    # Warm up the caches
-    for _cur_iter in range(cfg.PREC_TIME.WARMUP_ITER):
-        model(inputs)
-    # Make sure warmup kernels completed
-    torch.cuda.synchronize()
+    # Generate a dummy mini-batch and copy data to GPU
+    im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TEST.BATCH_SIZE / cfg.NUM_GPUS)
+    inputs = torch.zeros(batch_size, 3, im_size, im_size).cuda(non_blocking=False)
     # Compute precise forward pass time
     timer = Timer()
-    for _cur_iter in range(cfg.PREC_TIME.NUM_ITER):
+    total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
+    for cur_iter in range(total_iter):
+        # Reset the timers after the warmup phase
+        if cur_iter == cfg.PREC_TIME.WARMUP_ITER:
+            timer.reset()
+        # Forward
         timer.tic()
         model(inputs)
         torch.cuda.synchronize()
         timer.toc()
-    # Make sure forward kernels completed
-    torch.cuda.synchronize()
     return timer.average_time
 
 
-def compute_fw_bw_time(model, loss_fun, inputs, labels):
-    """Computes forward backward time."""
+def compute_time_train(model, loss_fun):
+    """Computes precise model forward + backward time using dummy data."""
     # Use train mode
     model.train()
-    # Warm up the caches
-    for _cur_iter in range(cfg.PREC_TIME.WARMUP_ITER):
-        preds = model(inputs)
-        loss = loss_fun(preds, labels)
-        loss.backward()
-    # Make sure warmup kernels completed
-    torch.cuda.synchronize()
+    # Generate a dummy mini-batch and copy data to GPU
+    im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TRAIN.BATCH_SIZE / cfg.NUM_GPUS)
+    inputs = torch.rand(batch_size, 3, im_size, im_size).cuda(non_blocking=False)
+    labels = torch.zeros(batch_size, dtype=torch.int64).cuda(non_blocking=False)
+    # Cache BatchNorm2D running stats
+    bns = [m for m in model.modules() if isinstance(m, torch.nn.BatchNorm2d)]
+    bn_stats = [[bn.running_mean.clone(), bn.running_var.clone()] for bn in bns]
     # Compute precise forward backward pass time
-    fw_timer = Timer()
-    bw_timer = Timer()
-    for _cur_iter in range(cfg.PREC_TIME.NUM_ITER):
+    fw_timer, bw_timer = Timer(), Timer()
+    total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
+    for cur_iter in range(total_iter):
+        # Reset the timers after the warmup phase
+        if cur_iter == cfg.PREC_TIME.WARMUP_ITER:
+            fw_timer.reset()
+            bw_timer.reset()
         # Forward
         fw_timer.tic()
         preds = model(inputs)
@@ -157,29 +158,21 @@ def compute_fw_bw_time(model, loss_fun, inputs, labels):
         loss.backward()
         torch.cuda.synchronize()
         bw_timer.toc()
-    # Make sure forward backward kernels completed
-    torch.cuda.synchronize()
+    # Restore BatchNorm2D running stats
+    for bn, (mean, var) in zip(bns, bn_stats):
+        bn.running_mean, bn.running_var = mean, var
     return fw_timer.average_time, bw_timer.average_time
 
 
-def compute_precise_time(model, loss_fun):
-    """Computes precise time."""
-    # Generate a dummy mini-batch
-    im_size = cfg.TRAIN.IM_SIZE
-    inputs = torch.rand(cfg.PREC_TIME.BATCH_SIZE, 3, im_size, im_size)
-    labels = torch.zeros(cfg.PREC_TIME.BATCH_SIZE, dtype=torch.int64)
-    # Copy the data to the GPU
-    inputs = inputs.cuda(non_blocking=False)
-    labels = labels.cuda(non_blocking=False)
-    # Compute precise time
-    fw_test_time = compute_fw_test_time(model, inputs)
-    fw_time, bw_time = compute_fw_bw_time(model, loss_fun, inputs, labels)
-    # Return precise time
+def compute_time_full(model, loss_fun):
+    """Computes precise model time for both eval and train mode."""
+    test_fw_time = compute_time_eval(model)
+    train_fw_time, train_bw_time = compute_time_train(model, loss_fun)
     return {
-        "prec_test_fw_time": fw_test_time,
-        "prec_train_fw_time": fw_time,
-        "prec_train_bw_time": bw_time,
-        "prec_train_fw_bw_time": fw_time + bw_time,
+        "test_fw_time": test_fw_time,
+        "train_fw_time": train_fw_time,
+        "train_bw_time": train_bw_time,
+        "train_fw_bw_time": train_fw_time + train_bw_time,
     }
 
 

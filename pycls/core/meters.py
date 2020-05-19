@@ -7,7 +7,6 @@
 
 """Meters."""
 
-import datetime
 from collections import deque
 
 import numpy as np
@@ -20,10 +19,10 @@ from pycls.core.timer import Timer
 logger = logging.get_logger(__name__)
 
 
-def eta_str(eta_td):
-    """Converts an eta timedelta to a fixed-width string format."""
-    days = eta_td.days
-    hrs, rem = divmod(eta_td.seconds, 3600)
+def time_string(seconds):
+    """Converts time in seconds to a fixed-width string format."""
+    days, rem = divmod(int(seconds), 24 * 3600)
+    hrs, rem = divmod(rem, 3600)
     mins, secs = divmod(rem, 60)
     return "{0:02},{1:02}:{2:02}:{3:02}".format(days, hrs, mins, secs)
 
@@ -132,7 +131,6 @@ class TrainMeter(object):
     def get_iter_stats(self, cur_epoch, cur_iter):
         cur_iter_total = cur_epoch * self.epoch_iters + cur_iter + 1
         eta_sec = self.iter_timer.average_time * (self.max_iter - cur_iter_total)
-        eta_td = datetime.timedelta(seconds=int(eta_sec))
         mem_usage = gpu_mem_usage()
         stats = {
             "_type": "train_iter",
@@ -140,7 +138,7 @@ class TrainMeter(object):
             "iter": "{}/{}".format(cur_iter + 1, self.epoch_iters),
             "time_avg": self.iter_timer.average_time,
             "time_diff": self.iter_timer.diff,
-            "eta": eta_str(eta_td),
+            "eta": time_string(eta_sec),
             "top1_err": self.mb_top1_err.get_win_median(),
             "top5_err": self.mb_top5_err.get_win_median(),
             "loss": self.loss.get_win_median(),
@@ -158,7 +156,6 @@ class TrainMeter(object):
     def get_epoch_stats(self, cur_epoch):
         cur_iter_total = (cur_epoch + 1) * self.epoch_iters
         eta_sec = self.iter_timer.average_time * (self.max_iter - cur_iter_total)
-        eta_td = datetime.timedelta(seconds=int(eta_sec))
         mem_usage = gpu_mem_usage()
         top1_err = self.num_top1_mis / self.num_samples
         top5_err = self.num_top5_mis / self.num_samples
@@ -167,7 +164,7 @@ class TrainMeter(object):
             "_type": "train_epoch",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
             "time_avg": self.iter_timer.average_time,
-            "eta": eta_str(eta_td),
+            "eta": time_string(eta_sec),
             "top1_err": top1_err,
             "top5_err": top5_err,
             "loss": avg_loss,
