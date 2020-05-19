@@ -20,10 +20,9 @@ from pycls.core.config import cfg
 def is_master_proc():
     """Determines if the current process is the master process.
 
-    Master process is responsible for logging, writing and loading checkpoints.
-    In the multi GPU setting, we assign the master role to the rank 0 process.
-    When training using a single GPU, there is only one training processes
-    which is considered the master processes.
+    Master process is responsible for logging, writing and loading checkpoints. In
+    the multi GPU setting, we assign the master role to the rank 0 process. When
+    training using a single GPU, there is a single process which is considered master.
     """
     return cfg.NUM_GPUS == 1 or torch.distributed.get_rank() == 0
 
@@ -50,8 +49,8 @@ def scaled_all_reduce(tensors):
     """Performs the scaled all_reduce operation on the provided tensors.
 
     The input tensors are modified in-place. Currently supports only the sum
-    reduction operator. The reduced values are scaled by the inverse size of
-    the process group (equivalent to cfg.NUM_GPUS).
+    reduction operator. The reduced values are scaled by the inverse size of the
+    process group (equivalent to cfg.NUM_GPUS).
     """
     # There is no need for reduction in the single-proc case
     if cfg.NUM_GPUS == 1:
@@ -80,8 +79,7 @@ class ChildException(Exception):
 class ErrorHandler(object):
     """Multiprocessing error handler (based on fairseq's).
 
-    Listens for errors in child processes and
-    propagates the tracebacks to the parent process.
+    Listens for errors in child processes and propagates the tracebacks to the parent.
     """
 
     def __init__(self, error_queue):
@@ -137,17 +135,14 @@ def run(proc_rank, world_size, error_queue, fun, fun_args, fun_kwargs):
 
 def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs=None):
     """Runs a function in a multi-proc setting (unless num_proc == 1)."""
-
     # There is no need for multi-proc in the single-proc case
     fun_kwargs = fun_kwargs if fun_kwargs else {}
     if num_proc == 1:
         fun(*fun_args, **fun_kwargs)
         return
-
     # Handle errors from training subprocesses
     error_queue = multiprocessing.SimpleQueue()
     error_handler = ErrorHandler(error_queue)
-
     # Run each training subprocess
     ps = []
     for i in range(num_proc):
@@ -157,7 +152,6 @@ def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs=None):
         ps.append(p_i)
         p_i.start()
         error_handler.add_child(p_i.pid)
-
     # Wait for each subprocess to finish
     for p in ps:
         p.join()

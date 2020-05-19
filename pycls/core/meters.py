@@ -130,9 +130,8 @@ class TrainMeter(object):
         self.num_samples += mb_size
 
     def get_iter_stats(self, cur_epoch, cur_iter):
-        eta_sec = self.iter_timer.average_time * (
-            self.max_iter - (cur_epoch * self.epoch_iters + cur_iter + 1)
-        )
+        cur_iter_total = cur_epoch * self.epoch_iters + cur_iter + 1
+        eta_sec = self.iter_timer.average_time * (self.max_iter - cur_iter_total)
         eta_td = datetime.timedelta(seconds=int(eta_sec))
         mem_usage = gpu_mem_usage()
         stats = {
@@ -157,9 +156,8 @@ class TrainMeter(object):
         logger.info(logging.dump_json_stats(stats))
 
     def get_epoch_stats(self, cur_epoch):
-        eta_sec = self.iter_timer.average_time * (
-            self.max_iter - (cur_epoch + 1) * self.epoch_iters
-        )
+        cur_iter_total = (cur_epoch + 1) * self.epoch_iters
+        eta_sec = self.iter_timer.average_time * (self.max_iter - cur_iter_total)
         eta_td = datetime.timedelta(seconds=int(eta_sec))
         mem_usage = gpu_mem_usage()
         top1_err = self.num_top1_mis / self.num_samples

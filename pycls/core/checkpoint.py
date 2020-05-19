@@ -48,11 +48,6 @@ def has_checkpoint():
     return any(_NAME_PREFIX in f for f in os.listdir(checkpoint_dir))
 
 
-def is_checkpoint_epoch(cur_epoch):
-    """Determines if a checkpoint should be saved on current epoch."""
-    return (cur_epoch + 1) % cfg.TRAIN.CHECKPOINT_PERIOD == 0
-
-
 def save_checkpoint(model, optimizer, epoch):
     """Saves a checkpoint."""
     # Save checkpoints only from the master process
@@ -77,9 +72,8 @@ def save_checkpoint(model, optimizer, epoch):
 
 def load_checkpoint(checkpoint_file, model, optimizer=None):
     """Loads the checkpoint from the given file."""
-    assert os.path.exists(checkpoint_file), "Checkpoint '{}' not found".format(
-        checkpoint_file
-    )
+    err_str = "Checkpoint '{}' not found"
+    assert os.path.exists(checkpoint_file), err_str.format(checkpoint_file)
     # Load the checkpoint on CPU to avoid GPU mem spike
     checkpoint = torch.load(checkpoint_file, map_location="cpu")
     # Account for the DDP wrapper in the multi-gpu setting

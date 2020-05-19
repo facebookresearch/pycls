@@ -12,11 +12,11 @@ import os
 import sys
 
 from pycls.core.io import cache_url
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode as CfgNode
 
 
 # Global config object
-_C = CN()
+_C = CfgNode()
 
 # Example usage:
 #   from core.config import cfg
@@ -26,7 +26,7 @@ cfg = _C
 # ------------------------------------------------------------------------------------ #
 # Model options
 # ------------------------------------------------------------------------------------ #
-_C.MODEL = CN()
+_C.MODEL = CfgNode()
 
 # Model type
 _C.MODEL.TYPE = ""
@@ -44,7 +44,7 @@ _C.MODEL.LOSS_FUN = "cross_entropy"
 # ------------------------------------------------------------------------------------ #
 # ResNet options
 # ------------------------------------------------------------------------------------ #
-_C.RESNET = CN()
+_C.RESNET = CfgNode()
 
 # Transformation function (see pycls/models/resnet.py for options)
 _C.RESNET.TRANS_FUN = "basic_transform"
@@ -62,7 +62,7 @@ _C.RESNET.STRIDE_1X1 = True
 # ------------------------------------------------------------------------------------ #
 # AnyNet options
 # ------------------------------------------------------------------------------------ #
-_C.ANYNET = CN()
+_C.ANYNET = CfgNode()
 
 # Stem type
 _C.ANYNET.STEM_TYPE = "simple_stem_in"
@@ -98,7 +98,7 @@ _C.ANYNET.SE_R = 0.25
 # ------------------------------------------------------------------------------------ #
 # RegNet options
 # ------------------------------------------------------------------------------------ #
-_C.REGNET = CN()
+_C.REGNET = CfgNode()
 
 # Stem type
 _C.REGNET.STEM_TYPE = "simple_stem_in"
@@ -138,7 +138,7 @@ _C.REGNET.BOT_MUL = 1.0
 # ------------------------------------------------------------------------------------ #
 # EfficientNet options
 # ------------------------------------------------------------------------------------ #
-_C.EN = CN()
+_C.EN = CfgNode()
 
 # Stem width
 _C.EN.STEM_W = 32
@@ -174,7 +174,7 @@ _C.EN.DROPOUT_RATIO = 0.0
 # ------------------------------------------------------------------------------------ #
 # Batch norm options
 # ------------------------------------------------------------------------------------ #
-_C.BN = CN()
+_C.BN = CfgNode()
 
 # BN epsilon
 _C.BN.EPS = 1e-5
@@ -197,7 +197,7 @@ _C.BN.CUSTOM_WEIGHT_DECAY = 0.0
 # ------------------------------------------------------------------------------------ #
 # Optimizer options
 # ------------------------------------------------------------------------------------ #
-_C.OPTIM = CN()
+_C.OPTIM = CfgNode()
 
 # Base learning rate
 _C.OPTIM.BASE_LR = 0.1
@@ -239,7 +239,7 @@ _C.OPTIM.WARMUP_EPOCHS = 0
 # ------------------------------------------------------------------------------------ #
 # Training options
 # ------------------------------------------------------------------------------------ #
-_C.TRAIN = CN()
+_C.TRAIN = CfgNode()
 
 # Dataset and split
 _C.TRAIN.DATASET = ""
@@ -267,7 +267,7 @@ _C.TRAIN.WEIGHTS = ""
 # ------------------------------------------------------------------------------------ #
 # Testing options
 # ------------------------------------------------------------------------------------ #
-_C.TEST = CN()
+_C.TEST = CfgNode()
 
 # Dataset and split
 _C.TEST.DATASET = ""
@@ -286,7 +286,7 @@ _C.TEST.WEIGHTS = ""
 # ------------------------------------------------------------------------------------ #
 # Common train/test data loader options
 # ------------------------------------------------------------------------------------ #
-_C.DATA_LOADER = CN()
+_C.DATA_LOADER = CfgNode()
 
 # Number of data loader workers per training process
 _C.DATA_LOADER.NUM_WORKERS = 4
@@ -298,7 +298,7 @@ _C.DATA_LOADER.PIN_MEMORY = True
 # ------------------------------------------------------------------------------------ #
 # Memory options
 # ------------------------------------------------------------------------------------ #
-_C.MEM = CN()
+_C.MEM = CfgNode()
 
 # Perform ReLU inplace
 _C.MEM.RELU_INPLACE = True
@@ -307,7 +307,7 @@ _C.MEM.RELU_INPLACE = True
 # ------------------------------------------------------------------------------------ #
 # CUDNN options
 # ------------------------------------------------------------------------------------ #
-_C.CUDNN = CN()
+_C.CUDNN = CfgNode()
 
 # Perform benchmarking to select the fastest CUDNN algorithms to use
 # Note that this may increase the memory usage and will likely not result
@@ -318,7 +318,7 @@ _C.CUDNN.BENCHMARK = True
 # ------------------------------------------------------------------------------------ #
 # Precise timing options
 # ------------------------------------------------------------------------------------ #
-_C.PREC_TIME = CN()
+_C.PREC_TIME = CfgNode()
 
 # Perform precise timing at the start of training
 _C.PREC_TIME.ENABLED = False
