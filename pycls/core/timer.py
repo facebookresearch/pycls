@@ -22,8 +22,7 @@ class Timer(object):
         self.reset()
 
     def tic(self):
-        # using time.time instead of time.clock because time time.clock
-        # does not normalize for multithreading
+        # using time.time as time.clock does not normalize for multithreading
         self.start_time = time.time()
 
     def toc(self):

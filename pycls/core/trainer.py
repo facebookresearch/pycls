@@ -152,11 +152,10 @@ def train_model():
         checkpoint.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
         logger.info("Loaded initial weights from: {}".format(cfg.TRAIN.WEIGHTS))
     # Compute precise time
-    if start_epoch == 0 and cfg.PREC_TIME.ENABLED:
+    if start_epoch == 0 and cfg.PREC_TIME.NUM_ITER > 0:
         logger.info("Computing precise time...")
-        prec_time = net.compute_precise_time(model, loss_fun)
+        prec_time = net.compute_time_full(model, loss_fun)
         logger.info(logging.dump_json_stats(prec_time))
-        net.reset_bn_stats(model)
     # Create data loaders and meters
     train_loader = loader.construct_train_loader()
     test_loader = loader.construct_test_loader()
@@ -198,7 +197,6 @@ def test_model():
 
 def time_model():
     """Times a model."""
-    assert cfg.PREC_TIME.ENABLED, "PREC_TIME.ENABLED must be set."
     # Setup training/testing environment
     setup_env()
     # Construct the model and loss_fun
@@ -206,6 +204,5 @@ def time_model():
     loss_fun = builders.build_loss_fun().cuda()
     # Compute precise time
     logger.info("Computing precise time...")
-    prec_time = net.compute_precise_time(model, loss_fun)
+    prec_time = net.compute_time_full(model, loss_fun)
     logger.info(logging.dump_json_stats(prec_time))
-    net.reset_bn_stats(model)
