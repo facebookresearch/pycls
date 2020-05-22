@@ -10,6 +10,7 @@
 import os
 
 import numpy as np
+import pycls.core.benchmark as benchmark
 import pycls.core.builders as builders
 import pycls.core.checkpoint as checkpoint
 import pycls.core.config as config
@@ -151,16 +152,14 @@ def train_model():
     elif cfg.TRAIN.WEIGHTS:
         checkpoint.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
         logger.info("Loaded initial weights from: {}".format(cfg.TRAIN.WEIGHTS))
-    # Compute precise time
-    if start_epoch == 0 and cfg.PREC_TIME.NUM_ITER > 0:
-        logger.info("Computing precise time...")
-        prec_time = net.compute_time_full(model, loss_fun)
-        logger.info(logging.dump_json_stats(prec_time))
     # Create data loaders and meters
     train_loader = loader.construct_train_loader()
     test_loader = loader.construct_test_loader()
     train_meter = meters.TrainMeter(len(train_loader))
     test_meter = meters.TestMeter(len(test_loader))
+    # Compute model and loader timings
+    if start_epoch == 0 and cfg.PREC_TIME.NUM_ITER > 0:
+        benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)
     # Perform the training loop
     logger.info("Start epoch: {}".format(start_epoch + 1))
     for cur_epoch in range(start_epoch, cfg.OPTIM.MAX_EPOCH):
@@ -196,13 +195,14 @@ def test_model():
 
 
 def time_model():
-    """Times a model."""
+    """Times model and data loader."""
     # Setup training/testing environment
     setup_env()
     # Construct the model and loss_fun
     model = setup_model()
     loss_fun = builders.build_loss_fun().cuda()
-    # Compute precise time
-    logger.info("Computing precise time...")
-    prec_time = net.compute_time_full(model, loss_fun)
-    logger.info(logging.dump_json_stats(prec_time))
+    # Create data loaders
+    train_loader = loader.construct_train_loader()
+    test_loader = loader.construct_test_loader()
+    # Compute model and loader timings
+    benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)
