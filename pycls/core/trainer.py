@@ -36,8 +36,9 @@ def setup_env():
         config.dump_cfg()
     # Setup logging
     logging.setup_logging()
-    # Log the config
+    # Log the config as both human readable and as a json
     logger.info("Config:\n{}".format(cfg))
+    logger.info(logging.dump_log_data(cfg, "cfg"))
     # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
     np.random.seed(cfg.RNG_SEED)
     torch.manual_seed(cfg.RNG_SEED)
@@ -51,7 +52,7 @@ def setup_model():
     model = builders.build_model()
     logger.info("Model:\n{}".format(model))
     # Log model complexity
-    logger.info(logging.dump_json_stats(net.complexity(model)))
+    logger.info(logging.dump_log_data(net.complexity(model), "complexity"))
     # Transfer the model to the current GPU device
     err_str = "Cannot use more GPU devices than available"
     assert cfg.NUM_GPUS <= torch.cuda.device_count(), err_str

@@ -133,7 +133,6 @@ class TrainMeter(object):
         eta_sec = self.iter_timer.average_time * (self.max_iter - cur_iter_total)
         mem_usage = gpu_mem_usage()
         stats = {
-            "_type": "train_iter",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
             "iter": "{}/{}".format(cur_iter + 1, self.epoch_iters),
             "time_avg": self.iter_timer.average_time,
@@ -151,7 +150,7 @@ class TrainMeter(object):
         if (cur_iter + 1) % cfg.LOG_PERIOD != 0:
             return
         stats = self.get_iter_stats(cur_epoch, cur_iter)
-        logger.info(logging.dump_json_stats(stats))
+        logger.info(logging.dump_log_data(stats, "train_iter"))
 
     def get_epoch_stats(self, cur_epoch):
         cur_iter_total = (cur_epoch + 1) * self.epoch_iters
@@ -161,7 +160,6 @@ class TrainMeter(object):
         top5_err = self.num_top5_mis / self.num_samples
         avg_loss = self.loss_total / self.num_samples
         stats = {
-            "_type": "train_epoch",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
             "time_avg": self.iter_timer.average_time,
             "eta": time_string(eta_sec),
@@ -175,7 +173,7 @@ class TrainMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logger.info(logging.dump_json_stats(stats))
+        logger.info(logging.dump_log_data(stats, "train_epoch"))
 
 
 class TestMeter(object):
@@ -222,7 +220,6 @@ class TestMeter(object):
     def get_iter_stats(self, cur_epoch, cur_iter):
         mem_usage = gpu_mem_usage()
         iter_stats = {
-            "_type": "test_iter",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
             "iter": "{}/{}".format(cur_iter + 1, self.max_iter),
             "time_avg": self.iter_timer.average_time,
@@ -237,7 +234,7 @@ class TestMeter(object):
         if (cur_iter + 1) % cfg.LOG_PERIOD != 0:
             return
         stats = self.get_iter_stats(cur_epoch, cur_iter)
-        logger.info(logging.dump_json_stats(stats))
+        logger.info(logging.dump_log_data(stats, "test_iter"))
 
     def get_epoch_stats(self, cur_epoch):
         top1_err = self.num_top1_mis / self.num_samples
@@ -246,7 +243,6 @@ class TestMeter(object):
         self.min_top5_err = min(self.min_top5_err, top5_err)
         mem_usage = gpu_mem_usage()
         stats = {
-            "_type": "test_epoch",
             "epoch": "{}/{}".format(cur_epoch + 1, cfg.OPTIM.MAX_EPOCH),
             "time_avg": self.iter_timer.average_time,
             "top1_err": top1_err,
@@ -259,4 +255,4 @@ class TestMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logger.info(logging.dump_json_stats(stats))
+        logger.info(logging.dump_log_data(stats, "test_epoch"))
