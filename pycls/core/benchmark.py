@@ -102,24 +102,22 @@ def compute_time_full(model, loss_fun, train_loader, test_loader):
     train_loader_time = compute_time_loader(train_loader)
     # Output iter timing
     iter_times = {
-        "_type": "iter_time",
         "test_fw_time": test_fw_time,
         "train_fw_time": train_fw_time,
         "train_bw_time": train_bw_time,
         "train_fw_bw_time": train_fw_bw_time,
         "train_loader_time": train_loader_time,
     }
-    logger.info(logging.dump_json_stats(iter_times))
+    logger.info(logging.dump_log_data(iter_times, "iter_times"))
     # Output epoch timing
     epoch_times = {
-        "_type": "epoch_time",
         "test_fw_time": test_fw_time * len(test_loader),
         "train_fw_time": train_fw_time * len(train_loader),
         "train_bw_time": train_bw_time * len(train_loader),
         "train_fw_bw_time": train_fw_bw_time * len(train_loader),
         "train_loader_time": train_loader_time * len(train_loader),
     }
-    logger.info(logging.dump_json_stats(epoch_times))
+    logger.info(logging.dump_log_data(epoch_times, "epoch_times"))
     # Compute data loader overhead (assuming DATA_LOADER.NUM_WORKERS>1)
     overhead = max(0, train_loader_time - train_fw_bw_time) / train_fw_bw_time
     logger.info("Overhead of data loader is {:.2f}%".format(overhead * 100))

@@ -24,14 +24,14 @@ def get_plot_colors(max_colors, color_format="pyplot"):
     return colors
 
 
-def prepare_plot_data(log_files, names, key="top1_err"):
+def prepare_plot_data(log_files, names, metric="top1_err"):
     """Load logs and extract data for plotting error curves."""
     plot_data = []
     for file, name in zip(log_files, names):
-        d, log = {}, logging.load_json_stats(file)
+        d, data = {}, logging.sort_log_data(logging.load_log_data(file))
         for phase in ["train", "test"]:
-            x = logging.parse_json_stats(log, phase + "_epoch", "epoch")
-            y = logging.parse_json_stats(log, phase + "_epoch", key)
+            x = data[phase + "_epoch"]["epoch"]
+            y = data[phase + "_epoch"][metric]
             d["x_" + phase], d["y_" + phase] = x, y
             d[phase + "_label"] = "[{:5.2f}] ".format(min(y) if y else 0) + name
         plot_data.append(d)
@@ -39,9 +39,9 @@ def prepare_plot_data(log_files, names, key="top1_err"):
     return plot_data
 
 
-def plot_error_curves_plotly(log_files, names, filename, key="top1_err"):
+def plot_error_curves_plotly(log_files, names, filename, metric="top1_err"):
     """Plot error curves using plotly and save to file."""
-    plot_data = prepare_plot_data(log_files, names, key)
+    plot_data = prepare_plot_data(log_files, names, metric)
     colors = get_plot_colors(len(plot_data), "plotly")
     # Prepare data for plots (3 sets, train duplicated w and w/o legend)
     data = []
@@ -91,9 +91,9 @@ def plot_error_curves_plotly(log_files, names, filename, key="top1_err"):
     buttons = zip(["all", "train", "test"], [[{"visible": v}] for v in vis])
     buttons = [{"label": b, "args": v, "method": "update"} for b, v in buttons]
     layout = go.Layout(
-        title=key + " vs. epoch<br>[dash=train, solid=test]",
+        title=metric + " vs. epoch<br>[dash=train, solid=test]",
         xaxis={"title": "epoch", "titlefont": titlefont},
-        yaxis={"title": key, "titlefont": titlefont},
+        yaxis={"title": metric, "titlefont": titlefont},
         showlegend=True,
         hoverlabel={"namelength": -1},
         updatemenus=[
@@ -112,17 +112,17 @@ def plot_error_curves_plotly(log_files, names, filename, key="top1_err"):
     offline.plot({"data": data, "layout": layout}, filename=filename)
 
 
-def plot_error_curves_pyplot(log_files, names, filename=None, key="top1_err"):
+def plot_error_curves_pyplot(log_files, names, filename=None, metric="top1_err"):
     """Plot error curves using matplotlib.pyplot and save to file."""
-    plot_data = prepare_plot_data(log_files, names, key)
+    plot_data = prepare_plot_data(log_files, names, metric)
     colors = get_plot_colors(len(names))
     for ind, d in enumerate(plot_data):
         c, lbl = colors[ind], d["test_label"]
         plt.plot(d["x_train"], d["y_train"], "--", c=c, alpha=0.8)
         plt.plot(d["x_test"], d["y_test"], "-", c=c, alpha=0.8, label=lbl)
-    plt.title(key + " vs. epoch\n[dash=train, solid=test]", fontsize=14)
+    plt.title(metric + " vs. epoch\n[dash=train, solid=test]", fontsize=14)
     plt.xlabel("epoch", fontsize=14)
-    plt.ylabel(key, fontsize=14)
+    plt.ylabel(metric, fontsize=14)
     plt.grid(alpha=0.4)
     plt.legend()
     if filename:
