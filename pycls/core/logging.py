@@ -88,7 +88,7 @@ def get_log_files(log_dir, name_filter=""):
     names = [n for n in sorted(os.listdir(log_dir)) if name_filter in n]
     files = [os.path.join(log_dir, n, _LOG_FILE) for n in names]
     f_n_ps = [(f, n) for (f, n) in zip(files, names) if os.path.exists(f)]
-    files, names = zip(*f_n_ps)
+    files, names = zip(*f_n_ps) if f_n_ps else [], []
     return files, names
 
 
