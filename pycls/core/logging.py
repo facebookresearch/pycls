@@ -83,12 +83,12 @@ def float_to_decimal(data, prec=4):
         return data
 
 
-def get_log_files(log_dir, name_filter=""):
+def get_log_files(log_dir, name_filter="", log_file=_LOG_FILE):
     """Get all log files in directory containing subdirs of trained models."""
     names = [n for n in sorted(os.listdir(log_dir)) if name_filter in n]
-    files = [os.path.join(log_dir, n, _LOG_FILE) for n in names]
+    files = [os.path.join(log_dir, n, log_file) for n in names]
     f_n_ps = [(f, n) for (f, n) in zip(files, names) if os.path.exists(f)]
-    files, names = zip(*f_n_ps) if f_n_ps else [], []
+    files, names = zip(*f_n_ps) if f_n_ps else ([], [])
     return files, names
 
 
@@ -121,11 +121,16 @@ def sort_log_data(data):
     """Sort each data[data_type][metric] by epoch or keep only first instance."""
     for t in data:
         if "epoch" in data[t]:
-            epoch = [float(e.split("/")[0]) for e in data[t]["epoch"]]
+            assert "epoch_ind" not in data[t] and "epoch_max" not in data[t]
+            data[t]["epoch_ind"] = [int(e.split("/")[0]) for e in data[t]["epoch"]]
+            data[t]["epoch_max"] = [int(e.split("/")[1]) for e in data[t]["epoch"]]
+            epoch = data[t]["epoch_ind"]
             if "iter" in data[t]:
-                i_cur = [float(i.split("/")[0]) for i in data[t]["iter"]]
-                i_max = [float(i.split("/")[1]) for i in data[t]["iter"]]
-                epoch = [e + (ic - 1.0) / im for e, ic, im in zip(epoch, i_cur, i_max)]
+                assert "iter_ind" not in data[t] and "iter_max" not in data[t]
+                data[t]["iter_ind"] = [int(i.split("/")[0]) for i in data[t]["iter"]]
+                data[t]["iter_max"] = [int(i.split("/")[1]) for i in data[t]["iter"]]
+                itr = zip(epoch, data[t]["iter_ind"], data[t]["iter_max"])
+                epoch = [e + (i_ind - 1) / i_max for e, i_ind, i_max in itr]
             for m in data[t]:
                 data[t][m] = [v for _, v in sorted(zip(epoch, data[t][m]))]
         else:

@@ -30,9 +30,8 @@ def prepare_plot_data(log_files, names, metric="top1_err"):
     for file, name in zip(log_files, names):
         d, data = {}, logging.sort_log_data(logging.load_log_data(file))
         for phase in ["train", "test"]:
-            x = data[phase + "_epoch"]["epoch"]
+            x = data[phase + "_epoch"]["epoch_ind"]
             y = data[phase + "_epoch"][metric]
-            x = [int(e.split("/")[0]) for e in x]
             d["x_" + phase], d["y_" + phase] = x, y
             d[phase + "_label"] = "[{:5.2f}] ".format(min(y) if y else 0) + name
         plot_data.append(d)
