@@ -12,6 +12,7 @@ import os
 import signal
 import threading
 import traceback
+import random
 
 import torch
 from pycls.core.config import cfg
@@ -27,14 +28,14 @@ def is_master_proc():
     return cfg.NUM_GPUS == 1 or torch.distributed.get_rank() == 0
 
 
-def init_process_group(proc_rank, world_size):
+def init_process_group(proc_rank, world_size, port):
     """Initializes the default process group."""
     # Set the GPU to use
     torch.cuda.set_device(proc_rank)
     # Initialize the process group
     torch.distributed.init_process_group(
         backend=cfg.DIST_BACKEND,
-        init_method="tcp://{}:{}".format(cfg.HOST, cfg.PORT),
+        init_method="tcp://{}:{}".format(cfg.HOST, port),
         world_size=world_size,
         rank=proc_rank,
     )
@@ -115,11 +116,11 @@ class ErrorHandler(object):
         raise ChildException(self.error_queue.get())
 
 
-def run(proc_rank, world_size, error_queue, fun, fun_args, fun_kwargs):
+def run(proc_rank, world_size, port, error_queue, fun, fun_args, fun_kwargs):
     """Runs a function from a child process."""
     try:
         # Initialize the process group
-        init_process_group(proc_rank, world_size)
+        init_process_group(proc_rank, world_size, port)
         # Run the function
         fun(*fun_args, **fun_kwargs)
     except KeyboardInterrupt:
@@ -143,11 +144,13 @@ def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs=None):
     # Handle errors from training subprocesses
     error_queue = multiprocessing.SimpleQueue()
     error_handler = ErrorHandler(error_queue)
+    # Get a random port to use (without using global random number generator)
+    port = random.Random().randint(cfg.PORT_RANGE[0], cfg.PORT_RANGE[1])
     # Run each training subprocess
     ps = []
     for i in range(num_proc):
         p_i = multiprocessing.Process(
-            target=run, args=(i, num_proc, error_queue, fun, fun_args, fun_kwargs)
+            target=run, args=(i, num_proc, port, error_queue, fun, fun_args, fun_kwargs)
         )
         ps.append(p_i)
         p_i.start()
