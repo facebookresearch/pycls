@@ -353,9 +353,9 @@ _C.LOG_PERIOD = 10
 # Distributed backend
 _C.DIST_BACKEND = "nccl"
 
-# Hostname and port for initializing multi-process groups
+# Hostname and port range for multi-process groups (actual port selected randomly)
 _C.HOST = "localhost"
-_C.PORT = 10001
+_C.PORT_RANGE = [10000, 65000]
 
 # Models weights referred to by URL are downloaded to this local cache
 _C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"
@@ -367,6 +367,7 @@ _C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"
 
 _C.register_deprecated_key("PREC_TIME.BATCH_SIZE")
 _C.register_deprecated_key("PREC_TIME.ENABLED")
+_C.register_deprecated_key("PORT")
 
 
 def assert_and_infer_cfg(cache_urls=True):
