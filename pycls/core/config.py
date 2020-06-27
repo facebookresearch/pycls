@@ -183,8 +183,8 @@ _C.BN.EPS = 1e-5
 _C.BN.MOM = 0.1
 
 # Precise BN stats
-_C.BN.USE_PRECISE_STATS = False
-_C.BN.NUM_SAMPLES_PRECISE = 1024
+_C.BN.USE_PRECISE_STATS = True
+_C.BN.NUM_SAMPLES_PRECISE = 8192
 
 # Initialize the gamma of the final BN of each block to zero
 _C.BN.ZERO_INIT_FINAL_GAMMA = False
@@ -381,8 +381,6 @@ def assert_and_infer_cfg(cache_urls=True):
     err_str = "Mini-batch size should be a multiple of NUM_GPUS."
     assert _C.TRAIN.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
     assert _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
-    err_str = "Precise BN stats computation not verified for > 1 GPU"
-    assert not _C.BN.USE_PRECISE_STATS or _C.NUM_GPUS == 1, err_str
     err_str = "Log destination '{}' not supported"
     assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
     if cache_urls:
