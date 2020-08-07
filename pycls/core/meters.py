@@ -10,7 +10,7 @@
 from collections import deque
 
 import numpy as np
-import pycls.core.logging as logging
+import pycls.core.util_logging as logging
 import torch
 from pycls.core.config import cfg
 from pycls.core.timer import Timer

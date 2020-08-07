@@ -7,7 +7,7 @@
 
 """Benchmarking functions."""
 
-import pycls.core.logging as logging
+import pycls.core.util_logging as logging
 import pycls.datasets.loader as loader
 import torch
 from pycls.core.config import cfg
@@ -23,11 +23,14 @@ def compute_time_eval(model):
     # Use eval mode
     model.eval()
     # Generate a dummy mini-batch and copy data to GPU
-    im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TEST.BATCH_SIZE / cfg.NUM_GPUS)
-    inputs = torch.zeros(batch_size, 3, im_size, im_size).cuda(non_blocking=False)
+    #im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TEST.BATCH_SIZE / cfg.NUM_GPUS)
+    im_size, batch_size = 224, 64
+    inputs = torch.zeros(batch_size, 3, im_size, im_size)#.cuda(non_blocking=False)
     # Compute precise forward pass time
     timer = Timer()
     total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
+    
+    # Run.
     for cur_iter in range(total_iter):
         # Reset the timers after the warmup phase
         if cur_iter == cfg.PREC_TIME.WARMUP_ITER:
@@ -37,7 +40,8 @@ def compute_time_eval(model):
         model(inputs)
         torch.cuda.synchronize()
         timer.toc()
-    return timer.average_time
+    #return timer.average_time
+    return timer.average_time / batch_size, batch_size
 
 
 def compute_time_train(model, loss_fun):

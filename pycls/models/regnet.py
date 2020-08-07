@@ -51,10 +51,10 @@ class RegNet(AnyNet):
     """RegNet model."""
 
     @staticmethod
-    def get_args():
+    def get_args(w_a, w_0, w_m, d):
         """Convert RegNet to AnyNet parameter format."""
         # Generate RegNet ws per block
-        w_a, w_0, w_m, d = cfg.REGNET.WA, cfg.REGNET.W0, cfg.REGNET.WM, cfg.REGNET.DEPTH
+        #w_a, w_0, w_m, d = cfg.REGNET.WA, cfg.REGNET.W0, cfg.REGNET.WM, cfg.REGNET.DEPTH
         ws, num_stages, _, _ = generate_regnet(w_a, w_0, w_m, d)
         # Convert to per stage format
         s_ws, s_ds = get_stages_from_blocks(ws, ws)
@@ -78,8 +78,8 @@ class RegNet(AnyNet):
             "nc": cfg.MODEL.NUM_CLASSES,
         }
 
-    def __init__(self):
-        kwargs = RegNet.get_args()
+    def __init__(self, w_a, w_0, w_m, d):
+        kwargs = RegNet.get_args(w_a, w_0, w_m, d)
         super(RegNet, self).__init__(**kwargs)
 
     @staticmethod
