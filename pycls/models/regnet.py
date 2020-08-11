@@ -67,14 +67,14 @@ class RegNet(AnyNet):
         # Get AnyNet arguments defining the RegNet
         return {
             "stem_type": cfg.REGNET.STEM_TYPE,
-            "stem_w": cfg.REGNET.STEM_W,
+            "stem_w": w_0,
             "block_type": cfg.REGNET.BLOCK_TYPE,
             "ds": s_ds,
             "ws": s_ws,
             "ss": s_ss,
             "bms": s_bs,
             "gws": s_gs,
-            "se_r": cfg.REGNET.SE_R if cfg.REGNET.SE_ON else None,
+            "se_r": cfg.REGNET.SE_R,
             "nc": cfg.MODEL.NUM_CLASSES,
         }
 

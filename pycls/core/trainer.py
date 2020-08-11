@@ -15,7 +15,7 @@ import pycls.core.builders as builders
 import pycls.core.checkpoint as checkpoint
 import pycls.core.config as config
 import pycls.core.distributed as dist
-import pycls.core.logging as logging
+import pycls.core.util_logging as logging
 import pycls.core.meters as meters
 import pycls.core.net as net
 import pycls.core.optimizer as optim

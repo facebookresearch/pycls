@@ -1,0 +1,103 @@
+ANYNET:
+  BLOCK_TYPE: res_bottleneck_block
+  BOT_MULS: []
+  DEPTHS: []
+  GROUP_WS: []
+  SE_ON: false
+  SE_R: 0.25
+  STEM_TYPE: simple_stem_in
+  STEM_W: 32
+  STRIDES: []
+  WIDTHS: []
+BN:
+  CUSTOM_WEIGHT_DECAY: 0.0
+  EPS: 1.0e-05
+  MOM: 0.1
+  NUM_SAMPLES_PRECISE: 8192
+  USE_CUSTOM_WEIGHT_DECAY: false
+  USE_PRECISE_STATS: true
+  ZERO_INIT_FINAL_GAMMA: false
+CFG_DEST: config.yaml
+CUDNN:
+  BENCHMARK: true
+DATA_LOADER:
+  NUM_WORKERS: 8
+  PIN_MEMORY: true
+DIST_BACKEND: nccl
+DOWNLOAD_CACHE: /tmp/pycls-download-cache
+EN:
+  DC_RATIO: 0.0
+  DEPTHS: []
+  DROPOUT_RATIO: 0.0
+  EXP_RATIOS: []
+  HEAD_W: 1280
+  KERNELS: []
+  SE_R: 0.25
+  STEM_W: 32
+  STRIDES: []
+  WIDTHS: []
+HOST: localhost
+LOG_DEST: stdout
+LOG_PERIOD: 10
+MEM:
+  RELU_INPLACE: true
+MODEL:
+  DEPTH: 0
+  LOSS_FUN: cross_entropy
+  NUM_CLASSES: 1000
+  TYPE: regnet
+NUM_GPUS: 1
+OPTIM:
+  BASE_LR: 0.8
+  DAMPENING: 0.0
+  GAMMA: 0.1
+  LR_MULT: 0.1
+  LR_POLICY: cos
+  MAX_EPOCH: 100
+  MOMENTUM: 0.9
+  NESTEROV: true
+  STEPS: []
+  WARMUP_EPOCHS: 5
+  WARMUP_FACTOR: 0.1
+  WEIGHT_DECAY: 5.0e-05
+OUT_DIR: .
+PORT_RANGE:
+- 10000
+- 65000
+PREC_TIME:
+  NUM_ITER: 50
+  WARMUP_ITER: 5
+REGNET:
+  BLOCK_TYPE: res_bottleneck_block
+  BOT_MUL: 1.0
+  DEPTH: 18
+  GROUP_W: 24
+  SE_ON: false
+  SE_R: 0.25
+  STEM_TYPE: simple_stem_in
+  STEM_W: 32
+  STRIDE: 2
+  W0: 80
+  WA: 34.01
+  WM: 2.25
+RESNET:
+  NUM_GROUPS: 1
+  STRIDE_1X1: true
+  TRANS_FUN: basic_transform
+  WIDTH_PER_GROUP: 64
+RNG_SEED: 1
+TEST:
+  BATCH_SIZE: 64
+  DATASET: imagenet
+  IM_SIZE: 256
+  SPLIT: val
+  WEIGHTS: ''
+TRAIN:
+  AUTO_RESUME: true
+  BATCH_SIZE: 1024
+  CHECKPOINT_PERIOD: 1
+  DATASET: imagenet
+  EVAL_PERIOD: 1
+  IM_SIZE: 224
+  SPLIT: train
+  WEIGHTS: ''

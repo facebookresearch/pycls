@@ -29,7 +29,7 @@ cfg = _C
 _C.MODEL = CfgNode()
 
 # Model type
-_C.MODEL.TYPE = ""
+_C.MODEL.TYPE = 'regnet'
 
 # Number of weight layers
 _C.MODEL.DEPTH = 0

@@ -74,10 +74,12 @@ def time_fwd():
     regnety800_params = {'w_a': 38.84, 'w_0': 56,'w_m': 2.4, 'd': 14}
     regnety4_params = {'w_a': 31.41, 'w_0': 96,'w_m': 2.24, 'd': 22}
     regnety8_params = {'w_a': 76.82, 'w_0': 192,'w_m': 2.19, 'd': 17}
-    model = RegNet(**regnety800_params)
-    time, batch_size = benchmark.compute_time_eval(model)
+    model = RegNet(**regnety8_params)
+    model = model.cuda(device=torch.cuda.current_device())
+    im_size, batch_size = 224, 64
+    time = benchmark.compute_time_eval(model, im_size, batch_size)
     print('-'*50)
-    print('Elapsed time (ms): {}'.format(time*1000))
+    print('Latency (ms): {}'.format(time*1000))
     print('Throughput: {}'.format(batch_size / time))
 
 

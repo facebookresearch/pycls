@@ -18,18 +18,16 @@ logger = logging.get_logger(__name__)
 
 
 @torch.no_grad()
-def compute_time_eval(model):
+def compute_time_eval(model, im_size, batch_size):
     """Computes precise model forward test time using dummy data."""
     # Use eval mode
     model.eval()
     # Generate a dummy mini-batch and copy data to GPU
-    #im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TEST.BATCH_SIZE / cfg.NUM_GPUS)
-    im_size, batch_size = 224, 64
-    inputs = torch.zeros(batch_size, 3, im_size, im_size)#.cuda(non_blocking=False)
+    inputs = torch.zeros(batch_size, 3, im_size, im_size).cuda(non_blocking=False)
     # Compute precise forward pass time
     timer = Timer()
-    total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
-    
+    total_iter = cfg.PREC_TIME.NUM_ITER + 100 + cfg.PREC_TIME.WARMUP_ITER + 1000
+
     # Run.
     for cur_iter in range(total_iter):
         # Reset the timers after the warmup phase
@@ -40,8 +38,7 @@ def compute_time_eval(model):
         model(inputs)
         torch.cuda.synchronize()
         timer.toc()
-    #return timer.average_time
-    return timer.average_time / batch_size, batch_size
+    return timer.average_time
 
 
 def compute_time_train(model, loss_fun):
