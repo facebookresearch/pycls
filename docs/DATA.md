@@ -1,5 +1,7 @@
 # Setting Up Data Paths
 
+**pycls** finds datasets via symlinks from `pycls/datasets/data` to the actual locations where the dataset images and labels are stored. The instructions on how to create symlinks for ImageNet and CIFAR are given below.
+
 Expected datasets structure for ImageNet:
 
 ```

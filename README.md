@@ -15,7 +15,7 @@ The codebase supports efficient single-machine multi-gpu training, powered by th
 
 ## Using pycls
 
-Please see [`INSTALL.md`](docs/INSTALL.md) for brief installation instructions. After installation, please see [`GETTING_STARTED.md`](docs/GETTING_STARTED.md) for basic instructions and example commands on training and evaluation with **pycls**.
+Please see [`GETTING_STARTED`](docs/GETTING_STARTED.md) for brief installation instructions and basic usage examples.
 
 ## Model Zoo
 
@@ -31,11 +31,11 @@ A number of projects at FAIR have been built on top of **pycls**:
 - [Are Labels Necessary for Neural Architecture Search?](https://arxiv.org/abs/2003.12056)
 - [PySlowFast Video Understanding Codebase](https://github.com/facebookresearch/SlowFast)
 
-If you are using **pycls** in your research and would like us to include your project here, please let us know or send a PR.
+If you are using **pycls** in your research and would like to include your project here, please let us know or send a PR.
 
 ## Citing pycls
 
-If you find **pycls** helpful in your research or refer to the baseline results in the [Model Zoo](MODEL_ZOO.md), please consider citing:
+If you find **pycls** helpful in your research or refer to the baseline results in the [Model Zoo](MODEL_ZOO.md), please consider citing an appropriate subset of the following papers:
 
 ```
 @InProceedings{Radosavovic2019,
