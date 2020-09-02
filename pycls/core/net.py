@@ -32,6 +32,12 @@ def init_weights(m):
         m.bias.data.zero_()
 
 
+def unwrap_model(model):
+    """Remove the DistributedDataParallel wrapper if present."""
+    wrapped = isinstance(model, nn.parallel.distributed.DistributedDataParallel)
+    return model.module if wrapped else model
+
+
 @torch.no_grad()
 def compute_precise_bn_stats(model, loader):
     """Computes precise BN stats on training data."""
@@ -91,11 +97,12 @@ def complexity_batchnorm2d(cx, w_in):
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
 
-def complexity_maxpool2d(cx, k, stride, padding):
+def complexity_maxpool2d(cx, w_in, k, stride, padding):
     """Accumulates complexity of MaxPool2d into cx = (h, w, flops, params, acts)."""
     h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
     h = (h + 2 * padding - k) // stride + 1
     w = (w + 2 * padding - k) // stride + 1
+    acts += w_in * h * w
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
 

@@ -196,6 +196,17 @@ def test_model():
 
 
 def time_model():
+    """Times model."""
+    # Setup training/testing environment
+    setup_env()
+    # Construct the model and loss_fun
+    model = setup_model()
+    loss_fun = builders.build_loss_fun().cuda()
+    # Compute model and loader timings
+    benchmark.compute_time_model(model, loss_fun)
+
+
+def time_model_and_loader():
     """Times model and data loader."""
     # Setup training/testing environment
     setup_env()
