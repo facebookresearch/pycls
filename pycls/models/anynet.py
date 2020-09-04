@@ -289,7 +289,7 @@ class ResStemIN(nn.Module):
     def complexity(cx, w_in, w_out):
         cx = net.complexity_conv2d(cx, w_in, w_out, 7, 2, 3)
         cx = net.complexity_batchnorm2d(cx, w_out)
-        cx = net.complexity_maxpool2d(cx, 3, 2, 1)
+        cx = net.complexity_maxpool2d(cx, w_out, 3, 2, 1)
         return cx
 
 
