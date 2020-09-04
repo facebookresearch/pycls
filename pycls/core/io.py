@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 _PYCLS_BASE_URL = "https://dl.fbaipublicfiles.com/pycls"
 
 
-def cache_url(url_or_file, cache_dir):
+def cache_url(url_or_file, cache_dir, base_url=_PYCLS_BASE_URL):
     """Download the file specified by the URL to the cache_dir and return the path to
     the cached file. If the argument is not a URL, simply return it as is.
     """
@@ -27,9 +27,8 @@ def cache_url(url_or_file, cache_dir):
     if not is_url:
         return url_or_file
     url = url_or_file
-    err_str = "pycls only automatically caches URLs in the pycls S3 bucket: {}"
-    assert url.startswith(_PYCLS_BASE_URL), err_str.format(_PYCLS_BASE_URL)
-    cache_file_path = url.replace(_PYCLS_BASE_URL, cache_dir)
+    assert url.startswith(base_url), "url must start with: {}".format(base_url)
+    cache_file_path = url.replace(base_url, cache_dir)
     if os.path.exists(cache_file_path):
         return cache_file_path
     cache_file_dir = os.path.dirname(cache_file_path)

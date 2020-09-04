@@ -1,0 +1,147 @@
+{
+    "EfficientNet-B0": {
+        "top1_err": 24.92,
+        "top5_err": 7.814
+    },
+    "EfficientNet-B1": {
+        "top1_err": 24.068,
+        "top5_err": 7.228
+    },
+    "EfficientNet-B2": {
+        "top1_err": 23.518,
+        "top5_err": 6.968
+    },
+    "EfficientNet-B3": {
+        "top1_err": 22.47,
+        "top5_err": 6.514
+    },
+    "EfficientNet-B4": {
+        "top1_err": 21.374,
+        "top5_err": 5.808
+    },
+    "EfficientNet-B5": {
+        "top1_err": 21.674,
+        "top5_err": 6.238
+    },
+    "RegNetX-1.6GF": {
+        "top1_err": 23.038,
+        "top5_err": 6.484
+    },
+    "RegNetX-12GF": {
+        "top1_err": 20.288,
+        "top5_err": 5.284
+    },
+    "RegNetX-16GF": {
+        "top1_err": 19.956,
+        "top5_err": 5.022
+    },
+    "RegNetX-200MF": {
+        "top1_err": 31.088,
+        "top5_err": 11.342
+    },
+    "RegNetX-3.2GF": {
+        "top1_err": 21.736,
+        "top5_err": 5.862
+    },
+    "RegNetX-32GF": {
+        "top1_err": 19.498,
+        "top5_err": 4.878
+    },
+    "RegNetX-4.0GF": {
+        "top1_err": 21.356,
+        "top5_err": 5.736
+    },
+    "RegNetX-400MF": {
+        "top1_err": 27.382,
+        "top5_err": 9.076
+    },
+    "RegNetX-6.4GF": {
+        "top1_err": 20.844,
+        "top5_err": 5.434
+    },
+    "RegNetX-600MF": {
+        "top1_err": 25.864,
+        "top5_err": 8.198
+    },
+    "RegNetX-8.0GF": {
+        "top1_err": 20.728,
+        "top5_err": 5.42
+    },
+    "RegNetX-800MF": {
+        "top1_err": 24.846,
+        "top5_err": 7.592
+    },
+    "RegNetY-1.6GF": {
+        "top1_err": 22.066,
+        "top5_err": 6.134
+    },
+    "RegNetY-12GF": {
+        "top1_err": 19.67,
+        "top5_err": 4.856
+    },
+    "RegNetY-16GF": {
+        "top1_err": 19.608,
+        "top5_err": 4.944
+    },
+    "RegNetY-200MF": {
+        "top1_err": 29.658,
+        "top5_err": 10.378
+    },
+    "RegNetY-3.2GF": {
+        "top1_err": 21.074,
+        "top5_err": 5.454
+    },
+    "RegNetY-32GF": {
+        "top1_err": 19.066,
+        "top5_err": 4.568
+    },
+    "RegNetY-4.0GF": {
+        "top1_err": 20.64,
+        "top5_err": 5.336
+    },
+    "RegNetY-400MF": {
+        "top1_err": 25.898,
+        "top5_err": 8.07
+    },
+    "RegNetY-6.4GF": {
+        "top1_err": 20.11,
+        "top5_err": 5.1
+    },
+    "RegNetY-600MF": {
+        "top1_err": 24.54,
+        "top5_err": 7.28
+    },
+    "RegNetY-8.0GF": {
+        "top1_err": 20.052,
+        "top5_err": 5.06
+    },
+    "RegNetY-800MF": {
+        "top1_err": 23.684,
+        "top5_err": 6.846
+    },
+    "ResNeXt-101": {
+        "top1_err": 20.664,
+        "top5_err": 5.392
+    },
+    "ResNeXt-152": {
+        "top1_err": 20.386,
+        "top5_err": 5.318
+    },
+    "ResNeXt-50": {
+        "top1_err": 21.884,
+        "top5_err": 6.062
+    },
+    "ResNet-101": {
+        "top1_err": 21.414,
+        "top5_err": 5.792
+    },
+    "ResNet-152": {
+        "top1_err": 20.87,
+        "top5_err": 5.44
+    },
+    "ResNet-50": {
+        "top1_err": 23.19,
+        "top5_err": 6.63
+    },
+    "date-created": "2020-09-04 08:38:35.880459"
+}

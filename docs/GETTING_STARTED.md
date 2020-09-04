@@ -18,10 +18,16 @@ pip install pycls
 Load a pretrained model:
 
 ```
-model = pycls.models.regnetx('400MF', pretrained=True)
+model = pycls.models.regnetx("400MF", pretrained=True)
 ```
 
-Please see the [`MODEL_ZOO.md`](MODEL_ZOO.md) for the available pretrained models.
+Create a model with the number of classes altered:
+
+```
+model = pycls.models.regnety("4.0GF", pretrained=False, cfg_list=("MODEL.NUM_CLASSES", 100))
+```
+
+Please see the [`MODEL_ZOO.md`](../MODEL_ZOO.md) for the available pretrained models.
 
 ## Framework Usage
 

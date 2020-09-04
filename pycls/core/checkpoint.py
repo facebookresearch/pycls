@@ -12,10 +12,12 @@ import os
 import pycls.core.distributed as dist
 import torch
 from pycls.core.config import cfg
+from pycls.core.net import unwrap_model
 
 
 # Common prefix for checkpoint file names
 _NAME_PREFIX = "model_epoch_"
+
 # Checkpoints directory name
 _DIR_NAME = "checkpoints"
 
@@ -34,7 +36,6 @@ def get_checkpoint(epoch):
 def get_last_checkpoint():
     """Retrieves the most recent checkpoint (highest epoch number)."""
     checkpoint_dir = get_checkpoint_dir()
-    # Checkpoint file names are in lexicographic order
     checkpoints = [f for f in os.listdir(checkpoint_dir) if _NAME_PREFIX in f]
     last_checkpoint_name = sorted(checkpoints)[-1]
     return os.path.join(checkpoint_dir, last_checkpoint_name)
@@ -55,12 +56,10 @@ def save_checkpoint(model, optimizer, epoch):
         return
     # Ensure that the checkpoint dir exists
     os.makedirs(get_checkpoint_dir(), exist_ok=True)
-    # Omit the DDP wrapper in the multi-gpu setting
-    sd = model.module.state_dict() if cfg.NUM_GPUS > 1 else model.state_dict()
     # Record the state
     checkpoint = {
         "epoch": epoch,
-        "model_state": sd,
+        "model_state": unwrap_model(model).state_dict(),
         "optimizer_state": optimizer.state_dict(),
         "cfg": cfg.dump(),
     }
@@ -74,12 +73,7 @@ def load_checkpoint(checkpoint_file, model, optimizer=None):
     """Loads the checkpoint from the given file."""
     err_str = "Checkpoint '{}' not found"
     assert os.path.exists(checkpoint_file), err_str.format(checkpoint_file)
-    # Load the checkpoint on CPU to avoid GPU mem spike
     checkpoint = torch.load(checkpoint_file, map_location="cpu")
-    # Account for the DDP wrapper in the multi-gpu setting
-    ms = model.module if cfg.NUM_GPUS > 1 else model
-    ms.load_state_dict(checkpoint["model_state"])
-    # Load the optimizer state (commonly not done when fine-tuning)
-    if optimizer:
-        optimizer.load_state_dict(checkpoint["optimizer_state"])
+    unwrap_model(model).load_state_dict(checkpoint["model_state"])
+    optimizer.load_state_dict(checkpoint["optimizer_state"]) if optimizer else ()
     return checkpoint["epoch"]
