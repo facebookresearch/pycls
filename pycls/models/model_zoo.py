@@ -126,6 +126,16 @@ def get_weights_file(name):
     return cache_url(weights_url, _DOWNLOAD_CACHE, _URL_WEIGHTS)
 
 
+def get_model_info(name):
+    """Return model info (useful for debugging)."""
+    config_url = _MODEL_ZOO_CONFIGS[name]
+    weight_url = _MODEL_ZOO_WEIGHTS[name]
+    model_id = weight_url.split("/")[1]
+    config_url_full = os.path.join(_URL_CONFIGS, _MODEL_ZOO_CONFIGS[name])
+    weight_url_full = os.path.join(_URL_WEIGHTS, _MODEL_ZOO_WEIGHTS[name])
+    return config_url, weight_url, model_id, config_url_full, weight_url_full
+
+
 def build_model(name, pretrained=False, cfg_list=()):
     """Constructs a predefined model (note: loads global config as well)."""
     # Load the config
