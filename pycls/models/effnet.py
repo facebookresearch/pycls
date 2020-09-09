@@ -7,138 +7,108 @@
 
 """EfficientNet models."""
 
-import pycls.core.net as net
-import torch
-import torch.nn as nn
 from pycls.core.config import cfg
+from pycls.models.blocks import (
+    SE,
+    SiLU,
+    conv2d,
+    conv2d_cx,
+    drop_connect,
+    gap2d,
+    gap2d_cx,
+    init_weights,
+    linear,
+    linear_cx,
+    norm2d,
+    norm2d_cx,
+)
+from torch.nn import Dropout, Module
 
 
-class EffHead(nn.Module):
-    """EfficientNet head: 1x1, BN, Swish, AvgPool, Dropout, FC."""
+class EffHead(Module):
+    """EfficientNet head: 1x1, BN, AF, AvgPool, Dropout, FC."""
 
-    def __init__(self, w_in, w_out, nc):
+    def __init__(self, w_in, w_out, num_classes):
         super(EffHead, self).__init__()
-        self.conv = nn.Conv2d(w_in, w_out, 1, stride=1, padding=0, bias=False)
-        self.conv_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.conv_swish = Swish()
-        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        if cfg.EN.DROPOUT_RATIO > 0.0:
-            self.dropout = nn.Dropout(p=cfg.EN.DROPOUT_RATIO)
-        self.fc = nn.Linear(w_out, nc, bias=True)
+        dropout_ratio = cfg.EN.DROPOUT_RATIO
+        self.conv = conv2d(w_in, w_out, 1)
+        self.conv_bn = norm2d(w_out)
+        self.conv_af = SiLU()
+        self.avg_pool = gap2d(w_out)
+        self.dropout = Dropout(p=dropout_ratio) if dropout_ratio > 0 else None
+        self.fc = linear(w_out, num_classes, bias=True)
 
     def forward(self, x):
-        x = self.conv_swish(self.conv_bn(self.conv(x)))
+        x = self.conv_af(self.conv_bn(self.conv(x)))
         x = self.avg_pool(x)
         x = x.view(x.size(0), -1)
-        x = self.dropout(x) if hasattr(self, "dropout") else x
+        x = self.dropout(x) if self.dropout else x
         x = self.fc(x)
         return x
 
     @staticmethod
-    def complexity(cx, w_in, w_out, nc):
-        cx = net.complexity_conv2d(cx, w_in, w_out, 1, 1, 0)
-        cx = net.complexity_batchnorm2d(cx, w_out)
-        cx["h"], cx["w"] = 1, 1
-        cx = net.complexity_conv2d(cx, w_out, nc, 1, 1, 0, bias=True)
+    def complexity(cx, w_in, w_out, num_classes):
+        cx = conv2d_cx(cx, w_in, w_out, 1)
+        cx = norm2d_cx(cx, w_out)
+        cx = gap2d_cx(cx, w_out)
+        cx = linear_cx(cx, w_out, num_classes, bias=True)
         return cx
 
 
-class Swish(nn.Module):
-    """Swish activation function: x * sigmoid(x)."""
+class MBConv(Module):
+    """Mobile inverted bottleneck block with SE."""
 
-    def __init__(self):
-        super(Swish, self).__init__()
-
-    def forward(self, x):
-        return x * torch.sigmoid(x)
-
-
-class SE(nn.Module):
-    """Squeeze-and-Excitation (SE) block w/ Swish: AvgPool, FC, Swish, FC, Sigmoid."""
-
-    def __init__(self, w_in, w_se):
-        super(SE, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.f_ex = nn.Sequential(
-            nn.Conv2d(w_in, w_se, 1, bias=True),
-            Swish(),
-            nn.Conv2d(w_se, w_in, 1, bias=True),
-            nn.Sigmoid(),
-        )
-
-    def forward(self, x):
-        return x * self.f_ex(self.avg_pool(x))
-
-    @staticmethod
-    def complexity(cx, w_in, w_se):
-        h, w = cx["h"], cx["w"]
-        cx["h"], cx["w"] = 1, 1
-        cx = net.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
-        cx = net.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
-        cx["h"], cx["w"] = h, w
-        return cx
-
-
-class MBConv(nn.Module):
-    """Mobile inverted bottleneck block w/ SE (MBConv)."""
-
-    def __init__(self, w_in, exp_r, kernel, stride, se_r, w_out):
-        # expansion, 3x3 dwise, BN, Swish, SE, 1x1, BN, skip_connection
+    def __init__(self, w_in, exp_r, k, stride, se_r, w_out):
+        # Expansion, kxk dwise, BN, AF, SE, 1x1, BN, skip_connection
         super(MBConv, self).__init__()
         self.exp = None
         w_exp = int(w_in * exp_r)
         if w_exp != w_in:
-            self.exp = nn.Conv2d(w_in, w_exp, 1, stride=1, padding=0, bias=False)
-            self.exp_bn = nn.BatchNorm2d(w_exp, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-            self.exp_swish = Swish()
-        dwise_args = {"groups": w_exp, "padding": (kernel - 1) // 2, "bias": False}
-        self.dwise = nn.Conv2d(w_exp, w_exp, kernel, stride=stride, **dwise_args)
-        self.dwise_bn = nn.BatchNorm2d(w_exp, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.dwise_swish = Swish()
-        self.se = SE(w_exp, int(w_in * se_r))
-        self.lin_proj = nn.Conv2d(w_exp, w_out, 1, stride=1, padding=0, bias=False)
-        self.lin_proj_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        # Skip connection if in and out shapes are the same (MN-V2 style)
+            self.exp = conv2d(w_in, w_exp, 1)
+            self.exp_bn = norm2d(w_exp)
+            self.exp_af = SiLU()
+        self.dwise = conv2d(w_exp, w_exp, k, stride=stride, groups=w_exp)
+        self.dwise_bn = norm2d(w_exp)
+        self.dwise_af = SiLU()
+        self.se = SE(w_exp, int(w_in * se_r), SiLU)
+        self.lin_proj = conv2d(w_exp, w_out, 1)
+        self.lin_proj_bn = norm2d(w_out)
         self.has_skip = stride == 1 and w_in == w_out
 
     def forward(self, x):
-        f_x = x
-        if self.exp:
-            f_x = self.exp_swish(self.exp_bn(self.exp(f_x)))
-        f_x = self.dwise_swish(self.dwise_bn(self.dwise(f_x)))
+        f_x = self.exp_af(self.exp_bn(self.exp(x))) if self.exp else x
+        f_x = self.dwise_af(self.dwise_bn(self.dwise(f_x)))
         f_x = self.se(f_x)
         f_x = self.lin_proj_bn(self.lin_proj(f_x))
         if self.has_skip:
             if self.training and cfg.EN.DC_RATIO > 0.0:
-                f_x = net.drop_connect(f_x, cfg.EN.DC_RATIO)
+                f_x = drop_connect(f_x, cfg.EN.DC_RATIO)
             f_x = x + f_x
         return f_x
 
     @staticmethod
-    def complexity(cx, w_in, exp_r, kernel, stride, se_r, w_out):
+    def complexity(cx, w_in, exp_r, k, stride, se_r, w_out):
         w_exp = int(w_in * exp_r)
         if w_exp != w_in:
-            cx = net.complexity_conv2d(cx, w_in, w_exp, 1, 1, 0)
-            cx = net.complexity_batchnorm2d(cx, w_exp)
-        padding = (kernel - 1) // 2
-        cx = net.complexity_conv2d(cx, w_exp, w_exp, kernel, stride, padding, w_exp)
-        cx = net.complexity_batchnorm2d(cx, w_exp)
+            cx = conv2d_cx(cx, w_in, w_exp, 1)
+            cx = norm2d_cx(cx, w_exp)
+        cx = conv2d_cx(cx, w_exp, w_exp, k, stride=stride, groups=w_exp)
+        cx = norm2d_cx(cx, w_exp)
         cx = SE.complexity(cx, w_exp, int(w_in * se_r))
-        cx = net.complexity_conv2d(cx, w_exp, w_out, 1, 1, 0)
-        cx = net.complexity_batchnorm2d(cx, w_out)
+        cx = conv2d_cx(cx, w_exp, w_out, 1)
+        cx = norm2d_cx(cx, w_out)
         return cx
 
 
-class EffStage(nn.Module):
+class EffStage(Module):
     """EfficientNet stage."""
 
-    def __init__(self, w_in, exp_r, kernel, stride, se_r, w_out, d):
+    def __init__(self, w_in, exp_r, k, stride, se_r, w_out, d):
         super(EffStage, self).__init__()
         for i in range(d):
-            b_stride = stride if i == 0 else 1
-            b_w_in = w_in if i == 0 else w_out
-            name = "b{}".format(i + 1)
-            self.add_module(name, MBConv(b_w_in, exp_r, kernel, b_stride, se_r, w_out))
+            block = MBConv(w_in, exp_r, k, stride, se_r, w_out)
+            self.add_module("b{}".format(i + 1), block)
+            stride, w_in = 1, w_out
 
     def forward(self, x):
         for block in self.children():
@@ -146,22 +116,21 @@ class EffStage(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx, w_in, exp_r, kernel, stride, se_r, w_out, d):
-        for i in range(d):
-            b_stride = stride if i == 0 else 1
-            b_w_in = w_in if i == 0 else w_out
-            cx = MBConv.complexity(cx, b_w_in, exp_r, kernel, b_stride, se_r, w_out)
+    def complexity(cx, w_in, exp_r, k, stride, se_r, w_out, d):
+        for _ in range(d):
+            cx = MBConv.complexity(cx, w_in, exp_r, k, stride, se_r, w_out)
+            stride, w_in = 1, w_out
         return cx
 
 
-class StemIN(nn.Module):
-    """EfficientNet stem for ImageNet: 3x3, BN, Swish."""
+class StemIN(Module):
+    """EfficientNet stem for ImageNet: 3x3, BN, AF."""
 
     def __init__(self, w_in, w_out):
         super(StemIN, self).__init__()
-        self.conv = nn.Conv2d(w_in, w_out, 3, stride=2, padding=1, bias=False)
-        self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.swish = Swish()
+        self.conv = conv2d(w_in, w_out, 3, stride=2)
+        self.bn = norm2d(w_out)
+        self.af = SiLU()
 
     def forward(self, x):
         for layer in self.children():
@@ -170,43 +139,42 @@ class StemIN(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = net.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
-        cx = net.complexity_batchnorm2d(cx, w_out)
+        cx = conv2d_cx(cx, w_in, w_out, 3, stride=2)
+        cx = norm2d_cx(cx, w_out)
         return cx
 
 
-class EffNet(nn.Module):
+class EffNet(Module):
     """EfficientNet model."""
 
     @staticmethod
-    def get_args():
+    def get_params():
         return {
-            "stem_w": cfg.EN.STEM_W,
+            "sw": cfg.EN.STEM_W,
             "ds": cfg.EN.DEPTHS,
             "ws": cfg.EN.WIDTHS,
             "exp_rs": cfg.EN.EXP_RATIOS,
             "se_r": cfg.EN.SE_R,
             "ss": cfg.EN.STRIDES,
             "ks": cfg.EN.KERNELS,
-            "head_w": cfg.EN.HEAD_W,
+            "hw": cfg.EN.HEAD_W,
             "nc": cfg.MODEL.NUM_CLASSES,
         }
 
-    def __init__(self, **kwargs):
+    def __init__(self, params=None):
         super(EffNet, self).__init__()
-        kwargs = self.get_args() if not kwargs else kwargs
-        self._construct(**kwargs)
-        self.apply(net.init_weights)
-
-    def _construct(self, stem_w, ds, ws, exp_rs, se_r, ss, ks, head_w, nc):
+        p = EffNet.get_params() if not params else params
+        vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc"]
+        sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc = [p[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        self.stem = StemIN(3, stem_w)
-        prev_w = stem_w
-        for i, (d, w, exp_r, stride, kernel) in enumerate(stage_params):
-            name = "s{}".format(i + 1)
-            self.add_module(name, EffStage(prev_w, exp_r, kernel, stride, se_r, w, d))
+        self.stem = StemIN(3, sw)
+        prev_w = sw
+        for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
+            stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d)
+            self.add_module("s{}".format(i + 1), stage)
             prev_w = w
-        self.head = EffHead(prev_w, head_w, nc)
+        self.head = EffHead(prev_w, hw, nc)
+        self.apply(init_weights)
 
     def forward(self, x):
         for module in self.children():
@@ -214,17 +182,16 @@ class EffNet(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx):
-        """Computes model complexity. If you alter the model, make sure to update."""
-        return EffNet._complexity(cx, **EffNet.get_args())
-
-    @staticmethod
-    def _complexity(cx, stem_w, ds, ws, exp_rs, se_r, ss, ks, head_w, nc):
+    def complexity(cx, params=None):
+        """Computes model complexity (if you alter the model, make sure to update)."""
+        p = EffNet.get_params() if not params else params
+        vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc"]
+        sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc = [p[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        cx = StemIN.complexity(cx, 3, stem_w)
-        prev_w = stem_w
-        for d, w, exp_r, stride, kernel in stage_params:
-            cx = EffStage.complexity(cx, prev_w, exp_r, kernel, stride, se_r, w, d)
+        cx = StemIN.complexity(cx, 3, sw)
+        prev_w = sw
+        for d, w, exp_r, stride, k in stage_params:
+            cx = EffStage.complexity(cx, prev_w, exp_r, k, stride, se_r, w, d)
             prev_w = w
-        cx = EffHead.complexity(cx, prev_w, head_w, nc)
+        cx = EffHead.complexity(cx, prev_w, hw, nc)
         return cx

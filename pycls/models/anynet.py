@@ -7,17 +7,31 @@
 
 """AnyNet models."""
 
-import pycls.core.net as net
-import torch.nn as nn
 from pycls.core.config import cfg
+from pycls.models.blocks import (
+    SE,
+    activation,
+    conv2d,
+    conv2d_cx,
+    gap2d,
+    gap2d_cx,
+    init_weights,
+    linear,
+    linear_cx,
+    norm2d,
+    norm2d_cx,
+    pool2d,
+    pool2d_cx,
+)
+from torch.nn import Module
 
 
 def get_stem_fun(stem_type):
     """Retrieves the stem function by name."""
     stem_funs = {
         "res_stem_cifar": ResStemCifar,
-        "res_stem_in": ResStemIN,
-        "simple_stem_in": SimpleStemIN,
+        "res_stem_in": ResStem,
+        "simple_stem_in": SimpleStem,
     }
     err_str = "Stem type '{}' not supported"
     assert stem_type in stem_funs.keys(), err_str.format(stem_type)
@@ -36,13 +50,13 @@ def get_block_fun(block_type):
     return block_funs[block_type]
 
 
-class AnyHead(nn.Module):
+class AnyHead(Module):
     """AnyNet head: AvgPool, 1x1."""
 
-    def __init__(self, w_in, nc):
+    def __init__(self, w_in, num_classes):
         super(AnyHead, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(w_in, nc, bias=True)
+        self.avg_pool = gap2d(w_in)
+        self.fc = linear(w_in, num_classes, bias=True)
 
     def forward(self, x):
         x = self.avg_pool(x)
@@ -51,25 +65,23 @@ class AnyHead(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx, w_in, nc):
-        cx["h"], cx["w"] = 1, 1
-        cx = net.complexity_conv2d(cx, w_in, nc, 1, 1, 0, bias=True)
+    def complexity(cx, w_in, num_classes):
+        cx = gap2d_cx(cx, w_in)
+        cx = linear_cx(cx, w_in, num_classes, bias=True)
         return cx
 
 
-class VanillaBlock(nn.Module):
+class VanillaBlock(Module):
     """Vanilla block: [3x3 conv, BN, Relu] x2."""
 
-    def __init__(self, w_in, w_out, stride, bm=None, gw=None, se_r=None):
-        err_str = "Vanilla block does not support bm, gw, and se_r options"
-        assert bm is None and gw is None and se_r is None, err_str
+    def __init__(self, w_in, w_out, stride, _params):
         super(VanillaBlock, self).__init__()
-        self.a = nn.Conv2d(w_in, w_out, 3, stride=stride, padding=1, bias=False)
-        self.a_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.a_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
-        self.b = nn.Conv2d(w_out, w_out, 3, stride=1, padding=1, bias=False)
-        self.b_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.b_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
+        self.a = conv2d(w_in, w_out, 3, stride=stride)
+        self.a_bn = norm2d(w_out)
+        self.a_af = activation()
+        self.b = conv2d(w_out, w_out, 3)
+        self.b_bn = norm2d(w_out)
+        self.b_af = activation()
 
     def forward(self, x):
         for layer in self.children():
@@ -77,26 +89,24 @@ class VanillaBlock(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx, w_in, w_out, stride, bm=None, gw=None, se_r=None):
-        err_str = "Vanilla block does not support bm, gw, and se_r options"
-        assert bm is None and gw is None and se_r is None, err_str
-        cx = net.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
-        cx = net.complexity_batchnorm2d(cx, w_out)
-        cx = net.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
-        cx = net.complexity_batchnorm2d(cx, w_out)
+    def complexity(cx, w_in, w_out, stride, _params):
+        cx = conv2d_cx(cx, w_in, w_out, 3, stride=stride)
+        cx = norm2d_cx(cx, w_out)
+        cx = conv2d_cx(cx, w_out, w_out, 3)
+        cx = norm2d_cx(cx, w_out)
         return cx
 
 
-class BasicTransform(nn.Module):
+class BasicTransform(Module):
     """Basic transformation: [3x3 conv, BN, Relu] x2."""
 
-    def __init__(self, w_in, w_out, stride):
+    def __init__(self, w_in, w_out, stride, _params):
         super(BasicTransform, self).__init__()
-        self.a = nn.Conv2d(w_in, w_out, 3, stride=stride, padding=1, bias=False)
-        self.a_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.a_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
-        self.b = nn.Conv2d(w_out, w_out, 3, stride=1, padding=1, bias=False)
-        self.b_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
+        self.a = conv2d(w_in, w_out, 3, stride=stride)
+        self.a_bn = norm2d(w_out)
+        self.a_af = activation()
+        self.b = conv2d(w_out, w_out, 3)
+        self.b_bn = norm2d(w_out)
         self.b_bn.final_bn = True
 
     def forward(self, x):
@@ -105,94 +115,58 @@ class BasicTransform(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx, w_in, w_out, stride):
-        cx = net.complexity_conv2d(cx, w_in, w_out, 3, stride, 1)
-        cx = net.complexity_batchnorm2d(cx, w_out)
-        cx = net.complexity_conv2d(cx, w_out, w_out, 3, 1, 1)
-        cx = net.complexity_batchnorm2d(cx, w_out)
+    def complexity(cx, w_in, w_out, stride, _params):
+        cx = conv2d_cx(cx, w_in, w_out, 3, stride=stride)
+        cx = norm2d_cx(cx, w_out)
+        cx = conv2d_cx(cx, w_out, w_out, 3)
+        cx = norm2d_cx(cx, w_out)
         return cx
 
 
-class ResBasicBlock(nn.Module):
-    """Residual basic block: x + F(x), F = basic transform."""
+class ResBasicBlock(Module):
+    """Residual basic block: x + f(x), f = basic transform."""
 
-    def __init__(self, w_in, w_out, stride, bm=None, gw=None, se_r=None):
-        err_str = "Basic transform does not support bm, gw, and se_r options"
-        assert bm is None and gw is None and se_r is None, err_str
+    def __init__(self, w_in, w_out, stride, params):
         super(ResBasicBlock, self).__init__()
-        self.proj_block = (w_in != w_out) or (stride != 1)
-        if self.proj_block:
-            self.proj = nn.Conv2d(w_in, w_out, 1, stride=stride, padding=0, bias=False)
-            self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.f = BasicTransform(w_in, w_out, stride)
-        self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
+        self.proj, self.bn = None, None
+        if (w_in != w_out) or (stride != 1):
+            self.proj = conv2d(w_in, w_out, 1, stride=stride)
+            self.bn = norm2d(w_out)
+        self.f = BasicTransform(w_in, w_out, stride, params)
+        self.af = activation()
 
     def forward(self, x):
-        if self.proj_block:
-            x = self.bn(self.proj(x)) + self.f(x)
-        else:
-            x = x + self.f(x)
-        x = self.relu(x)
-        return x
+        x_p = self.bn(self.proj(x)) if self.proj else x
+        return self.af(x_p + self.f(x))
 
     @staticmethod
-    def complexity(cx, w_in, w_out, stride, bm=None, gw=None, se_r=None):
-        err_str = "Basic transform does not support bm, gw, and se_r options"
-        assert bm is None and gw is None and se_r is None, err_str
-        proj_block = (w_in != w_out) or (stride != 1)
-        if proj_block:
+    def complexity(cx, w_in, w_out, stride, params):
+        if (w_in != w_out) or (stride != 1):
             h, w = cx["h"], cx["w"]
-            cx = net.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
-            cx = net.complexity_batchnorm2d(cx, w_out)
-            cx["h"], cx["w"] = h, w  # parallel branch
-        cx = BasicTransform.complexity(cx, w_in, w_out, stride)
+            cx = conv2d_cx(cx, w_in, w_out, 1, stride=stride)
+            cx = norm2d_cx(cx, w_out)
+            cx["h"], cx["w"] = h, w
+        cx = BasicTransform.complexity(cx, w_in, w_out, stride, params)
         return cx
 
 
-class SE(nn.Module):
-    """Squeeze-and-Excitation (SE) block: AvgPool, FC, ReLU, FC, Sigmoid."""
-
-    def __init__(self, w_in, w_se):
-        super(SE, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.f_ex = nn.Sequential(
-            nn.Conv2d(w_in, w_se, 1, bias=True),
-            nn.ReLU(inplace=cfg.MEM.RELU_INPLACE),
-            nn.Conv2d(w_se, w_in, 1, bias=True),
-            nn.Sigmoid(),
-        )
-
-    def forward(self, x):
-        return x * self.f_ex(self.avg_pool(x))
-
-    @staticmethod
-    def complexity(cx, w_in, w_se):
-        h, w = cx["h"], cx["w"]
-        cx["h"], cx["w"] = 1, 1
-        cx = net.complexity_conv2d(cx, w_in, w_se, 1, 1, 0, bias=True)
-        cx = net.complexity_conv2d(cx, w_se, w_in, 1, 1, 0, bias=True)
-        cx["h"], cx["w"] = h, w
-        return cx
-
-
-class BottleneckTransform(nn.Module):
+class BottleneckTransform(Module):
     """Bottleneck transformation: 1x1, 3x3 [+SE], 1x1."""
 
-    def __init__(self, w_in, w_out, stride, bm, gw, se_r):
+    def __init__(self, w_in, w_out, stride, params):
         super(BottleneckTransform, self).__init__()
-        w_b = int(round(w_out * bm))
-        g = w_b // gw
-        self.a = nn.Conv2d(w_in, w_b, 1, stride=1, padding=0, bias=False)
-        self.a_bn = nn.BatchNorm2d(w_b, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.a_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
-        self.b = nn.Conv2d(w_b, w_b, 3, stride=stride, padding=1, groups=g, bias=False)
-        self.b_bn = nn.BatchNorm2d(w_b, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.b_relu = nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
-        if se_r:
-            w_se = int(round(w_in * se_r))
-            self.se = SE(w_b, w_se)
-        self.c = nn.Conv2d(w_b, w_out, 1, stride=1, padding=0, bias=False)
-        self.c_bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
+        w_b = int(round(w_out * params["bot_mul"]))
+        w_se = int(round(w_in * params["se_r"]))
+        groups = w_b // params["group_w"]
+        self.a = conv2d(w_in, w_b, 1)
+        self.a_bn = norm2d(w_b)
+        self.a_af = activation()
+        self.b = conv2d(w_b, w_b, 3, stride=stride, groups=groups)
+        self.b_bn = norm2d(w_b)
+        self.b_af = activation()
+        self.se = SE(w_b, w_se) if w_se else None
+        self.c = conv2d(w_b, w_out, 1)
+        self.c_bn = norm2d(w_out)
         self.c_bn.final_bn = True
 
     def forward(self, x):
@@ -201,62 +175,55 @@ class BottleneckTransform(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx, w_in, w_out, stride, bm, gw, se_r):
-        w_b = int(round(w_out * bm))
-        g = w_b // gw
-        cx = net.complexity_conv2d(cx, w_in, w_b, 1, 1, 0)
-        cx = net.complexity_batchnorm2d(cx, w_b)
-        cx = net.complexity_conv2d(cx, w_b, w_b, 3, stride, 1, g)
-        cx = net.complexity_batchnorm2d(cx, w_b)
-        if se_r:
-            w_se = int(round(w_in * se_r))
-            cx = SE.complexity(cx, w_b, w_se)
-        cx = net.complexity_conv2d(cx, w_b, w_out, 1, 1, 0)
-        cx = net.complexity_batchnorm2d(cx, w_out)
+    def complexity(cx, w_in, w_out, stride, params):
+        w_b = int(round(w_out * params["bot_mul"]))
+        w_se = int(round(w_in * params["se_r"]))
+        groups = w_b // params["group_w"]
+        cx = conv2d_cx(cx, w_in, w_b, 1)
+        cx = norm2d_cx(cx, w_b)
+        cx = conv2d_cx(cx, w_b, w_b, 3, stride=stride, groups=groups)
+        cx = norm2d_cx(cx, w_b)
+        cx = SE.complexity(cx, w_b, w_se) if w_se else cx
+        cx = conv2d_cx(cx, w_b, w_out, 1)
+        cx = norm2d_cx(cx, w_out)
         return cx
 
 
-class ResBottleneckBlock(nn.Module):
-    """Residual bottleneck block: x + F(x), F = bottleneck transform."""
+class ResBottleneckBlock(Module):
+    """Residual bottleneck block: x + f(x), f = bottleneck transform."""
 
-    def __init__(self, w_in, w_out, stride, bm=1.0, gw=1, se_r=None):
+    def __init__(self, w_in, w_out, stride, params):
         super(ResBottleneckBlock, self).__init__()
-        # Use skip connection with projection if shape changes
-        self.proj_block = (w_in != w_out) or (stride != 1)
-        if self.proj_block:
-            self.proj = nn.Conv2d(w_in, w_out, 1, stride=stride, padding=0, bias=False)
-            self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.f = BottleneckTransform(w_in, w_out, stride, bm, gw, se_r)
-        self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
+        self.proj, self.bn = None, None
+        if (w_in != w_out) or (stride != 1):
+            self.proj = conv2d(w_in, w_out, 1, stride=stride)
+            self.bn = norm2d(w_out)
+        self.f = BottleneckTransform(w_in, w_out, stride, params)
+        self.af = activation()
 
     def forward(self, x):
-        if self.proj_block:
-            x = self.bn(self.proj(x)) + self.f(x)
-        else:
-            x = x + self.f(x)
-        x = self.relu(x)
-        return x
+        x_p = self.bn(self.proj(x)) if self.proj else x
+        return self.af(x_p + self.f(x))
 
     @staticmethod
-    def complexity(cx, w_in, w_out, stride, bm=1.0, gw=1, se_r=None):
-        proj_block = (w_in != w_out) or (stride != 1)
-        if proj_block:
+    def complexity(cx, w_in, w_out, stride, params):
+        if (w_in != w_out) or (stride != 1):
             h, w = cx["h"], cx["w"]
-            cx = net.complexity_conv2d(cx, w_in, w_out, 1, stride, 0)
-            cx = net.complexity_batchnorm2d(cx, w_out)
-            cx["h"], cx["w"] = h, w  # parallel branch
-        cx = BottleneckTransform.complexity(cx, w_in, w_out, stride, bm, gw, se_r)
+            cx = conv2d_cx(cx, w_in, w_out, 1, stride=stride)
+            cx = norm2d_cx(cx, w_out)
+            cx["h"], cx["w"] = h, w
+        cx = BottleneckTransform.complexity(cx, w_in, w_out, stride, params)
         return cx
 
 
-class ResStemCifar(nn.Module):
-    """ResNet stem for CIFAR: 3x3, BN, ReLU."""
+class ResStemCifar(Module):
+    """ResNet stem for CIFAR: 3x3, BN, AF."""
 
     def __init__(self, w_in, w_out):
         super(ResStemCifar, self).__init__()
-        self.conv = nn.Conv2d(w_in, w_out, 3, stride=1, padding=1, bias=False)
-        self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
+        self.conv = conv2d(w_in, w_out, 3)
+        self.bn = norm2d(w_out)
+        self.af = activation()
 
     def forward(self, x):
         for layer in self.children():
@@ -265,20 +232,20 @@ class ResStemCifar(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = net.complexity_conv2d(cx, w_in, w_out, 3, 1, 1)
-        cx = net.complexity_batchnorm2d(cx, w_out)
+        cx = conv2d_cx(cx, w_in, w_out, 3)
+        cx = norm2d_cx(cx, w_out)
         return cx
 
 
-class ResStemIN(nn.Module):
-    """ResNet stem for ImageNet: 7x7, BN, ReLU, MaxPool."""
+class ResStem(Module):
+    """ResNet stem for ImageNet: 7x7, BN, AF, MaxPool."""
 
     def __init__(self, w_in, w_out):
-        super(ResStemIN, self).__init__()
-        self.conv = nn.Conv2d(w_in, w_out, 7, stride=2, padding=3, bias=False)
-        self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
-        self.pool = nn.MaxPool2d(3, stride=2, padding=1)
+        super(ResStem, self).__init__()
+        self.conv = conv2d(w_in, w_out, 7, stride=2)
+        self.bn = norm2d(w_out)
+        self.af = activation()
+        self.pool = pool2d(w_out, 3, stride=2)
 
     def forward(self, x):
         for layer in self.children():
@@ -287,20 +254,20 @@ class ResStemIN(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = net.complexity_conv2d(cx, w_in, w_out, 7, 2, 3)
-        cx = net.complexity_batchnorm2d(cx, w_out)
-        cx = net.complexity_maxpool2d(cx, w_out, 3, 2, 1)
+        cx = conv2d_cx(cx, w_in, w_out, 7, stride=2)
+        cx = norm2d_cx(cx, w_out)
+        cx = pool2d_cx(cx, w_out, 3, stride=2)
         return cx
 
 
-class SimpleStemIN(nn.Module):
-    """Simple stem for ImageNet: 3x3, BN, ReLU."""
+class SimpleStem(Module):
+    """Simple stem for ImageNet: 3x3, BN, AF."""
 
     def __init__(self, w_in, w_out):
-        super(SimpleStemIN, self).__init__()
-        self.conv = nn.Conv2d(w_in, w_out, 3, stride=2, padding=1, bias=False)
-        self.bn = nn.BatchNorm2d(w_out, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
-        self.relu = nn.ReLU(cfg.MEM.RELU_INPLACE)
+        super(SimpleStem, self).__init__()
+        self.conv = conv2d(w_in, w_out, 3, stride=2)
+        self.bn = norm2d(w_out)
+        self.af = activation()
 
     def forward(self, x):
         for layer in self.children():
@@ -309,21 +276,20 @@ class SimpleStemIN(nn.Module):
 
     @staticmethod
     def complexity(cx, w_in, w_out):
-        cx = net.complexity_conv2d(cx, w_in, w_out, 3, 2, 1)
-        cx = net.complexity_batchnorm2d(cx, w_out)
+        cx = conv2d_cx(cx, w_in, w_out, 3, stride=2)
+        cx = norm2d_cx(cx, w_out)
         return cx
 
 
-class AnyStage(nn.Module):
+class AnyStage(Module):
     """AnyNet stage (sequence of blocks w/ the same output shape)."""
 
-    def __init__(self, w_in, w_out, stride, d, block_fun, bm, gw, se_r):
+    def __init__(self, w_in, w_out, stride, d, block_fun, params):
         super(AnyStage, self).__init__()
         for i in range(d):
-            b_stride = stride if i == 0 else 1
-            b_w_in = w_in if i == 0 else w_out
-            name = "b{}".format(i + 1)
-            self.add_module(name, block_fun(b_w_in, w_out, b_stride, bm, gw, se_r))
+            block = block_fun(w_in, w_out, stride, params)
+            self.add_module("b{}".format(i + 1), block)
+            stride, w_in = 1, w_out
 
     def forward(self, x):
         for block in self.children():
@@ -331,52 +297,47 @@ class AnyStage(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx, w_in, w_out, stride, d, block_fun, bm, gw, se_r):
-        for i in range(d):
-            b_stride = stride if i == 0 else 1
-            b_w_in = w_in if i == 0 else w_out
-            cx = block_fun.complexity(cx, b_w_in, w_out, b_stride, bm, gw, se_r)
+    def complexity(cx, w_in, w_out, stride, d, block_fun, params):
+        for _ in range(d):
+            cx = block_fun.complexity(cx, w_in, w_out, stride, params)
+            stride, w_in = 1, w_out
         return cx
 
 
-class AnyNet(nn.Module):
+class AnyNet(Module):
     """AnyNet model."""
 
     @staticmethod
-    def get_args():
+    def get_params():
+        nones = [None for _ in cfg.ANYNET.DEPTHS]
         return {
             "stem_type": cfg.ANYNET.STEM_TYPE,
             "stem_w": cfg.ANYNET.STEM_W,
             "block_type": cfg.ANYNET.BLOCK_TYPE,
-            "ds": cfg.ANYNET.DEPTHS,
-            "ws": cfg.ANYNET.WIDTHS,
-            "ss": cfg.ANYNET.STRIDES,
-            "bms": cfg.ANYNET.BOT_MULS,
-            "gws": cfg.ANYNET.GROUP_WS,
-            "se_r": cfg.ANYNET.SE_R if cfg.ANYNET.SE_ON else None,
-            "nc": cfg.MODEL.NUM_CLASSES,
+            "depths": cfg.ANYNET.DEPTHS,
+            "widths": cfg.ANYNET.WIDTHS,
+            "strides": cfg.ANYNET.STRIDES,
+            "bot_muls": cfg.ANYNET.BOT_MULS if cfg.ANYNET.BOT_MULS else nones,
+            "group_ws": cfg.ANYNET.GROUP_WS if cfg.ANYNET.GROUP_WS else nones,
+            "se_r": cfg.ANYNET.SE_R if cfg.ANYNET.SE_ON else 0,
+            "num_classes": cfg.MODEL.NUM_CLASSES,
         }
 
-    def __init__(self, **kwargs):
+    def __init__(self, params=None):
         super(AnyNet, self).__init__()
-        kwargs = self.get_args() if not kwargs else kwargs
-        self._construct(**kwargs)
-        self.apply(net.init_weights)
-
-    def _construct(self, stem_type, stem_w, block_type, ds, ws, ss, bms, gws, se_r, nc):
-        # Generate dummy bot muls and gs for models that do not use them
-        bms = bms if bms else [None for _d in ds]
-        gws = gws if gws else [None for _d in ds]
-        stage_params = list(zip(ds, ws, ss, bms, gws))
-        stem_fun = get_stem_fun(stem_type)
-        self.stem = stem_fun(3, stem_w)
-        block_fun = get_block_fun(block_type)
-        prev_w = stem_w
-        for i, (d, w, s, bm, gw) in enumerate(stage_params):
-            name = "s{}".format(i + 1)
-            self.add_module(name, AnyStage(prev_w, w, s, d, block_fun, bm, gw, se_r))
+        p = AnyNet.get_params() if not params else params
+        stem_fun = get_stem_fun(p["stem_type"])
+        block_fun = get_block_fun(p["block_type"])
+        self.stem = stem_fun(3, p["stem_w"])
+        prev_w = p["stem_w"]
+        keys = ["depths", "widths", "strides", "bot_muls", "group_ws"]
+        for i, (d, w, s, b, g) in enumerate(zip(*[p[k] for k in keys])):
+            params = {"bot_mul": b, "group_w": g, "se_r": p["se_r"]}
+            stage = AnyStage(prev_w, w, s, d, block_fun, params)
+            self.add_module("s{}".format(i + 1), stage)
             prev_w = w
-        self.head = AnyHead(w_in=prev_w, nc=nc)
+        self.head = AnyHead(prev_w, p["num_classes"])
+        self.apply(init_weights)
 
     def forward(self, x):
         for module in self.children():
@@ -384,22 +345,17 @@ class AnyNet(nn.Module):
         return x
 
     @staticmethod
-    def complexity(cx, **kwargs):
-        """Computes model complexity. If you alter the model, make sure to update."""
-        kwargs = AnyNet.get_args() if not kwargs else kwargs
-        return AnyNet._complexity(cx, **kwargs)
-
-    @staticmethod
-    def _complexity(cx, stem_type, stem_w, block_type, ds, ws, ss, bms, gws, se_r, nc):
-        bms = bms if bms else [None for _d in ds]
-        gws = gws if gws else [None for _d in ds]
-        stage_params = list(zip(ds, ws, ss, bms, gws))
-        stem_fun = get_stem_fun(stem_type)
-        cx = stem_fun.complexity(cx, 3, stem_w)
-        block_fun = get_block_fun(block_type)
-        prev_w = stem_w
-        for d, w, s, bm, gw in stage_params:
-            cx = AnyStage.complexity(cx, prev_w, w, s, d, block_fun, bm, gw, se_r)
+    def complexity(cx, params=None):
+        """Computes model complexity (if you alter the model, make sure to update)."""
+        p = AnyNet.get_params() if not params else params
+        stem_fun = get_stem_fun(p["stem_type"])
+        block_fun = get_block_fun(p["block_type"])
+        cx = stem_fun.complexity(cx, 3, p["stem_w"])
+        prev_w = p["stem_w"]
+        keys = ["depths", "widths", "strides", "bot_muls", "group_ws"]
+        for d, w, s, b, g in zip(*[p[k] for k in keys]):
+            params = {"bot_mul": b, "group_w": g, "se_r": p["se_r"]}
+            cx = AnyStage.complexity(cx, prev_w, w, s, d, block_fun, params)
             prev_w = w
-        cx = AnyHead.complexity(cx, prev_w, nc)
+        cx = AnyHead.complexity(cx, prev_w, p["num_classes"])
         return cx
