@@ -77,3 +77,15 @@ def load_checkpoint(checkpoint_file, model, optimizer=None):
     unwrap_model(model).load_state_dict(checkpoint["model_state"])
     optimizer.load_state_dict(checkpoint["optimizer_state"]) if optimizer else ()
     return checkpoint["epoch"]
+
+
+def delete_checkpoints(checkpoint_dir=None, keep="all"):
+    """Deletes unneeded checkpoints, keep can be "all", "last", or "none"."""
+    assert keep in ["all", "last", "none"], "Invalid keep setting: {}".format(keep)
+    checkpoint_dir = checkpoint_dir if checkpoint_dir else get_checkpoint_dir()
+    if keep == "all" or not os.path.exists(checkpoint_dir):
+        return 0
+    checkpoints = [f for f in os.listdir(checkpoint_dir) if _NAME_PREFIX in f]
+    checkpoints = sorted(checkpoints)[:-1] if keep == "last" else checkpoints
+    [os.remove(os.path.join(checkpoint_dir, checkpoint)) for checkpoint in checkpoints]
+    return len(checkpoints)

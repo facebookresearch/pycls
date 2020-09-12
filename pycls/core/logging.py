@@ -75,9 +75,9 @@ def dump_log_data(data, data_type, prec=4):
 
 def float_to_decimal(data, prec=4):
     """Convert floats to decimals which allows for fixed width json."""
-    if isinstance(data, dict):
+    if prec and isinstance(data, dict):
         return {k: float_to_decimal(v, prec) for k, v in data.items()}
-    if isinstance(data, float):
+    if prec and isinstance(data, float):
         return decimal.Decimal(("{:." + str(prec) + "f}").format(data))
     else:
         return data

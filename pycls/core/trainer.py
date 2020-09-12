@@ -12,7 +12,7 @@ import os
 import numpy as np
 import pycls.core.benchmark as benchmark
 import pycls.core.builders as builders
-import pycls.core.checkpoint as checkpoint
+import pycls.core.checkpoint as cp
 import pycls.core.config as config
 import pycls.core.distributed as dist
 import pycls.core.logging as logging
@@ -37,8 +37,8 @@ def setup_env():
     # Setup logging
     logging.setup_logging()
     # Log the config as both human readable and as a json
-    logger.info("Config:\n{}".format(cfg))
-    logger.info(logging.dump_log_data(cfg, "cfg"))
+    logger.info("Config:\n{}".format(cfg)) if cfg.VERBOSE else ()
+    logger.info(logging.dump_log_data(cfg, "cfg", None))
     # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
     np.random.seed(cfg.RNG_SEED)
     torch.manual_seed(cfg.RNG_SEED)
@@ -50,7 +50,7 @@ def setup_model():
     """Sets up a model for training or testing and log the results."""
     # Build the model
     model = builders.build_model()
-    logger.info("Model:\n{}".format(model))
+    logger.info("Model:\n{}".format(model)) if cfg.VERBOSE else ()
     # Log model complexity
     logger.info(logging.dump_log_data(net.complexity(model), "complexity"))
     # Transfer the model to the current GPU device
@@ -61,11 +61,8 @@ def setup_model():
     # Use multi-process data parallel model in the multi-gpu setting
     if cfg.NUM_GPUS > 1:
         # Make model replica operate on the current device
-        model = torch.nn.parallel.DistributedDataParallel(
-            module=model, device_ids=[cur_device], output_device=cur_device
-        )
-        # Set complexity function to be module's complexity function
-        model.complexity = model.module.complexity
+        ddp = torch.nn.parallel.DistributedDataParallel
+        model = ddp(module=model, device_ids=[cur_device], output_device=cur_device)
     return model
 
 
@@ -145,13 +142,13 @@ def train_model():
     optimizer = optim.construct_optimizer(model)
     # Load checkpoint or initial weights
     start_epoch = 0
-    if cfg.TRAIN.AUTO_RESUME and checkpoint.has_checkpoint():
-        last_checkpoint = checkpoint.get_last_checkpoint()
-        checkpoint_epoch = checkpoint.load_checkpoint(last_checkpoint, model, optimizer)
-        logger.info("Loaded checkpoint from: {}".format(last_checkpoint))
-        start_epoch = checkpoint_epoch + 1
+    if cfg.TRAIN.AUTO_RESUME and cp.has_checkpoint():
+        file = cp.get_last_checkpoint()
+        epoch = cp.load_checkpoint(file, model, optimizer)
+        logger.info("Loaded checkpoint from: {}".format(file))
+        start_epoch = epoch + 1
     elif cfg.TRAIN.WEIGHTS:
-        checkpoint.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
+        cp.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
         logger.info("Loaded initial weights from: {}".format(cfg.TRAIN.WEIGHTS))
     # Create data loaders and meters
     train_loader = loader.construct_train_loader()
@@ -164,19 +161,19 @@ def train_model():
     # Perform the training loop
     logger.info("Start epoch: {}".format(start_epoch + 1))
     for cur_epoch in range(start_epoch, cfg.OPTIM.MAX_EPOCH):
+        last_epoch = cur_epoch + 1 == cfg.OPTIM.MAX_EPOCH
         # Train for one epoch
         train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch)
         # Compute precise BN stats
         if cfg.BN.USE_PRECISE_STATS:
             net.compute_precise_bn_stats(model, train_loader)
-        # Save a checkpoint
-        if (cur_epoch + 1) % cfg.TRAIN.CHECKPOINT_PERIOD == 0:
-            checkpoint_file = checkpoint.save_checkpoint(model, optimizer, cur_epoch)
-            logger.info("Wrote checkpoint to: {}".format(checkpoint_file))
         # Evaluate the model
-        next_epoch = cur_epoch + 1
-        if next_epoch % cfg.TRAIN.EVAL_PERIOD == 0 or next_epoch == cfg.OPTIM.MAX_EPOCH:
+        if (cur_epoch + 1) % cfg.TRAIN.EVAL_PERIOD == 0 or last_epoch:
             test_epoch(test_loader, model, test_meter, cur_epoch)
+        # Save a checkpoint
+        if (cur_epoch + 1) % cfg.TRAIN.CHECKPOINT_PERIOD == 0 or last_epoch:
+            file = cp.save_checkpoint(model, optimizer, cur_epoch)
+            logger.info("Wrote checkpoint to: {}".format(file))
 
 
 def test_model():
@@ -186,7 +183,7 @@ def test_model():
     # Construct the model
     model = setup_model()
     # Load model weights
-    checkpoint.load_checkpoint(cfg.TEST.WEIGHTS, model)
+    cp.load_checkpoint(cfg.TEST.WEIGHTS, model)
     logger.info("Loaded model weights from: {}".format(cfg.TEST.WEIGHTS))
     # Create data loaders and meters
     test_loader = loader.construct_test_loader()

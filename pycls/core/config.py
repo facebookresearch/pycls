@@ -15,17 +15,12 @@ from pycls.core.io import cache_url
 from yacs.config import CfgNode as CfgNode
 
 
-# Global config object
+# Global config object (example usage: from core.config import cfg)
 _C = CfgNode()
-
-# Example usage:
-#   from core.config import cfg
 cfg = _C
 
 
-# ------------------------------------------------------------------------------------ #
-# Model options
-# ------------------------------------------------------------------------------------ #
+# ---------------------------------- Model options ----------------------------------- #
 _C.MODEL = CfgNode()
 
 # Model type
@@ -40,10 +35,14 @@ _C.MODEL.NUM_CLASSES = 10
 # Loss function (see pycls/models/loss.py for options)
 _C.MODEL.LOSS_FUN = "cross_entropy"
 
+# Activation function (relu or silu/swish)
+_C.MODEL.ACTIVATION_FUN = "relu"
 
-# ------------------------------------------------------------------------------------ #
-# ResNet options
-# ------------------------------------------------------------------------------------ #
+# Perform activation inplace if implemented
+_C.MODEL.ACTIVATION_INPLACE = True
+
+
+# ---------------------------------- ResNet options ---------------------------------- #
 _C.RESNET = CfgNode()
 
 # Transformation function (see pycls/models/resnet.py for options)
@@ -59,9 +58,7 @@ _C.RESNET.WIDTH_PER_GROUP = 64
 _C.RESNET.STRIDE_1X1 = True
 
 
-# ------------------------------------------------------------------------------------ #
-# AnyNet options
-# ------------------------------------------------------------------------------------ #
+# ---------------------------------- AnyNet options ---------------------------------- #
 _C.ANYNET = CfgNode()
 
 # Stem type
@@ -95,9 +92,7 @@ _C.ANYNET.SE_ON = False
 _C.ANYNET.SE_R = 0.25
 
 
-# ------------------------------------------------------------------------------------ #
-# RegNet options
-# ------------------------------------------------------------------------------------ #
+# ---------------------------------- RegNet options ---------------------------------- #
 _C.REGNET = CfgNode()
 
 # Stem type
@@ -135,9 +130,7 @@ _C.REGNET.GROUP_W = 16
 _C.REGNET.BOT_MUL = 1.0
 
 
-# ------------------------------------------------------------------------------------ #
-# EfficientNet options
-# ------------------------------------------------------------------------------------ #
+# ------------------------------- EfficientNet options ------------------------------- #
 _C.EN = CfgNode()
 
 # Stem width
@@ -171,9 +164,7 @@ _C.EN.DC_RATIO = 0.0
 _C.EN.DROPOUT_RATIO = 0.0
 
 
-# ------------------------------------------------------------------------------------ #
-# Batch norm options
-# ------------------------------------------------------------------------------------ #
+# -------------------------------- Batch norm options -------------------------------- #
 _C.BN = CfgNode()
 
 # BN epsilon
@@ -194,19 +185,15 @@ _C.BN.USE_CUSTOM_WEIGHT_DECAY = False
 _C.BN.CUSTOM_WEIGHT_DECAY = 0.0
 
 
-# ------------------------------------------------------------------------------------ #
-# Optimizer options
-# ------------------------------------------------------------------------------------ #
+# -------------------------------- Optimizer options --------------------------------- #
 _C.OPTIM = CfgNode()
 
-# Base learning rate
+# Learning rate ranges from BASE_LR to MIN_LR*BASE_LR according to the LR_POLICY
 _C.OPTIM.BASE_LR = 0.1
+_C.OPTIM.MIN_LR = 0.0
 
-# Learning rate policy select from {'cos', 'exp', 'steps'}
+# Learning rate policy select from {'cos', 'exp', 'lin', 'steps'}
 _C.OPTIM.LR_POLICY = "cos"
-
-# Exponential decay factor
-_C.OPTIM.GAMMA = 0.1
 
 # Steps for 'steps' policy (in epochs)
 _C.OPTIM.STEPS = []
@@ -236,9 +223,7 @@ _C.OPTIM.WARMUP_FACTOR = 0.1
 _C.OPTIM.WARMUP_EPOCHS = 0
 
 
-# ------------------------------------------------------------------------------------ #
-# Training options
-# ------------------------------------------------------------------------------------ #
+# --------------------------------- Training options --------------------------------- #
 _C.TRAIN = CfgNode()
 
 # Dataset and split
@@ -264,9 +249,7 @@ _C.TRAIN.AUTO_RESUME = True
 _C.TRAIN.WEIGHTS = ""
 
 
-# ------------------------------------------------------------------------------------ #
-# Testing options
-# ------------------------------------------------------------------------------------ #
+# --------------------------------- Testing options ---------------------------------- #
 _C.TEST = CfgNode()
 
 # Dataset and split
@@ -283,9 +266,7 @@ _C.TEST.IM_SIZE = 256
 _C.TEST.WEIGHTS = ""
 
 
-# ------------------------------------------------------------------------------------ #
-# Common train/test data loader options
-# ------------------------------------------------------------------------------------ #
+# ------------------------------- Data loader options -------------------------------- #
 _C.DATA_LOADER = CfgNode()
 
 # Number of data loader workers per process
@@ -295,29 +276,14 @@ _C.DATA_LOADER.NUM_WORKERS = 8
 _C.DATA_LOADER.PIN_MEMORY = True
 
 
-# ------------------------------------------------------------------------------------ #
-# Memory options
-# ------------------------------------------------------------------------------------ #
-_C.MEM = CfgNode()
-
-# Perform ReLU inplace
-_C.MEM.RELU_INPLACE = True
-
-
-# ------------------------------------------------------------------------------------ #
-# CUDNN options
-# ------------------------------------------------------------------------------------ #
+# ---------------------------------- CUDNN options ----------------------------------- #
 _C.CUDNN = CfgNode()
 
-# Perform benchmarking to select the fastest CUDNN algorithms to use
-# Note that this may increase the memory usage and will likely not result
-# in overall speedups when variable size inputs are used (e.g. COCO training)
+# Perform benchmarking to select fastest CUDNN algorithms (best for fixed input sizes)
 _C.CUDNN.BENCHMARK = True
 
 
-# ------------------------------------------------------------------------------------ #
-# Precise timing options
-# ------------------------------------------------------------------------------------ #
+# ------------------------------- Precise time options ------------------------------- #
 _C.PREC_TIME = CfgNode()
 
 # Number of iterations to warm up the caches
@@ -327,9 +293,12 @@ _C.PREC_TIME.WARMUP_ITER = 3
 _C.PREC_TIME.NUM_ITER = 30
 
 
-# ------------------------------------------------------------------------------------ #
-# Misc options
-# ------------------------------------------------------------------------------------ #
+# ----------------------------------- Misc options ----------------------------------- #
+# Optional description of a config
+_C.DESC = ""
+
+# If True output additional info to log
+_C.VERBOSE = True
 
 # Number of GPUs to use (applies to both training and testing)
 _C.NUM_GPUS = 1
@@ -340,8 +309,7 @@ _C.OUT_DIR = "/tmp"
 # Config destination (in OUT_DIR)
 _C.CFG_DEST = "config.yaml"
 
-# Note that non-determinism may still be present due to non-deterministic
-# operator implementations in GPU operator libraries
+# Note that non-determinism is still be present due to non-deterministic GPU ops
 _C.RNG_SEED = 1
 
 # Log destination ('stdout' or 'file')
@@ -360,17 +328,16 @@ _C.PORT_RANGE = [10000, 65000]
 # Models weights referred to by URL are downloaded to this local cache
 _C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"
 
-# ------------------------------------------------------------------------------------ #
-# Default config
-# ------------------------------------------------------------------------------------ #
+
+# ---------------------------------- Default config ---------------------------------- #
 _CFG_DEFAULT = _C.clone()
 _CFG_DEFAULT.freeze()
 
 
-# ------------------------------------------------------------------------------------ #
-# Deprecated keys
-# ------------------------------------------------------------------------------------ #
-
+# --------------------------------- Deprecated keys ---------------------------------- #
+_C.register_deprecated_key("MEM")
+_C.register_deprecated_key("MEM.RELU_INPLACE")
+_C.register_deprecated_key("OPTIM.GAMMA")
 _C.register_deprecated_key("PREC_TIME.BATCH_SIZE")
 _C.register_deprecated_key("PREC_TIME.ENABLED")
 _C.register_deprecated_key("PORT")
