@@ -10,7 +10,7 @@
 from pycls.core.config import cfg
 from pycls.models.blocks import (
     SE,
-    SiLU,
+    activation,
     conv2d,
     conv2d_cx,
     drop_connect,
@@ -33,7 +33,7 @@ class EffHead(Module):
         dropout_ratio = cfg.EN.DROPOUT_RATIO
         self.conv = conv2d(w_in, w_out, 1)
         self.conv_bn = norm2d(w_out)
-        self.conv_af = SiLU()
+        self.conv_af = activation()
         self.avg_pool = gap2d(w_out)
         self.dropout = Dropout(p=dropout_ratio) if dropout_ratio > 0 else None
         self.fc = linear(w_out, num_classes, bias=True)
@@ -66,11 +66,11 @@ class MBConv(Module):
         if w_exp != w_in:
             self.exp = conv2d(w_in, w_exp, 1)
             self.exp_bn = norm2d(w_exp)
-            self.exp_af = SiLU()
+            self.exp_af = activation()
         self.dwise = conv2d(w_exp, w_exp, k, stride=stride, groups=w_exp)
         self.dwise_bn = norm2d(w_exp)
-        self.dwise_af = SiLU()
-        self.se = SE(w_exp, int(w_in * se_r), SiLU)
+        self.dwise_af = activation()
+        self.se = SE(w_exp, int(w_in * se_r))
         self.lin_proj = conv2d(w_exp, w_out, 1)
         self.lin_proj_bn = norm2d(w_out)
         self.has_skip = stride == 1 and w_in == w_out
@@ -130,7 +130,7 @@ class StemIN(Module):
         super(StemIN, self).__init__()
         self.conv = conv2d(w_in, w_out, 3, stride=2)
         self.bn = norm2d(w_out)
-        self.af = SiLU()
+        self.af = activation()
 
     def forward(self, x):
         for layer in self.children():

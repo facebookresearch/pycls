@@ -1,6 +1,7 @@
 MODEL:
   TYPE: effnet
   NUM_CLASSES: 1000
+  ACTIVATION_FUN: silu
 EN:
   STEM_W: 32
   STRIDES: [1, 2, 2, 2, 1, 2, 1]

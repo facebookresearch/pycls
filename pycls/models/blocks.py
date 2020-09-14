@@ -14,7 +14,7 @@ from pycls.core.config import cfg
 from torch.nn import Module
 
 
-# -------------------- Shortcuts for common torch.nn layers -------------------- #
+# ----------------------- Shortcuts for common torch.nn layers ----------------------- #
 
 
 def conv2d(w_in, w_out, k, *, stride=1, groups=1, bias=False):
@@ -47,10 +47,16 @@ def linear(w_in, w_out, *, bias=False):
 
 def activation():
     """Helper for building an activation layer."""
-    return nn.ReLU(inplace=cfg.MEM.RELU_INPLACE)
+    activation_fun = cfg.MODEL.ACTIVATION_FUN.lower()
+    if activation_fun == "relu":
+        return nn.ReLU(inplace=cfg.MODEL.ACTIVATION_INPLACE)
+    elif activation_fun == "silu" or activation_fun == "swish":
+        return SiLU()
+    else:
+        raise AssertionError("Unknown MODEL.ACTIVATION_FUN: " + activation_fun)
 
 
-# -------------------- Complexity (cx) calculations -------------------- #
+# --------------------------- Complexity (cx) calculations --------------------------- #
 
 
 def conv2d_cx(cx, w_in, w_out, k, *, stride=1, groups=1, bias=False):
@@ -95,7 +101,7 @@ def linear_cx(cx, w_in, w_out, *, bias=False):
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
 
-# -------------------- Shared blocks -------------------- #
+# ---------------------------------- Shared blocks ----------------------------------- #
 
 
 class SiLU(Module):
@@ -113,12 +119,12 @@ class SiLU(Module):
 class SE(Module):
     """Squeeze-and-Excitation (SE) block: AvgPool, FC, Act, FC, Sigmoid."""
 
-    def __init__(self, w_in, w_se, activation_fun=activation):
+    def __init__(self, w_in, w_se):
         super(SE, self).__init__()
         self.avg_pool = gap2d(w_in)
         self.f_ex = nn.Sequential(
             conv2d(w_in, w_se, 1, bias=True),
-            activation_fun(),
+            activation(),
             conv2d(w_se, w_in, 1, bias=True),
             nn.Sigmoid(),
         )
@@ -136,7 +142,7 @@ class SE(Module):
         return cx
 
 
-# -------------------- Miscellaneous -------------------- #
+# ---------------------------------- Miscellaneous ----------------------------------- #
 
 
 def adjust_block_compatibility(ws, bs, gs):
