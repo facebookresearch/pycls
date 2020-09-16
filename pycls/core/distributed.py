@@ -18,6 +18,10 @@ import torch
 from pycls.core.config import cfg
 
 
+# Make work w recent PyTorch versions (https://github.com/pytorch/pytorch/issues/37377)
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+
+
 def is_master_proc():
     """Determines if the current process is the master process.
 
