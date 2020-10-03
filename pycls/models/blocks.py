@@ -51,7 +51,10 @@ def activation():
     if activation_fun == "relu":
         return nn.ReLU(inplace=cfg.MODEL.ACTIVATION_INPLACE)
     elif activation_fun == "silu" or activation_fun == "swish":
-        return SiLU()
+        try:
+            return torch.nn.SiLU()
+        except AttributeError:
+            return SiLU()
     else:
         raise AssertionError("Unknown MODEL.ACTIVATION_FUN: " + activation_fun)
 

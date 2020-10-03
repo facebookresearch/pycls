@@ -530,8 +530,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">5.3</td>
 <td align="center">6.7</td>
 <td align="center">256</td>
-<td align="center">34</td>
-<td align="center">9.7</td>
+<td align="center">31</td>
+<td align="center">8.8</td>
 <td align="center">24.9</td>
 <td align="center">161305613</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305613/EN-B0_dds_8gpu.pyth">model</a></td>
@@ -543,8 +543,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">7.8</td>
 <td align="center">10.9</td>
 <td align="center">256</td>
-<td align="center">55</td>
-<td align="center">15.6</td>
+<td align="center">47</td>
+<td align="center">13.2</td>
 <td align="center">24.1</td>
 <td align="center">161304979</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161304979/EN-B1_dds_8gpu.pyth">model</a></td>
@@ -556,8 +556,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">9.1</td>
 <td align="center">13.8</td>
 <td align="center">256</td>
-<td align="center">70</td>
-<td align="center">19.8</td>
+<td align="center">58</td>
+<td align="center">16.4</td>
 <td align="center">23.5</td>
 <td align="center">161305015</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305015/EN-B2_dds_8gpu.pyth">model</a></td>
@@ -569,8 +569,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">12.2</td>
 <td align="center">23.8</td>
 <td align="center">256</td>
-<td align="center">113</td>
-<td align="center">32.1</td>
+<td align="center">92</td>
+<td align="center">26.4</td>
 <td align="center">22.5</td>
 <td align="center">161305060</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305060/EN-B3_dds_8gpu.pyth">model</a></td>
@@ -582,8 +582,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">19.3</td>
 <td align="center">49.5</td>
 <td align="center">128</td>
-<td align="center">243</td>
-<td align="center">69.1</td>
+<td align="center">201</td>
+<td align="center">57.1</td>
 <td align="center">21.4</td>
 <td align="center">161305098</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305098/EN-B4_dds_8gpu.pyth">model</a></td>
@@ -595,8 +595,8 @@ For 8 GPU training, we apply 5 epoch gradual warmup, following the [ImageNet in 
 <td align="center">30.4</td>
 <td align="center">98.9</td>
 <td align="center">64</td>
-<td align="center">527</td>
-<td align="center">146.4</td>
+<td align="center">446</td>
+<td align="center">122.6</td>
 <td align="center">21.7</td>
 <td align="center">161305138</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305138/EN-B5_dds_8gpu.pyth">model</a></td>
