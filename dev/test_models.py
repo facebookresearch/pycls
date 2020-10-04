@@ -156,8 +156,8 @@ class TestTiming(unittest.TestCase):
         print("expected = {}".format(out_expected))
         print("measured = {}".format(out))
         for k in out.keys():
-            self.assertLessEqual(out[k] / out_expected[k], 1.05)
-            self.assertLessEqual(out_expected[k] / out[k], 1.05)
+            self.assertLessEqual(out[k] / out_expected[k], 1.10)
+            self.assertLessEqual(out_expected[k] / out[k], 1.10)
 
 
 if __name__ == "__main__":
