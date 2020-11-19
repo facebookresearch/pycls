@@ -12,16 +12,15 @@ import pickle
 
 import numpy as np
 import pycls.core.logging as logging
-import pycls.datasets.transforms as transforms
 import torch.utils.data
 from pycls.core.config import cfg
 
 
 logger = logging.get_logger(__name__)
 
-# Per-channel mean and SD values in BGR order
+# Per-channel mean and standard deviation values on CIFAR
 _MEAN = [125.3, 123.0, 113.9]
-_SD = [63.0, 62.1, 66.7]
+_STD = [63.0, 62.1, 66.7]
 
 
 class Cifar10(torch.utils.data.Dataset):
@@ -58,10 +57,17 @@ class Cifar10(torch.utils.data.Dataset):
 
     def _prepare_im(self, im):
         """Prepares the image for network input."""
-        im = transforms.color_norm(im, _MEAN, _SD)
+        for i in range(3):
+            # Perform per-channel normalization on CHW image
+            im[i] = (im[i] - _MEAN[i]) / _STD[i]
         if self._split == "train":
-            im = transforms.horizontal_flip(im=im, p=0.5)
-            im = transforms.random_crop(im=im, size=cfg.TRAIN.IM_SIZE, pad_size=4)
+            # Randomly flip and crop center patch from CHW image
+            size = cfg.TRAIN.IM_SIZE
+            im = im[:, :, ::-1] if np.random.uniform() < 0.5 else im
+            im = np.pad(im, ((0, 0), (4, 4), (4, 4)), mode="constant")
+            y = np.random.randint(0, im.shape[1] - size)
+            x = np.random.randint(0, im.shape[2] - size)
+            im = im[:, y : (y + size), x : (x + size)]
         return im
 
     def __getitem__(self, index):

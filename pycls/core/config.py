@@ -248,6 +248,12 @@ _C.TRAIN.AUTO_RESUME = True
 # Weights to start training from
 _C.TRAIN.WEIGHTS = ""
 
+# Standard deviation for AlexNet-style PCA jitter (0 gives no PCA jitter)
+_C.TRAIN.PCA_STD = 0.1
+
+# Data augmentation to use ("", "AutoAugment", "RandAugment_N2_M0.5", etc.)
+_C.TRAIN.AUGMENT = ""
+
 
 # --------------------------------- Testing options ---------------------------------- #
 _C.TEST = CfgNode()

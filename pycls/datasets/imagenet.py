@@ -20,15 +20,19 @@ from pycls.core.config import cfg
 
 logger = logging.get_logger(__name__)
 
-# Per-channel mean and SD values in BGR order
-_MEAN = [0.406, 0.456, 0.485]
-_SD = [0.225, 0.224, 0.229]
+# Per-channel mean and standard deviation values on ImageNet (in RGB order)
+# https://github.com/facebookarchive/fb.resnet.torch/blob/master/datasets/imagenet.lua
+_MEAN = [0.485, 0.456, 0.406]
+_STD = [0.229, 0.224, 0.225]
 
-# Eig vals and vecs of the cov mat
-_EIG_VALS = np.array([[0.2175, 0.0188, 0.0045]])
-_EIG_VECS = np.array(
-    [[-0.5675, 0.7192, 0.4009], [-0.5808, -0.0045, -0.8140], [-0.5836, -0.6948, 0.4203]]
-)
+# Constants for lighting normalization on ImageNet (in RGB order)
+# https://github.com/facebookarchive/fb.resnet.torch/blob/master/datasets/imagenet.lua
+_EIG_VALS = [[0.2175, 0.0188, 0.0045]]
+_EIG_VECS = [
+    [-0.5675, 0.7192, 0.4009],
+    [-0.5808, -0.0045, -0.8140],
+    [-0.5836, -0.6948, 0.4203],
+]
 
 
 class ImageNet(torch.utils.data.Dataset):
@@ -64,32 +68,29 @@ class ImageNet(torch.utils.data.Dataset):
         logger.info("Number of classes: {}".format(len(self._class_ids)))
 
     def _prepare_im(self, im):
-        """Prepares the image for network input."""
+        """Prepares the image for network input (HWC/BGR/int -> CHW/BGR/float)."""
+        # Convert HWC/BGR/int to HWC/RGB/float format for applying transforms
+        im = im[:, :, ::-1].astype(np.float32) / 255
         # Train and test setups differ
-        train_size = cfg.TRAIN.IM_SIZE
+        train_size, test_size = cfg.TRAIN.IM_SIZE, cfg.TEST.IM_SIZE
         if self._split == "train":
-            # Scale and aspect ratio then horizontal flip
-            im = transforms.random_sized_crop(im=im, size=train_size, area_frac=0.08)
-            im = transforms.horizontal_flip(im=im, p=0.5, order="HWC")
+            # For training use random_sized_crop, horizontal_flip, augment, lighting
+            im = transforms.random_sized_crop(im, train_size)
+            im = transforms.horizontal_flip(im, prob=0.5)
+            im = transforms.augment(im, cfg.TRAIN.AUGMENT)
+            im = transforms.lighting(im, cfg.TRAIN.PCA_STD, _EIG_VALS, _EIG_VECS)
         else:
-            # Scale and center crop
-            im = transforms.scale(cfg.TEST.IM_SIZE, im)
-            im = transforms.center_crop(train_size, im)
-        # HWC -> CHW
-        im = im.transpose([2, 0, 1])
-        # [0, 255] -> [0, 1]
-        im = im / 255.0
-        # PCA jitter
-        if self._split == "train":
-            im = transforms.lighting(im, 0.1, _EIG_VALS, _EIG_VECS)
-        # Color normalization
-        im = transforms.color_norm(im, _MEAN, _SD)
+            # For testing use scale and center crop
+            im = transforms.scale_and_center_crop(im, test_size, train_size)
+        # For training and testing use color normalization
+        im = transforms.color_norm(im, _MEAN, _STD)
+        # Convert HWC/RGB/float to CHW/BGR/float format
+        im = np.ascontiguousarray(im[:, :, ::-1].transpose([2, 0, 1]))
         return im
 
     def __getitem__(self, index):
         # Load the image
         im = cv2.imread(self._imdb[index]["im_path"])
-        im = im.astype(np.float32, copy=False)
         # Prepare the image for training / testing
         im = self._prepare_im(im)
         # Retrieve the label
