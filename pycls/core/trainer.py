@@ -8,6 +8,7 @@
 """Tools for training and testing a model."""
 
 import os
+import random
 
 import numpy as np
 import pycls.core.benchmark as benchmark
@@ -19,7 +20,7 @@ import pycls.core.logging as logging
 import pycls.core.meters as meters
 import pycls.core.net as net
 import pycls.core.optimizer as optim
-import pycls.datasets.loader as loader
+import pycls.datasets.loader as data_loader
 import torch
 from pycls.core.config import cfg
 
@@ -36,12 +37,16 @@ def setup_env():
         config.dump_cfg()
     # Setup logging
     logging.setup_logging()
+    # Log torch, cuda, and cudnn versions
+    version = [torch.__version__, torch.version.cuda, torch.backends.cudnn.version()]
+    logger.info("PyTorch Version: torch={}, cuda={}, cudnn={}".format(*version))
     # Log the config as both human readable and as a json
     logger.info("Config:\n{}".format(cfg)) if cfg.VERBOSE else ()
     logger.info(logging.dump_log_data(cfg, "cfg", None))
     # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
     np.random.seed(cfg.RNG_SEED)
     torch.manual_seed(cfg.RNG_SEED)
+    random.seed(cfg.RNG_SEED)
     # Configure the CUDNN backend
     torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
 
@@ -66,17 +71,18 @@ def setup_model():
     return model
 
 
-def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch):
+def train_epoch(loader, model, loss_fun, optimizer, meter, cur_epoch):
     """Performs one epoch of training."""
     # Shuffle the data
-    loader.shuffle(train_loader, cur_epoch)
+    data_loader.shuffle(loader, cur_epoch)
     # Update the learning rate
     lr = optim.get_epoch_lr(cur_epoch)
     optim.set_lr(optimizer, lr)
     # Enable training mode
     model.train()
-    train_meter.iter_tic()
-    for cur_iter, (inputs, labels) in enumerate(train_loader):
+    meter.reset()
+    meter.iter_tic()
+    for cur_iter, (inputs, labels) in enumerate(loader):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # Perform the forward pass
@@ -94,24 +100,24 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
         loss, top1_err, top5_err = dist.scaled_all_reduce([loss, top1_err, top5_err])
         # Copy the stats from GPU to CPU (sync point)
         loss, top1_err, top5_err = loss.item(), top1_err.item(), top5_err.item()
-        train_meter.iter_toc()
+        meter.iter_toc()
         # Update and log stats
         mb_size = inputs.size(0) * cfg.NUM_GPUS
-        train_meter.update_stats(top1_err, top5_err, loss, lr, mb_size)
-        train_meter.log_iter_stats(cur_epoch, cur_iter)
-        train_meter.iter_tic()
+        meter.update_stats(top1_err, top5_err, loss, lr, mb_size)
+        meter.log_iter_stats(cur_epoch, cur_iter)
+        meter.iter_tic()
     # Log epoch stats
-    train_meter.log_epoch_stats(cur_epoch)
-    train_meter.reset()
+    meter.log_epoch_stats(cur_epoch)
 
 
 @torch.no_grad()
-def test_epoch(test_loader, model, test_meter, cur_epoch):
+def test_epoch(loader, model, meter, cur_epoch):
     """Evaluates the model on the test set."""
     # Enable eval mode
     model.eval()
-    test_meter.iter_tic()
-    for cur_iter, (inputs, labels) in enumerate(test_loader):
+    meter.reset()
+    meter.iter_tic()
+    for cur_iter, (inputs, labels) in enumerate(loader):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # Compute the predictions
@@ -122,14 +128,13 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         top1_err, top5_err = dist.scaled_all_reduce([top1_err, top5_err])
         # Copy the errors from GPU to CPU (sync point)
         top1_err, top5_err = top1_err.item(), top5_err.item()
-        test_meter.iter_toc()
+        meter.iter_toc()
         # Update and log stats
-        test_meter.update_stats(top1_err, top5_err, inputs.size(0) * cfg.NUM_GPUS)
-        test_meter.log_iter_stats(cur_epoch, cur_iter)
-        test_meter.iter_tic()
+        meter.update_stats(top1_err, top5_err, inputs.size(0) * cfg.NUM_GPUS)
+        meter.log_iter_stats(cur_epoch, cur_iter)
+        meter.iter_tic()
     # Log epoch stats
-    test_meter.log_epoch_stats(cur_epoch)
-    test_meter.reset()
+    meter.log_epoch_stats(cur_epoch)
 
 
 def train_model():
@@ -151,8 +156,8 @@ def train_model():
         cp.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
         logger.info("Loaded initial weights from: {}".format(cfg.TRAIN.WEIGHTS))
     # Create data loaders and meters
-    train_loader = loader.construct_train_loader()
-    test_loader = loader.construct_test_loader()
+    train_loader = data_loader.construct_train_loader()
+    test_loader = data_loader.construct_test_loader()
     train_meter = meters.TrainMeter(len(train_loader))
     test_meter = meters.TestMeter(len(test_loader))
     # Compute model and loader timings
@@ -160,20 +165,22 @@ def train_model():
         benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)
     # Perform the training loop
     logger.info("Start epoch: {}".format(start_epoch + 1))
+    best_err = np.inf
     for cur_epoch in range(start_epoch, cfg.OPTIM.MAX_EPOCH):
-        last_epoch = cur_epoch + 1 == cfg.OPTIM.MAX_EPOCH
         # Train for one epoch
         train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch)
         # Compute precise BN stats
         if cfg.BN.USE_PRECISE_STATS:
             net.compute_precise_bn_stats(model, train_loader)
         # Evaluate the model
-        if (cur_epoch + 1) % cfg.TRAIN.EVAL_PERIOD == 0 or last_epoch:
-            test_epoch(test_loader, model, test_meter, cur_epoch)
+        test_epoch(test_loader, model, test_meter, cur_epoch)
+        # Check if checkpoint is best so far (note: should checkpoint meters as well)
+        stats = test_meter.get_epoch_stats(cur_epoch)
+        best = stats["top1_err"] <= best_err
+        best_err = min(stats["top1_err"], best_err)
         # Save a checkpoint
-        if (cur_epoch + 1) % cfg.TRAIN.CHECKPOINT_PERIOD == 0 or last_epoch:
-            file = cp.save_checkpoint(model, optimizer, cur_epoch)
-            logger.info("Wrote checkpoint to: {}".format(file))
+        file = cp.save_checkpoint(model, optimizer, cur_epoch, best)
+        logger.info("Wrote checkpoint to: {}".format(file))
 
 
 def test_model():
@@ -186,7 +193,7 @@ def test_model():
     cp.load_checkpoint(cfg.TEST.WEIGHTS, model)
     logger.info("Loaded model weights from: {}".format(cfg.TEST.WEIGHTS))
     # Create data loaders and meters
-    test_loader = loader.construct_test_loader()
+    test_loader = data_loader.construct_test_loader()
     test_meter = meters.TestMeter(len(test_loader))
     # Evaluate the model
     test_epoch(test_loader, model, test_meter, 0)
@@ -211,7 +218,7 @@ def time_model_and_loader():
     model = setup_model()
     loss_fun = builders.build_loss_fun().cuda()
     # Create data loaders
-    train_loader = loader.construct_train_loader()
-    test_loader = loader.construct_test_loader()
+    train_loader = data_loader.construct_train_loader()
+    test_loader = data_loader.construct_test_loader()
     # Compute model and loader timings
     benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)

@@ -8,6 +8,7 @@
 """Functions that handle saving and loading of checkpoints."""
 
 import os
+from shutil import copyfile
 
 import pycls.core.distributed as dist
 import torch
@@ -33,6 +34,11 @@ def get_checkpoint(epoch):
     return os.path.join(get_checkpoint_dir(), name)
 
 
+def get_checkpoint_best():
+    """Retrieves the path to the best checkpoint file."""
+    return os.path.join(cfg.OUT_DIR, "model.pyth")
+
+
 def get_last_checkpoint():
     """Retrieves the most recent checkpoint (highest epoch number)."""
     checkpoint_dir = get_checkpoint_dir()
@@ -49,7 +55,7 @@ def has_checkpoint():
     return any(_NAME_PREFIX in f for f in os.listdir(checkpoint_dir))
 
 
-def save_checkpoint(model, optimizer, epoch):
+def save_checkpoint(model, optimizer, epoch, best):
     """Saves a checkpoint."""
     # Save checkpoints only from the master process
     if not dist.is_master_proc():
@@ -66,6 +72,9 @@ def save_checkpoint(model, optimizer, epoch):
     # Write the checkpoint
     checkpoint_file = get_checkpoint(epoch + 1)
     torch.save(checkpoint, checkpoint_file)
+    # If best copy checkpoint to the best checkpoint
+    if best:
+        copyfile(checkpoint_file, get_checkpoint_best())
     return checkpoint_file
 
 
