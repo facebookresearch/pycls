@@ -242,6 +242,15 @@ _C.TRAIN.AUTO_RESUME = True
 # Weights to start training from
 _C.TRAIN.WEIGHTS = ""
 
+# If True train using mixed precision
+_C.TRAIN.MIXED_PRECISION = False
+
+# Label smoothing value in 0 to 1 where (0 gives no smoothing)
+_C.TRAIN.LABEL_SMOOTHING = 0.0
+
+# Batch mixup regularization value in 0 to 1 (0 gives no mixup)
+_C.TRAIN.MIXUP_ALPHA = 0.0
+
 # Standard deviation for AlexNet-style PCA jitter (0 gives no PCA jitter)
 _C.TRAIN.PCA_STD = 0.1
 
