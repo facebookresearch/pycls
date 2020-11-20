@@ -8,8 +8,10 @@
 """Benchmarking functions."""
 
 import pycls.core.logging as logging
+import pycls.core.net as net
 import pycls.datasets.loader as loader
 import torch
+import torch.cuda.amp as amp
 from pycls.core.config import cfg
 from pycls.core.timer import Timer
 
@@ -48,9 +50,12 @@ def compute_time_train(model, loss_fun):
     im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TRAIN.BATCH_SIZE / cfg.NUM_GPUS)
     inputs = torch.rand(batch_size, 3, im_size, im_size).cuda(non_blocking=False)
     labels = torch.zeros(batch_size, dtype=torch.int64).cuda(non_blocking=False)
+    labels_one_hot = net.smooth_one_hot_labels(labels)
     # Cache BatchNorm2D running stats
     bns = [m for m in model.modules() if isinstance(m, torch.nn.BatchNorm2d)]
     bn_stats = [[bn.running_mean.clone(), bn.running_var.clone()] for bn in bns]
+    # Create a GradScaler for mixed precision training
+    scaler = amp.GradScaler(enabled=cfg.TRAIN.MIXED_PRECISION)
     # Compute precise forward backward pass time
     fw_timer, bw_timer = Timer(), Timer()
     total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
@@ -61,13 +66,14 @@ def compute_time_train(model, loss_fun):
             bw_timer.reset()
         # Forward
         fw_timer.tic()
-        preds = model(inputs)
-        loss = loss_fun(preds, labels)
+        with amp.autocast(enabled=cfg.TRAIN.MIXED_PRECISION):
+            preds = model(inputs)
+            loss = loss_fun(preds, labels_one_hot)
         torch.cuda.synchronize()
         fw_timer.toc()
         # Backward
         bw_timer.tic()
-        loss.backward()
+        scaler.scale(loss).backward()
         torch.cuda.synchronize()
         bw_timer.toc()
     # Restore BatchNorm2D running stats

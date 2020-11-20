@@ -7,8 +7,8 @@
 
 """Model and loss construction functions."""
 
-import torch
 from pycls.core.config import cfg
+from pycls.core.net import SoftCrossEntropyLoss
 from pycls.models.anynet import AnyNet
 from pycls.models.effnet import EffNet
 from pycls.models.regnet import RegNet
@@ -19,7 +19,7 @@ from pycls.models.resnet import ResNet
 _models = {"anynet": AnyNet, "effnet": EffNet, "resnet": ResNet, "regnet": RegNet}
 
 # Supported loss functions
-_loss_funs = {"cross_entropy": torch.nn.CrossEntropyLoss}
+_loss_funs = {"cross_entropy": SoftCrossEntropyLoss}
 
 
 def get_model():

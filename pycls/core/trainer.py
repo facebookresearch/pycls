@@ -22,6 +22,7 @@ import pycls.core.net as net
 import pycls.core.optimizer as optim
 import pycls.datasets.loader as data_loader
 import torch
+import torch.cuda.amp as amp
 from pycls.core.config import cfg
 
 
@@ -71,7 +72,7 @@ def setup_model():
     return model
 
 
-def train_epoch(loader, model, loss_fun, optimizer, meter, cur_epoch):
+def train_epoch(loader, model, loss_fun, optimizer, scaler, meter, cur_epoch):
     """Performs one epoch of training."""
     # Shuffle the data
     data_loader.shuffle(loader, cur_epoch)
@@ -85,15 +86,19 @@ def train_epoch(loader, model, loss_fun, optimizer, meter, cur_epoch):
     for cur_iter, (inputs, labels) in enumerate(loader):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
-        # Perform the forward pass
-        preds = model(inputs)
-        # Compute the loss
-        loss = loss_fun(preds, labels)
-        # Perform the backward pass
+        # Convert labels to smoothed one-hot vector
+        labels_one_hot = net.smooth_one_hot_labels(labels)
+        # Apply mixup to the batch (no effect if mixup alpha is 0)
+        inputs, labels_one_hot, labels = net.mixup(inputs, labels_one_hot)
+        # Perform the forward pass and compute the loss
+        with amp.autocast(enabled=cfg.TRAIN.MIXED_PRECISION):
+            preds = model(inputs)
+            loss = loss_fun(preds, labels_one_hot)
+        # Perform the backward pass and update the parameters
         optimizer.zero_grad()
-        loss.backward()
-        # Update the parameters
-        optimizer.step()
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
         # Compute the errors
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the stats across the GPUs (no reduction if 1 GPU used)
@@ -160,6 +165,8 @@ def train_model():
     test_loader = data_loader.construct_test_loader()
     train_meter = meters.TrainMeter(len(train_loader))
     test_meter = meters.TestMeter(len(test_loader))
+    # Create a GradScaler for mixed precision training
+    scaler = amp.GradScaler(enabled=cfg.TRAIN.MIXED_PRECISION)
     # Compute model and loader timings
     if start_epoch == 0 and cfg.PREC_TIME.NUM_ITER > 0:
         benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)
@@ -168,7 +175,8 @@ def train_model():
     best_err = np.inf
     for cur_epoch in range(start_epoch, cfg.OPTIM.MAX_EPOCH):
         # Train for one epoch
-        train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch)
+        params = (train_loader, model, loss_fun, optimizer, scaler, train_meter)
+        train_epoch(*params, cur_epoch)
         # Compute precise BN stats
         if cfg.BN.USE_PRECISE_STATS:
             net.compute_precise_bn_stats(model, train_loader)
