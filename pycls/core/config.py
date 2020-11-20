@@ -236,12 +236,6 @@ _C.TRAIN.BATCH_SIZE = 128
 # Image size
 _C.TRAIN.IM_SIZE = 224
 
-# Evaluate model on test data every eval period epochs
-_C.TRAIN.EVAL_PERIOD = 1
-
-# Save model checkpoint every checkpoint period epochs
-_C.TRAIN.CHECKPOINT_PERIOD = 1
-
 # Resume training from the latest checkpoint in the output directory
 _C.TRAIN.AUTO_RESUME = True
 
@@ -347,6 +341,8 @@ _C.register_deprecated_key("OPTIM.GAMMA")
 _C.register_deprecated_key("PREC_TIME.BATCH_SIZE")
 _C.register_deprecated_key("PREC_TIME.ENABLED")
 _C.register_deprecated_key("PORT")
+_C.register_deprecated_key("TRAIN.EVAL_PERIOD")
+_C.register_deprecated_key("TRAIN.CHECKPOINT_PERIOD")
 
 
 def assert_and_infer_cfg(cache_urls=True):

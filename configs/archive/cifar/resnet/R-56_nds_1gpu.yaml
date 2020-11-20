@@ -19,7 +19,6 @@ TRAIN:
   SPLIT: train
   BATCH_SIZE: 128
   IM_SIZE: 32
-  EVAL_PERIOD: 1
 TEST:
   DATASET: cifar10
   SPLIT: test
