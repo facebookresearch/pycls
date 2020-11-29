@@ -59,6 +59,7 @@ def save_checkpoint(model, optimizer, epoch, best):
     """Saves a checkpoint."""
     # Save checkpoints only from the master process
     if not dist.is_master_proc():
+        torch.distributed.barrier()
         return
     # Ensure that the checkpoint dir exists
     os.makedirs(get_checkpoint_dir(), exist_ok=True)
@@ -75,6 +76,7 @@ def save_checkpoint(model, optimizer, epoch, best):
     # If best copy checkpoint to the best checkpoint
     if best:
         copyfile(checkpoint_file, get_checkpoint_best())
+    torch.distributed.barrier()
     return checkpoint_file
 
 
