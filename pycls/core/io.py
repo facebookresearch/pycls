@@ -13,6 +13,8 @@ import re
 import sys
 from urllib import request as urlrequest
 
+from iopath.common.file_io import g_pathmgr
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +31,11 @@ def cache_url(url_or_file, cache_dir, base_url=_PYCLS_BASE_URL):
     url = url_or_file
     assert url.startswith(base_url), "url must start with: {}".format(base_url)
     cache_file_path = url.replace(base_url, cache_dir)
-    if os.path.exists(cache_file_path):
+    if g_pathmgr.exists(cache_file_path):
         return cache_file_path
     cache_file_dir = os.path.dirname(cache_file_path)
-    if not os.path.exists(cache_file_dir):
-        os.makedirs(cache_file_dir)
+    if not g_pathmgr.exists(cache_file_dir):
+        g_pathmgr.mkdirs(cache_file_dir)
     logger.info("Downloading remote file {} to {}".format(url, cache_file_path))
     download_url(url, cache_file_path)
     return cache_file_path
@@ -64,7 +66,7 @@ def download_url(url, dst_file_path, chunk_size=8192, progress_hook=_progress_ba
     total_size = response.info().get("Content-Length").strip()
     total_size = int(total_size)
     bytes_so_far = 0
-    with open(dst_file_path, "wb") as f:
+    with g_pathmgr.open(dst_file_path, "wb") as f:
         while 1:
             chunk = response.read(chunk_size)
             bytes_so_far += len(chunk)
