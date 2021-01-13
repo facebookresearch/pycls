@@ -31,6 +31,7 @@ class Cifar10(torch.utils.data.Dataset):
         splits = ["train", "test"]
         assert split in splits, "Split '{}' not supported for cifar".format(split)
         logger.info("Constructing CIFAR-10 {}...".format(split))
+        self._im_size = cfg.TRAIN.IM_SIZE
         self._data_path, self._split = data_path, split
         self._inputs, self._labels = self._load_data()
 
@@ -52,7 +53,7 @@ class Cifar10(torch.utils.data.Dataset):
             labels += data[b"labels"]
         # Combine and reshape the inputs
         inputs = np.vstack(inputs).astype(np.float32)
-        inputs = inputs.reshape((-1, 3, cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE))
+        inputs = inputs.reshape((-1, 3, self._im_size, self._im_size))
         return inputs, labels
 
     def _prepare_im(self, im):
@@ -62,7 +63,7 @@ class Cifar10(torch.utils.data.Dataset):
             im[i] = (im[i] - _MEAN[i]) / _STD[i]
         if self._split == "train":
             # Randomly flip and crop center patch from CHW image
-            size = cfg.TRAIN.IM_SIZE
+            size = self._im_size
             im = im[:, :, ::-1] if np.random.uniform() < 0.5 else im
             im = np.pad(im, ((0, 0), (4, 4), (4, 4)), mode="constant")
             y = np.random.randint(0, im.shape[1] - size)

@@ -6,16 +6,12 @@
 # LICENSE file in the root directory of this source tree.
 
 """Tools for training and testing a model."""
-
-import os
-import random
-
 import numpy as np
 import pycls.core.benchmark as benchmark
 import pycls.core.builders as builders
 import pycls.core.checkpoint as cp
-import pycls.core.config as config
 import pycls.core.distributed as dist
+import pycls.core.env as env
 import pycls.core.logging as logging
 import pycls.core.meters as meters
 import pycls.core.net as net
@@ -27,29 +23,6 @@ from pycls.core.config import cfg
 
 
 logger = logging.get_logger(__name__)
-
-
-def setup_env():
-    """Sets up environment for training or testing."""
-    if dist.is_master_proc():
-        # Ensure that the output dir exists
-        os.makedirs(cfg.OUT_DIR, exist_ok=True)
-        # Save the config
-        config.dump_cfg()
-    # Setup logging
-    logging.setup_logging()
-    # Log torch, cuda, and cudnn versions
-    version = [torch.__version__, torch.version.cuda, torch.backends.cudnn.version()]
-    logger.info("PyTorch Version: torch={}, cuda={}, cudnn={}".format(*version))
-    # Log the config as both human readable and as a json
-    logger.info("Config:\n{}".format(cfg)) if cfg.VERBOSE else ()
-    logger.info(logging.dump_log_data(cfg, "cfg", None))
-    # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
-    np.random.seed(cfg.RNG_SEED)
-    torch.manual_seed(cfg.RNG_SEED)
-    random.seed(cfg.RNG_SEED)
-    # Configure the CUDNN backend
-    torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
 
 
 def setup_model():
@@ -145,7 +118,7 @@ def test_epoch(loader, model, meter, cur_epoch):
 def train_model():
     """Trains the model."""
     # Setup training/testing environment
-    setup_env()
+    env.setup_env()
     # Construct the model, loss_fun, and optimizer
     model = setup_model()
     loss_fun = builders.build_loss_fun().cuda()
@@ -194,7 +167,7 @@ def train_model():
 def test_model():
     """Evaluates a trained model."""
     # Setup training/testing environment
-    setup_env()
+    env.setup_env()
     # Construct the model
     model = setup_model()
     # Load model weights
@@ -210,7 +183,7 @@ def test_model():
 def time_model():
     """Times model."""
     # Setup training/testing environment
-    setup_env()
+    env.setup_env()
     # Construct the model and loss_fun
     model = setup_model()
     loss_fun = builders.build_loss_fun().cuda()
@@ -221,7 +194,7 @@ def time_model():
 def time_model_and_loader():
     """Times model and data loader."""
     # Setup training/testing environment
-    setup_env()
+    env.setup_env()
     # Construct the model and loss_fun
     model = setup_model()
     loss_fun = builders.build_loss_fun().cuda()
