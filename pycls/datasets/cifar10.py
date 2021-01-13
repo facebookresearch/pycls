@@ -13,6 +13,7 @@ import pickle
 import numpy as np
 import pycls.core.logging as logging
 import torch.utils.data
+from iopath.common.file_io import g_pathmgr
 from pycls.core.config import cfg
 
 
@@ -27,7 +28,7 @@ class Cifar10(torch.utils.data.Dataset):
     """CIFAR-10 dataset."""
 
     def __init__(self, data_path, split):
-        assert os.path.exists(data_path), "Data path '{}' not found".format(data_path)
+        assert g_pathmgr.exists(data_path), "Data path '{}' not found".format(data_path)
         splits = ["train", "test"]
         assert split in splits, "Split '{}' not supported for cifar".format(split)
         logger.info("Constructing CIFAR-10 {}...".format(split))
@@ -47,7 +48,7 @@ class Cifar10(torch.utils.data.Dataset):
         inputs, labels = [], []
         for batch_name in batch_names:
             batch_path = os.path.join(self._data_path, batch_name)
-            with open(batch_path, "rb") as f:
+            with g_pathmgr.open(batch_path, "rb") as f:
                 data = pickle.load(f, encoding="bytes")
             inputs.append(data[b"data"])
             labels += data[b"labels"]
