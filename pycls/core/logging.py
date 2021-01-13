@@ -15,6 +15,7 @@ import sys
 
 import pycls.core.distributed as dist
 import simplejson
+from iopath.common.file_io import g_pathmgr
 from pycls.core.config import cfg
 
 
@@ -85,9 +86,9 @@ def float_to_decimal(data, prec=4):
 
 def get_log_files(log_dir, name_filter="", log_file=_LOG_FILE):
     """Get all log files in directory containing subdirs of trained models."""
-    names = [n for n in sorted(os.listdir(log_dir)) if name_filter in n]
+    names = [n for n in sorted(g_pathmgr.ls(log_dir)) if name_filter in n]
     files = [os.path.join(log_dir, n, log_file) for n in names]
-    f_n_ps = [(f, n) for (f, n) in zip(files, names) if os.path.exists(f)]
+    f_n_ps = [(f, n) for (f, n) in zip(files, names) if g_pathmgr.exists(f)]
     files, names = zip(*f_n_ps) if f_n_ps else ([], [])
     return files, names
 
@@ -95,8 +96,8 @@ def get_log_files(log_dir, name_filter="", log_file=_LOG_FILE):
 def load_log_data(log_file, data_types_to_skip=()):
     """Loads log data into a dictionary of the form data[data_type][metric][index]."""
     # Load log_file
-    assert os.path.exists(log_file), "Log file not found: {}".format(log_file)
-    with open(log_file, "r") as f:
+    assert g_pathmgr.exists(log_file), "Log file not found: {}".format(log_file)
+    with g_pathmgr.open(log_file, "r") as f:
         lines = f.readlines()
     # Extract and parse lines that start with _TAG and have a type specified
     lines = [l[l.find(_TAG) + len(_TAG) :] for l in lines if _TAG in l]
