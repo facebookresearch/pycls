@@ -313,6 +313,9 @@ _C.VERBOSE = True
 # Number of GPUs to use (applies to both training and testing)
 _C.NUM_GPUS = 1
 
+# Number of nodes to use; the total number of GPUs will be distributed over the specified nodes
+_C.NUM_NODES = 1
+
 # Output directory
 _C.OUT_DIR = "/tmp"
 
@@ -368,6 +371,8 @@ def assert_and_infer_cfg(cache_urls=True):
     assert _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
     err_str = "Log destination '{}' not supported"
     assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
+    err_str = "Number of GPUs must be divisible by the number of nodes"
+    assert _C.NUM_GPUS % _C.NUM_NODES == 0, err_str
     if cache_urls:
         cache_cfg_urls()
 

@@ -162,3 +162,30 @@ def multi_proc_run(num_proc, fun, fun_args=(), fun_kwargs=None):
     # Wait for each subprocess to finish
     for p in ps:
         p.join()
+
+
+def init_distributed():
+    """Initialize torch.distributed and set the CUDA device.
+    
+    Expects environment variables to be set as per
+    https://pytorch.org/docs/stable/distributed.html#environment-variable-initialization
+    along with the environment variable "LOCAL_RANK" which is used to set the
+    CUDA device.
+    """
+    rank = int(os.environ["RANK"])
+    local_rank = int(os.environ["LOCAL_RANK"])
+
+    print(f"Initializing distributed environment for rank {rank}")
+
+    # Initialize torch.distributed
+    torch.distributed.init_process_group(
+        backend=cfg.DIST_BACKEND,
+        init_method="env://",
+        world_size=cfg.NUM_GPUS,
+        rank=rank,
+    )
+
+    print("Done initializing distributed environment")
+
+    # Set the GPU to use
+    torch.cuda.set_device(local_rank)

@@ -8,4 +8,5 @@ opencv-python==4.2.0.34
 parameterized
 setuptools
 simplejson
+submitit
 yacs

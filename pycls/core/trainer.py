@@ -34,7 +34,7 @@ def setup_model():
     logger.info(logging.dump_log_data(net.complexity(model), "complexity"))
     # Transfer the model to the current GPU device
     err_str = "Cannot use more GPU devices than available"
-    assert cfg.NUM_GPUS <= torch.cuda.device_count(), err_str
+    assert cfg.NUM_GPUS % cfg.NUM_NODES <= torch.cuda.device_count(), err_str
     cur_device = torch.cuda.current_device()
     model = model.cuda(device=cur_device)
     # Use multi-process data parallel model in the multi-gpu setting
