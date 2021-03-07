@@ -291,6 +291,7 @@ _C.CUDNN = CfgNode()
 
 # Perform benchmarking to select fastest CUDNN algorithms (best for fixed input sizes)
 _C.CUDNN.BENCHMARK = True
+_C.CUDNN.DETERMINISTIC = False
 
 
 # ------------------------------- Precise time options ------------------------------- #

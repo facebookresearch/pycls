@@ -33,3 +33,5 @@ def setup_env():
     random.seed(cfg.RNG_SEED)
     # Configure the CUDNN backend
     torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
+    # Configure the convolution determinism
+    torch.backends.cudnn.deterministic = cfg.DETERMINISTIC
