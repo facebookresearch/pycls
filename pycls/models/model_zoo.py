@@ -11,7 +11,7 @@ import os
 
 import pycls.core.builders as builders
 import pycls.core.checkpoint as cp
-from pycls.core.config import cfg, reset_cfg
+from pycls.core.config import cfg, load_cfg, reset_cfg
 from pycls.core.io import cache_url
 
 
@@ -141,7 +141,7 @@ def build_model(name, pretrained=False, cfg_list=()):
     # Load the config
     reset_cfg()
     config_file = get_config_file(name)
-    cfg.merge_from_file(config_file)
+    load_cfg(config_file)
     cfg.merge_from_list(cfg_list)
     # Construct model
     model = builders.build_model()

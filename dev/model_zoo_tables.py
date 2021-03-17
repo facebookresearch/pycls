@@ -13,7 +13,7 @@ import os
 import pycls.core.builders as builders
 import pycls.core.net as net
 import pycls.models.model_zoo as model_zoo
-from pycls.core.config import cfg, reset_cfg
+from pycls.core.config import cfg, load_cfg, reset_cfg
 
 
 # Location of pycls directory
@@ -47,7 +47,7 @@ def get_model_data(name, timings, errors):
     """Get model data for a single model."""
     # Load model config
     reset_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file(name))
+    load_cfg(model_zoo.get_config_file(name))
     config_url, _, model_id, _, weight_url_full = model_zoo.get_model_info(name)
     # Get model complexity
     cx = net.complexity(builders.get_model())

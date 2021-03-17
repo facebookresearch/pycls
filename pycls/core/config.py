@@ -11,8 +11,7 @@ import argparse
 import os
 import sys
 
-from iopath.common.file_io import g_pathmgr
-from pycls.core.io import cache_url
+from pycls.core.io import cache_url, pathmgr
 from yacs.config import CfgNode as CfgNode
 
 
@@ -378,28 +377,22 @@ def cache_cfg_urls():
     _C.TEST.WEIGHTS = cache_url(_C.TEST.WEIGHTS, _C.DOWNLOAD_CACHE)
 
 
-def merge_from_file(cfg_file):
-    with g_pathmgr.open(cfg_file, "r") as f:
-        cfg = _C.load_cfg(f)
-    _C.merge_from_other_cfg(cfg)
-
-
 def dump_cfg():
     """Dumps the config to the output directory."""
     cfg_file = os.path.join(_C.OUT_DIR, _C.CFG_DEST)
-    with g_pathmgr.open(cfg_file, "w") as f:
+    with pathmgr.open(cfg_file, "w") as f:
         _C.dump(stream=f)
 
 
-def load_cfg(out_dir, cfg_dest="config.yaml"):
-    """Loads config from specified output directory."""
-    cfg_file = os.path.join(out_dir, cfg_dest)
-    merge_from_file(cfg_file)
+def load_cfg(cfg_file):
+    """Loads config from specified file."""
+    with pathmgr.open(cfg_file, "r") as f:
+        _C.merge_from_other_cfg(_C.load_cfg(f))
 
 
 def reset_cfg():
     """Reset config to initial state."""
-    cfg.merge_from_other_cfg(_CFG_DEFAULT)
+    _C.merge_from_other_cfg(_CFG_DEFAULT)
 
 
 def load_cfg_fom_args(description="Config file options."):
@@ -413,5 +406,5 @@ def load_cfg_fom_args(description="Config file options."):
         parser.print_help()
         sys.exit(1)
     args = parser.parse_args()
-    merge_from_file(args.cfg_file)
+    load_cfg(args.cfg_file)
     _C.merge_from_list(args.opts)
