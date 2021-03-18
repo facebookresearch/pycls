@@ -16,13 +16,12 @@ import unittest
 
 import pycls.core.builders as builders
 import pycls.core.distributed as dist
-import pycls.core.env as env
 import pycls.core.logging as logging
 import pycls.core.net as net
 import pycls.core.trainer as trainer
 import pycls.models.model_zoo as model_zoo
 from parameterized import parameterized
-from pycls.core.config import cfg, merge_from_file, reset_cfg
+from pycls.core.config import cfg, load_cfg, reset_cfg
 
 
 # Location of pycls directory
@@ -38,14 +37,14 @@ def test_complexity(key):
     """Measure the complexity of a single model."""
     reset_cfg()
     cfg_file = os.path.join(_PYCLS_DIR, key)
-    merge_from_file(cfg_file)
+    load_cfg(cfg_file)
     return net.complexity(builders.get_model())
 
 
 def test_timing(key):
     """Measure the timing of a single model."""
     reset_cfg()
-    merge_from_file(model_zoo.get_config_file(key))
+    load_cfg(model_zoo.get_config_file(key))
     cfg.PREC_TIME.WARMUP_ITER, cfg.PREC_TIME.NUM_ITER = 5, 50
     cfg.OUT_DIR, cfg.LOG_DEST = tempfile.mkdtemp(), "file"
     dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.time_model)
@@ -58,7 +57,7 @@ def test_timing(key):
 def test_error(key):
     """Measure the error of a single model."""
     reset_cfg()
-    merge_from_file(model_zoo.get_config_file(key))
+    load_cfg(model_zoo.get_config_file(key))
     cfg.TEST.WEIGHTS = model_zoo.get_weights_file(key)
     cfg.OUT_DIR, cfg.LOG_DEST = tempfile.mkdtemp(), "file"
     dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.test_model)
@@ -138,7 +137,6 @@ class TestError(unittest.TestCase):
     @parameterized.expand(parse_tests(load_test_data("error")), skip_on_empty=True)
     @unittest.skipIf(not _RUN_ERROR_TESTS, "Skipping error tests")
     def test(self, key, out_expected):
-        env.setup_env()
         print("\nTesting error of: {}".format(key))
         out = test_error(key)
         print("expected = {}".format(out_expected))
