@@ -44,6 +44,7 @@ def get_block_fun(block_type):
         "vanilla_block": VanillaBlock,
         "res_basic_block": ResBasicBlock,
         "res_bottleneck_block": ResBottleneckBlock,
+        "res_bottleneck_linear_block": ResBottleneckLinearBlock,
     }
     err_str = "Block type '{}' not supported"
     assert block_type in block_funs.keys(), err_str.format(block_type)
@@ -51,21 +52,32 @@ def get_block_fun(block_type):
 
 
 class AnyHead(Module):
-    """AnyNet head: AvgPool, 1x1."""
+    """AnyNet head: optional conv, AvgPool, 1x1."""
 
-    def __init__(self, w_in, num_classes):
+    def __init__(self, w_in, head_width, num_classes):
         super(AnyHead, self).__init__()
+        self.head_width = head_width
+        if head_width > 0:
+            self.conv = conv2d(w_in, head_width, 1)
+            self.bn = norm2d(head_width)
+            self.af = activation()
+            w_in = head_width
         self.avg_pool = gap2d(w_in)
         self.fc = linear(w_in, num_classes, bias=True)
 
     def forward(self, x):
+        x = self.af(self.bn(self.conv(x))) if self.head_width > 0 else x
         x = self.avg_pool(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
 
     @staticmethod
-    def complexity(cx, w_in, num_classes):
+    def complexity(cx, w_in, head_width, num_classes):
+        if head_width > 0:
+            cx = conv2d_cx(cx, w_in, head_width, 1)
+            cx = norm2d_cx(cx, head_width)
+            w_in = head_width
         cx = gap2d_cx(cx, w_in)
         cx = linear_cx(cx, w_in, num_classes, bias=True)
         return cx
@@ -216,6 +228,22 @@ class ResBottleneckBlock(Module):
         return cx
 
 
+class ResBottleneckLinearBlock(Module):
+    """Residual linear bottleneck block: x + f(x), f = bottleneck transform."""
+
+    def __init__(self, w_in, w_out, stride, params):
+        super(ResBottleneckLinearBlock, self).__init__()
+        self.has_skip = (w_in == w_out) and (stride == 1)
+        self.f = BottleneckTransform(w_in, w_out, stride, params)
+
+    def forward(self, x):
+        return x + self.f(x) if self.has_skip else self.f(x)
+
+    @staticmethod
+    def complexity(cx, w_in, w_out, stride, params):
+        return BottleneckTransform.complexity(cx, w_in, w_out, stride, params)
+
+
 class ResStemCifar(Module):
     """ResNet stem for CIFAR: 3x3, BN, AF."""
 
@@ -319,6 +347,7 @@ class AnyNet(Module):
             "strides": cfg.ANYNET.STRIDES,
             "bot_muls": cfg.ANYNET.BOT_MULS if cfg.ANYNET.BOT_MULS else nones,
             "group_ws": cfg.ANYNET.GROUP_WS if cfg.ANYNET.GROUP_WS else nones,
+            "head_w": cfg.ANYNET.HEAD_W,
             "se_r": cfg.ANYNET.SE_R if cfg.ANYNET.SE_ON else 0,
             "num_classes": cfg.MODEL.NUM_CLASSES,
         }
@@ -336,7 +365,7 @@ class AnyNet(Module):
             stage = AnyStage(prev_w, w, s, d, block_fun, params)
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
-        self.head = AnyHead(prev_w, p["num_classes"])
+        self.head = AnyHead(prev_w, p["head_w"], p["num_classes"])
         self.apply(init_weights)
 
     def forward(self, x):
@@ -357,5 +386,5 @@ class AnyNet(Module):
             params = {"bot_mul": b, "group_w": g, "se_r": p["se_r"]}
             cx = AnyStage.complexity(cx, prev_w, w, s, d, block_fun, params)
             prev_w = w
-        cx = AnyHead.complexity(cx, prev_w, p["num_classes"])
+        cx = AnyHead.complexity(cx, prev_w, p["head_w"], p["num_classes"])
         return cx

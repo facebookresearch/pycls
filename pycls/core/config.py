@@ -85,6 +85,9 @@ _C.ANYNET.BOT_MULS = []
 # Group widths for each stage (applies to bottleneck block)
 _C.ANYNET.GROUP_WS = []
 
+# Head width for first conv in head (if 0 conv is omitted, as is the default)
+_C.ANYNET.HEAD_W = 0
+
 # Whether SE is enabled for res_bottleneck_block
 _C.ANYNET.SE_ON = False
 
@@ -128,6 +131,9 @@ _C.REGNET.GROUP_W = 16
 
 # Bottleneck multiplier (bm = 1 / b from the paper)
 _C.REGNET.BOT_MUL = 1.0
+
+# Head width for first conv in head (if 0 conv is omitted, as is the default)
+_C.REGNET.HEAD_W = 0
 
 
 # ------------------------------- EfficientNet options ------------------------------- #
