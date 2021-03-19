@@ -54,6 +54,7 @@ class RegNet(AnyNet):
             "strides": ss,
             "bot_muls": bs,
             "group_ws": gs,
+            "head_w": cfg.REGNET.HEAD_W,
             "se_r": cfg.REGNET.SE_R if cfg.REGNET.SE_ON else 0,
             "num_classes": cfg.MODEL.NUM_CLASSES,
         }
