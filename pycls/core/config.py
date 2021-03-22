@@ -41,6 +41,10 @@ _C.MODEL.ACTIVATION_FUN = "relu"
 # Perform activation inplace if implemented
 _C.MODEL.ACTIVATION_INPLACE = True
 
+# Model scaling parameters, see models/scaler.py (has no effect unless scaler is used)
+_C.MODEL.SCALING_TYPE = ""
+_C.MODEL.SCALING_FACTOR = 1.0
+
 
 # ---------------------------------- ResNet options ---------------------------------- #
 _C.RESNET = CfgNode()
@@ -388,6 +392,7 @@ def dump_cfg():
     cfg_file = os.path.join(_C.OUT_DIR, _C.CFG_DEST)
     with pathmgr.open(cfg_file, "w") as f:
         _C.dump(stream=f)
+    return cfg_file
 
 
 def load_cfg(cfg_file):

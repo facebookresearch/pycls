@@ -31,20 +31,42 @@ def generate_regnet(w_a, w_0, w_m, d, q=8):
     return ws, ds, num_stages, total_stages, ws_all, ws_cont
 
 
+def generate_regnet_full():
+    """Generates per stage ws, ds, gs, bs, and ss from RegNet cfg."""
+    w_a, w_0, w_m, d = cfg.REGNET.WA, cfg.REGNET.W0, cfg.REGNET.WM, cfg.REGNET.DEPTH
+    ws, ds = generate_regnet(w_a, w_0, w_m, d)[0:2]
+    ss = [cfg.REGNET.STRIDE for _ in ws]
+    bs = [cfg.REGNET.BOT_MUL for _ in ws]
+    gs = [cfg.REGNET.GROUP_W for _ in ws]
+    ws, bs, gs = bk.adjust_block_compatibility(ws, bs, gs)
+    return ws, ds, ss, bs, gs
+
+
+def regnet_cfg_to_anynet_cfg():
+    """Convert RegNet cfg to AnyNet cfg format (note: alters global cfg)."""
+    assert cfg.MODEL.TYPE == "regnet"
+    ws, ds, ss, bs, gs = generate_regnet_full()
+    cfg.MODEL.TYPE = "anynet"
+    cfg.ANYNET.STEM_TYPE = cfg.REGNET.STEM_TYPE
+    cfg.ANYNET.STEM_W = cfg.REGNET.STEM_W
+    cfg.ANYNET.BLOCK_TYPE = cfg.REGNET.BLOCK_TYPE
+    cfg.ANYNET.DEPTHS = ds
+    cfg.ANYNET.WIDTHS = ws
+    cfg.ANYNET.STRIDES = ss
+    cfg.ANYNET.BOT_MULS = bs
+    cfg.ANYNET.GROUP_WS = gs
+    cfg.ANYNET.HEAD_W = cfg.REGNET.HEAD_W
+    cfg.ANYNET.SE_ON = cfg.REGNET.SE_ON
+    cfg.ANYNET.SE_R = cfg.REGNET.SE_R
+
+
 class RegNet(AnyNet):
     """RegNet model."""
 
     @staticmethod
     def get_params():
-        """Convert RegNet to AnyNet parameter format."""
-        # Generates per stage ws, ds, gs, bs, and ss from RegNet parameters
-        w_a, w_0, w_m, d = cfg.REGNET.WA, cfg.REGNET.W0, cfg.REGNET.WM, cfg.REGNET.DEPTH
-        ws, ds = generate_regnet(w_a, w_0, w_m, d)[0:2]
-        ss = [cfg.REGNET.STRIDE for _ in ws]
-        bs = [cfg.REGNET.BOT_MUL for _ in ws]
-        gs = [cfg.REGNET.GROUP_W for _ in ws]
-        ws, bs, gs = bk.adjust_block_compatibility(ws, bs, gs)
-        # Get AnyNet arguments defining the RegNet
+        """Get AnyNet parameters that correspond to the RegNet."""
+        ws, ds, ss, bs, gs = generate_regnet_full()
         return {
             "stem_type": cfg.REGNET.STEM_TYPE,
             "stem_w": cfg.REGNET.STEM_W,
