@@ -12,7 +12,7 @@ import os
 import sys
 
 from pycls.core.io import cache_url, pathmgr
-from yacs.config import CfgNode as CfgNode
+from yacs.config import CfgNode
 
 
 # Global config object (example usage: from core.config import cfg)
