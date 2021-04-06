@@ -4,7 +4,3 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
-"""Expose model zoo constructors."""
-
-from pycls.models.model_zoo import effnet, regnetx, regnety, resnet, resnext
