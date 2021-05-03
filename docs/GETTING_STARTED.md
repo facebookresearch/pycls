@@ -96,3 +96,16 @@ python tools/time_net.py
     PREC_TIME.WARMUP_ITER 5 \
     PREC_TIME.NUM_ITER 50
 ```
+
+### MODEL SCALING
+
+Scale a RegNetY-4GF by 4x using fast compound scaling (see https://arxiv.org/abs/2103.06877):
+
+```
+python tools/scale_net.py \
+    --cfg configs/dds_baselines/regnety/RegNetY-4.0GF_dds_8gpu.yaml \
+    OUT_DIR ./ \
+    CFG_DEST "RegNetY-4.0GF_dds_8gpu_scaled.yaml" \
+    MODEL.SCALING_FACTOR 4.0 \
+    MODEL.SCALING_TYPE "d1_w8_g8_r1"
+```
