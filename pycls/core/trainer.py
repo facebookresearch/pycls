@@ -8,6 +8,7 @@
 """Tools for training and testing a model."""
 
 import random
+from copy import deepcopy
 
 import numpy as np
 import pycls.core.benchmark as benchmark
@@ -72,7 +73,7 @@ def setup_model():
     return model
 
 
-def train_epoch(loader, model, loss_fun, optimizer, scaler, meter, cur_epoch):
+def train_epoch(loader, model, ema, loss_fun, optimizer, scaler, meter, cur_epoch):
     """Performs one epoch of training."""
     # Shuffle the data
     data_loader.shuffle(loader, cur_epoch)
@@ -81,6 +82,7 @@ def train_epoch(loader, model, loss_fun, optimizer, scaler, meter, cur_epoch):
     optim.set_lr(optimizer, lr)
     # Enable training mode
     model.train()
+    ema.train()
     meter.reset()
     meter.iter_tic()
     for cur_iter, (inputs, labels) in enumerate(loader):
@@ -99,6 +101,8 @@ def train_epoch(loader, model, loss_fun, optimizer, scaler, meter, cur_epoch):
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
+        # Update ema weights
+        net.update_model_ema(model, ema, cur_epoch, cur_iter)
         # Compute the errors
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the stats across the GPUs (no reduction if 1 GPU used)
@@ -146,25 +150,27 @@ def train_model():
     """Trains the model."""
     # Setup training/testing environment
     setup_env()
-    # Construct the model, loss_fun, and optimizer
+    # Construct the model, ema, loss_fun, and optimizer
     model = setup_model()
+    ema = deepcopy(model)
     loss_fun = builders.build_loss_fun().cuda()
     optimizer = optim.construct_optimizer(model)
     # Load checkpoint or initial weights
     start_epoch = 0
     if cfg.TRAIN.AUTO_RESUME and cp.has_checkpoint():
         file = cp.get_last_checkpoint()
-        epoch = cp.load_checkpoint(file, model, optimizer)
+        epoch = cp.load_checkpoint(file, model, ema, optimizer)[0]
         logger.info("Loaded checkpoint from: {}".format(file))
         start_epoch = epoch + 1
     elif cfg.TRAIN.WEIGHTS:
-        cp.load_checkpoint(cfg.TRAIN.WEIGHTS, model)
+        cp.load_checkpoint(cfg.TRAIN.WEIGHTS, model, ema)
         logger.info("Loaded initial weights from: {}".format(cfg.TRAIN.WEIGHTS))
     # Create data loaders and meters
     train_loader = data_loader.construct_train_loader()
     test_loader = data_loader.construct_test_loader()
     train_meter = meters.TrainMeter(len(train_loader))
     test_meter = meters.TestMeter(len(test_loader))
+    ema_meter = meters.TestMeter(len(test_loader), "test_ema")
     # Create a GradScaler for mixed precision training
     scaler = amp.GradScaler(enabled=cfg.TRAIN.MIXED_PRECISION)
     # Compute model and loader timings
@@ -172,22 +178,21 @@ def train_model():
         benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)
     # Perform the training loop
     logger.info("Start epoch: {}".format(start_epoch + 1))
-    best_err = np.inf
     for cur_epoch in range(start_epoch, cfg.OPTIM.MAX_EPOCH):
         # Train for one epoch
-        params = (train_loader, model, loss_fun, optimizer, scaler, train_meter)
+        params = (train_loader, model, ema, loss_fun, optimizer, scaler, train_meter)
         train_epoch(*params, cur_epoch)
         # Compute precise BN stats
         if cfg.BN.USE_PRECISE_STATS:
             net.compute_precise_bn_stats(model, train_loader)
+            net.compute_precise_bn_stats(ema, train_loader)
         # Evaluate the model
         test_epoch(test_loader, model, test_meter, cur_epoch)
-        # Check if checkpoint is best so far (note: should checkpoint meters as well)
-        stats = test_meter.get_epoch_stats(cur_epoch)
-        best = stats["top1_err"] <= best_err
-        best_err = min(stats["top1_err"], best_err)
+        test_epoch(test_loader, ema, ema_meter, cur_epoch)
+        test_err = test_meter.get_epoch_stats(cur_epoch)["top1_err"]
+        ema_err = ema_meter.get_epoch_stats(cur_epoch)["top1_err"]
         # Save a checkpoint
-        file = cp.save_checkpoint(model, optimizer, cur_epoch, best)
+        file = cp.save_checkpoint(model, ema, optimizer, cur_epoch, test_err, ema_err)
         logger.info("Wrote checkpoint to: {}".format(file))
 
 

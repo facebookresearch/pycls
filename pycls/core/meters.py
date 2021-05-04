@@ -83,9 +83,10 @@ class ScalarMeter(object):
 class TrainMeter(object):
     """Measures training stats."""
 
-    def __init__(self, epoch_iters):
+    def __init__(self, epoch_iters, phase="train"):
         self.epoch_iters = epoch_iters
         self.max_iter = cfg.OPTIM.MAX_EPOCH * epoch_iters
+        self.phase = phase
         self.iter_timer = Timer()
         self.loss = ScalarMeter(cfg.LOG_PERIOD)
         self.loss_total = 0.0
@@ -149,7 +150,7 @@ class TrainMeter(object):
     def log_iter_stats(self, cur_epoch, cur_iter):
         if (cur_iter + 1) % cfg.LOG_PERIOD == 0:
             stats = self.get_iter_stats(cur_epoch, cur_iter)
-            logger.info(logging.dump_log_data(stats, "train_iter"))
+            logger.info(logging.dump_log_data(stats, self.phase + "_iter"))
 
     def get_epoch_stats(self, cur_epoch):
         cur_iter_total = (cur_epoch + 1) * self.epoch_iters
@@ -173,14 +174,15 @@ class TrainMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logger.info(logging.dump_log_data(stats, "train_epoch"))
+        logger.info(logging.dump_log_data(stats, self.phase + "_epoch"))
 
 
 class TestMeter(object):
     """Measures testing stats."""
 
-    def __init__(self, epoch_iters):
+    def __init__(self, epoch_iters, phase="test"):
         self.epoch_iters = epoch_iters
+        self.phase = phase
         self.iter_timer = Timer()
         # Current minibatch errors (smoothed over a window)
         self.mb_top1_err = ScalarMeter(cfg.LOG_PERIOD)
@@ -233,7 +235,7 @@ class TestMeter(object):
     def log_iter_stats(self, cur_epoch, cur_iter):
         if (cur_iter + 1) % cfg.LOG_PERIOD == 0:
             stats = self.get_iter_stats(cur_epoch, cur_iter)
-            logger.info(logging.dump_log_data(stats, "test_iter"))
+            logger.info(logging.dump_log_data(stats, self.phase + "_iter"))
 
     def get_epoch_stats(self, cur_epoch):
         top1_err = self.num_top1_mis / self.num_samples
@@ -255,4 +257,4 @@ class TestMeter(object):
 
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
-        logger.info(logging.dump_log_data(stats, "test_epoch"))
+        logger.info(logging.dump_log_data(stats, self.phase + "_epoch"))

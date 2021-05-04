@@ -232,6 +232,12 @@ _C.OPTIM.WARMUP_FACTOR = 0.1
 # Gradually warm up the OPTIM.BASE_LR over this number of epochs
 _C.OPTIM.WARMUP_EPOCHS = 0
 
+# Exponential Moving Average (EMA) update value
+_C.OPTIM.EMA_ALPHA = 1e-5
+
+# Iteration frequency with which to update EMA weights
+_C.OPTIM.EMA_UPDATE_PERIOD = 32
+
 
 # --------------------------------- Training options --------------------------------- #
 _C.TRAIN = CfgNode()
