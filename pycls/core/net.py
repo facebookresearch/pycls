@@ -96,3 +96,19 @@ def mixup(inputs, labels):
         inputs = m * inputs + (1.0 - m) * inputs[permutation, :]
         labels = m * labels + (1.0 - m) * labels[permutation, :]
     return inputs, labels, labels.argmax(1)
+
+
+def update_model_ema(model, model_ema, cur_epoch, cur_iter):
+    """Update exponential moving average (ema) of model weights."""
+    update_period = cfg.OPTIM.EMA_UPDATE_PERIOD
+    if update_period == 0 or cur_iter % update_period != 0:
+        return
+    # Adjust alpha to be fairly independent of other parameters
+    adjust = cfg.TRAIN.BATCH_SIZE / cfg.OPTIM.MAX_EPOCH * update_period
+    alpha = min(1.0, cfg.OPTIM.EMA_ALPHA * adjust)
+    # During warmup simply copy over weights instead of using ema
+    alpha = 1.0 if cur_epoch < cfg.OPTIM.WARMUP_EPOCHS else alpha
+    # Take ema of all parameters (not just named parameters)
+    params = unwrap_model(model).state_dict()
+    for name, param in unwrap_model(model_ema).state_dict().items():
+        param.copy_(param * (1.0 - alpha) + params[name] * alpha)
