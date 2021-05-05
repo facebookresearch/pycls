@@ -73,7 +73,7 @@ def construct_test_loader():
 
 
 def shuffle(loader, cur_epoch):
-    """"Shuffles the data."""
+    """ "Shuffles the data."""
     err_str = "Sampler type '{}' not supported".format(type(loader.sampler))
     assert isinstance(loader.sampler, (RandomSampler, DistributedSampler)), err_str
     # RandomSampler handles shuffling automatically
