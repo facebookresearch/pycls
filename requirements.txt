@@ -2,6 +2,7 @@ black==19.3b0
 isort==4.3.21
 iopath
 flake8
+pyyaml
 matplotlib
 numpy
 opencv-python==4.2.0.34
@@ -9,3 +10,4 @@ parameterized
 setuptools
 simplejson
 yacs
+yattag

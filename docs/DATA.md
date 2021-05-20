@@ -36,14 +36,14 @@ Create a directory containing symlinks:
 mkdir -p /path/pycls/pycls/datasets/data
 ```
 
-Symlink ImageNet:
+Symlink ImageNet (`/datasets01/imagenet_full_size/061417/` on FAIR cluster):
 
 ```
-ln -s /path/imagenet /path/pycls/pycls/datasets/data/imagenet
+ln -sv /path/imagenet /path/pycls/pycls/datasets/data/imagenet
 ```
 
-Symlink CIFAR-10:
+Symlink CIFAR-10 (`/datasets01/cifar-10-batches-py/060817/` on FAIR cluster):
 
 ```
-ln -s /path/cifar10 /path/pycls/pycls/datasets/data/cifar10
+ln -sv /path/cifar10 /path/pycls/pycls/datasets/data/cifar10
 ```

@@ -1,0 +1,87 @@
+DESC:
+  Example CIFAR sweep 3 of 3 (trains the best model from cifar_regnet sweep).
+  Train the best RegNet-125M from cifar_regnet sweep for variable epoch lengths.
+  Trains 3 copies of every model (to obtain mean and std of the error).
+  The purpose of this sweep is to show how to train FINAL version of a model.
+NAME: cifar/cifar_best
+SETUP:
+  # Number of configs to sample
+  NUM_CONFIGS: 12
+  # SAMPLERS for optimization parameters
+  SAMPLERS:
+    OPTIM.MAX_EPOCH:
+      TYPE: value_sampler
+      VALUES: [50, 100, 200, 400]
+    RNG_SEED:
+      TYPE: int_sampler
+      RAND_TYPE: uniform
+      RANGE: [1, 3]
+      QUANTIZE: 1
+  CONSTRAINTS:
+    REGNET:
+      NUM_STAGES: [2, 2]
+  # BASE_CFG is RegNet-125MF (best model from cifar_regnet sweep)
+  BASE_CFG:
+    MODEL:
+      TYPE: regnet
+      NUM_CLASSES: 10
+    REGNET:
+      STEM_TYPE: res_stem_cifar
+      SE_ON: True
+      STEM_W: 16
+      DEPTH: 12
+      W0: 96
+      WA: 19.5
+      WM: 2.942
+      GROUP_W: 8
+    OPTIM:
+      BASE_LR: 1.0
+      LR_POLICY: cos
+      MAX_EPOCH: 50
+      MOMENTUM: 0.9
+      NESTEROV: True
+      WARMUP_EPOCHS: 5
+      WEIGHT_DECAY: 0.0005
+      EMA_ALPHA: 0.00025
+      EMA_UPDATE_PERIOD: 32
+    BN:
+      USE_CUSTOM_WEIGHT_DECAY: True
+    TRAIN:
+      DATASET: cifar10
+      SPLIT: train
+      BATCH_SIZE: 1024
+      IM_SIZE: 32
+      MIXED_PRECISION: True
+      LABEL_SMOOTHING: 0.1
+      MIXUP_ALPHA: 0.5
+    TEST:
+      DATASET: cifar10
+      SPLIT: test
+      BATCH_SIZE: 1000
+      IM_SIZE: 32
+    NUM_GPUS: 1
+    DATA_LOADER:
+      NUM_WORKERS: 4
+    LOG_PERIOD: 25
+    VERBOSE: False
+# Launch config options
+LAUNCH:
+  PARTITION: devlab
+  NUM_GPUS: 1
+  PARALLEL_JOBS: 12
+  TIME_LIMIT: 180
+# Analyze config options
+ANALYZE:
+  PLOT_METRIC_VALUES: False
+  PLOT_COMPLEXITY_VALUES: False
+  PLOT_CURVES_BEST: 3
+  PLOT_CURVES_WORST: 0
+  PLOT_MODELS_BEST: 1
+  METRICS: []
+  COMPLEXITY: [flops, params, acts, memory, epoch_fw_bw, epoch_time]
+  PRE_FILTERS: {done: [0, 1, 1]}
+  SPLIT_FILTERS:
+    epochs=050: {cfg.OPTIM.MAX_EPOCH: [ 50,  50,  50]}
+    epochs=100: {cfg.OPTIM.MAX_EPOCH: [100, 100, 100]}
+    epochs=200: {cfg.OPTIM.MAX_EPOCH: [200, 200, 200]}
+    epochs=400: {cfg.OPTIM.MAX_EPOCH: [400, 400, 400]}

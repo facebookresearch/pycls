@@ -97,7 +97,7 @@ python tools/time_net.py
     PREC_TIME.NUM_ITER 50
 ```
 
-### MODEL SCALING
+### Model Scaling
 
 Scale a RegNetY-4GF by 4x using fast compound scaling (see https://arxiv.org/abs/2103.06877):
 
