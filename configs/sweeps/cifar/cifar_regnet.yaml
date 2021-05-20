@@ -1,0 +1,78 @@
+DESC:
+  Example CIFAR sweep 2 of 3 (uses lr and wd found by cifar_optim sweep).
+  This sweep searches for a good RegNet-125MF model on cifar (same flops as R56).
+  The purpose of this sweep is to show how to optimize REGNET parameters.
+NAME: cifar/cifar_regnet
+SETUP:
+  # Number of configs to sample
+  NUM_CONFIGS: 32
+  # SAMPLER for RegNet
+  SAMPLERS:
+    REGNET:
+      TYPE: regnet_sampler
+      DEPTH: [6, 16]
+      GROUP_W: [1, 32]
+  # CONSTRAINTS for complexity (roughly based on R-56)
+  CONSTRAINTS:
+    CX:
+      FLOPS: [0.12e+9, 0.13e+9]
+      PARAMS: [0, 2.0e+6]
+      ACTS: [0, 1.0e+6]
+    REGNET:
+      NUM_STAGES: [2, 2]
+  # BASE_CFG is R-56 with large batch size and stronger augmentation
+  BASE_CFG:
+    MODEL:
+      TYPE: regnet
+      NUM_CLASSES: 10
+    REGNET:
+      STEM_TYPE: res_stem_cifar
+      SE_ON: True
+      STEM_W: 16
+    OPTIM:
+      BASE_LR: 1.0
+      LR_POLICY: cos
+      MAX_EPOCH: 50
+      MOMENTUM: 0.9
+      NESTEROV: True
+      WARMUP_EPOCHS: 5
+      WEIGHT_DECAY: 0.0005
+      EMA_ALPHA: 0.00025
+      EMA_UPDATE_PERIOD: 32
+    BN:
+      USE_CUSTOM_WEIGHT_DECAY: True
+    TRAIN:
+      DATASET: cifar10
+      SPLIT: train
+      BATCH_SIZE: 1024
+      IM_SIZE: 32
+      MIXED_PRECISION: True
+      LABEL_SMOOTHING: 0.1
+      MIXUP_ALPHA: 0.5
+    TEST:
+      DATASET: cifar10
+      SPLIT: test
+      BATCH_SIZE: 1000
+      IM_SIZE: 32
+    NUM_GPUS: 1
+    DATA_LOADER:
+      NUM_WORKERS: 4
+    LOG_PERIOD: 25
+    VERBOSE: False
+# Launch config options
+LAUNCH:
+  PARTITION: devlab
+  NUM_GPUS: 1
+  PARALLEL_JOBS: 32
+  TIME_LIMIT: 60
+# Analyze config options
+ANALYZE:
+  PLOT_METRIC_VALUES: True
+  PLOT_COMPLEXITY_VALUES: True
+  PLOT_CURVES_BEST: 3
+  PLOT_CURVES_WORST: 0
+  PLOT_MODELS_BEST: 8
+  PLOT_MODELS_WORST: 0
+  METRICS: [regnet_depth, regnet_w0, regnet_wa, regnet_wm, regnet_gw]
+  COMPLEXITY: [flops, params, acts, memory, epoch_fw_bw, epoch_time]
+  PRE_FILTERS: {done: [0, 1, 1]}

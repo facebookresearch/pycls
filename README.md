@@ -9,9 +9,7 @@
 
 ## Introduction
 
-The goal of **pycls** is to provide a simple and flexible codebase for image classification. It is designed to support rapid implementation and evaluation of research ideas. **pycls** also provides a large collection of baseline results ([Model Zoo](MODEL_ZOO.md)).
-
-The codebase supports efficient single-machine multi-gpu training, powered by the PyTorch distributed package, and provides implementations of standard models including [ResNet](https://arxiv.org/abs/1512.03385), [ResNeXt](https://arxiv.org/abs/1611.05431), [EfficientNet](https://arxiv.org/abs/1905.11946), and [RegNet](https://arxiv.org/abs/2003.13678).
+The goal of **pycls** is to provide a simple and flexible codebase for image classification. It is designed to support rapid implementation and evaluation of research ideas. **pycls** also provides a large collection of baseline results ([Model Zoo](MODEL_ZOO.md)).  The codebase supports efficient single-machine multi-gpu training, powered by the PyTorch distributed package, and provides implementations of standard models including [ResNet](https://arxiv.org/abs/1512.03385), [ResNeXt](https://arxiv.org/abs/1611.05431), [EfficientNet](https://arxiv.org/abs/1905.11946), and [RegNet](https://arxiv.org/abs/2003.13678).
 
 ## Using pycls
 
@@ -21,6 +19,10 @@ Please see [`GETTING_STARTED`](docs/GETTING_STARTED.md) for brief installation i
 
 We provide a large set of baseline results and pretrained models available for download in the **pycls** [Model Zoo](MODEL_ZOO.md); including the simple, fast, and effective [RegNet](https://arxiv.org/abs/2003.13678) models that we hope can serve as solid baselines across a wide range of flop regimes.
 
+## Sweep Code
+
+The pycls codebase now provides powerful support for studying *design spaces* and more generally *population statistics* of models as introduced in [On Network Design Spaces for Visual Recognition](https://arxiv.org/abs/1905.13214) and [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678). This idea is that instead of planning a single pycls job (e.g., testing a specific model configuration), one can study the behavior of an entire population of models. This allows for quite powerful and succinct experimental design, and elevates the study of individual model behavior to the study of the behavior of model populations. Please see [`SWEEP_INFO`](docs/SWEEP_INFO.md) for details.
+
 ## Projects
 
 A number of projects at FAIR have been built on top of **pycls**:
@@ -28,6 +30,7 @@ A number of projects at FAIR have been built on top of **pycls**:
 - [On Network Design Spaces for Visual Recognition](https://arxiv.org/abs/1905.13214)
 - [Exploring Randomly Wired Neural Networks for Image Recognition](https://arxiv.org/abs/1904.01569)
 - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
+- [Fast and Accurate Model Scaling](https://arxiv.org/abs/2103.06877)
 - [Are Labels Necessary for Neural Architecture Search?](https://arxiv.org/abs/2003.12056)
 - [PySlowFast Video Understanding Codebase](https://github.com/facebookresearch/SlowFast)
 
@@ -40,22 +43,29 @@ If you find **pycls** helpful in your research or refer to the baseline results 
 ```
 @InProceedings{Radosavovic2019,
   title = {On Network Design Spaces for Visual Recognition},
-  author = {Radosavovic, Ilija and Johnson, Justin and Xie, Saining and Lo, Wan-Yen and Doll{\'a}r, Piotr},
+  author = {Ilija Radosavovic and Justin Johnson and Saining Xie Wan-Yen Lo and Piotr Doll{\'a}r},
   booktitle = {ICCV},
   year = {2019}
 }
 
 @InProceedings{Radosavovic2020,
   title = {Designing Network Design Spaces},
-  author = {Radosavovic, Ilija and Kosaraju, Raj Prateek and Girshick, Ross and He, Kaiming and Doll{\'a}r, Piotr},
+  author = {Ilija Radosavovic and Raj Prateek Kosaraju and Ross Girshick and Kaiming He and Piotr Doll{\'a}r},
   booktitle = {CVPR},
   year = {2020}
+}
+
+@InProceedings{Dollar2021,
+  title = {Fast and Accurate Model Scaling},
+  author = {Piotr Doll{\'a}r and Mannat Singh and Ross Girshick},
+  booktitle = {CVPR},
+  year = {2021}
 }
 ```
 
 ## License
 
-**pycls** is released under the MIT license. Please see the [LICENSE](LICENSE) file for more information.
+**pycls** is released under the MIT license. Please see the [`LICENSE`](LICENSE) file for more information.
 
 ## Contributing
 
