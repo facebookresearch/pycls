@@ -50,7 +50,14 @@ def scale_model():
     """
     Scale model blocks by the specified type and amount (note: alters global cfg).
 
+    Scale a model using scaling strategies from "Fast and Accurate Model Scaling".
+    For reference on scaling strategies, see: https://arxiv.org/abs/2103.06877.
+    For example usage, see GETTING_STARTED, MODEL SCALING section.
+
     The actual scaling is specified by MODEL.SCALING_TYPE and MODEL.SCALING_FACTOR.
+    For example, SCALING_TYPE of "d1_w8_g8_r1" is fast compound scaling and is the
+    likely best default option, and SCALING_FACTOR indicates the scaling amount.
+    For further details on controlling the scaling, see comments for scaling_factors().
 
     Note that the scaler must be employed on a standalone config outside of the main
     training loop. This is because it alters the global config, which is typically
