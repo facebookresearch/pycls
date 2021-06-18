@@ -174,6 +174,49 @@ _C.EN.DC_RATIO = 0.0
 _C.EN.DROPOUT_RATIO = 0.0
 
 
+# --------------------------- Vision Transformer options ---------------------------- #
+_C.VIT = CfgNode()
+
+# Image Size
+_C.VIT.IMAGE_SIZE = 224
+
+# Patch Size
+_C.VIT.PATCH_SIZE = 16
+
+# Stem type in ["patchify", "conv"]
+_C.VIT.STEM_TYPE = "patchify"
+
+# Stem conv kernel size
+_C.VIT.STEM_CONV_KSIZES = []
+
+# Stem conv strides, the product of which should equal to patch_size
+_C.VIT.STEM_CONV_STRIDES = []
+
+# Stem conv output dims
+_C.VIT.STEM_CONV_DIMS = []
+
+# Number of layers in the encoder
+_C.VIT.NUM_LAYERS = 12
+
+# Number of self attention heads
+_C.VIT.NUM_HEADS = 12
+
+# Hidden dimension
+_C.VIT.HIDDEN_DIM = 768
+
+# Dimension of the MLP in the encoder
+_C.VIT.MLP_DIM = 3072
+
+# Dropout rate
+_C.VIT.DROPOUT_RATE = 0.0
+
+# Dropout rate applied to the self attention
+_C.VIT.ATTENTION_DROPOUT_RATE = 0.0
+
+# Classier type (token or gap)
+_C.VIT.CLASSIFIER = "token"
+
+
 # -------------------------------- Batch norm options -------------------------------- #
 _C.BN = CfgNode()
 
@@ -197,6 +240,9 @@ _C.BN.CUSTOM_WEIGHT_DECAY = 0.0
 
 # -------------------------------- Optimizer options --------------------------------- #
 _C.OPTIM = CfgNode()
+
+# Type of optimizer select from {'sgd', 'adam', 'adamw'}
+_C.OPTIM.OPTIMIZER = "sgd"
 
 # Learning rate ranges from BASE_LR to MIN_LR*BASE_LR according to the LR_POLICY
 _C.OPTIM.BASE_LR = 0.1
@@ -223,6 +269,10 @@ _C.OPTIM.DAMPENING = 0.0
 # Nesterov momentum
 _C.OPTIM.NESTEROV = True
 
+# Betas (for Adam optimizer)
+_C.OPTIM.BETA1 = 0.9
+_C.OPTIM.BETA2 = 0.999
+
 # L2 regularization
 _C.OPTIM.WEIGHT_DECAY = 5e-4
 
@@ -237,6 +287,10 @@ _C.OPTIM.EMA_ALPHA = 1e-5
 
 # Iteration frequency with which to update EMA weights
 _C.OPTIM.EMA_UPDATE_PERIOD = 32
+
+# Use a different weight decay for all 1d parameters (gamma and beta in bn/ln biases, etc.)
+_C.OPTIM.USE_CUSTOM_WEIGHT_DECAY_1D_PARAMS = False
+_C.OPTIM.CUSTOM_WEIGHT_DECAY_1D_PARAMS = 0.0
 
 
 # --------------------------------- Training options --------------------------------- #
@@ -266,6 +320,12 @@ _C.TRAIN.LABEL_SMOOTHING = 0.0
 
 # Batch mixup regularization value in 0 to 1 (0 gives no mixup)
 _C.TRAIN.MIXUP_ALPHA = 0.0
+
+# Batch cutmix regularization value in 0 to 1 (0 gives no cutmix)
+_C.TRAIN.CUTMIX_ALPHA = 0.0
+
+# Switching probability from mixup to cutmix, if both have >0 alphas (0 gives no cutmix, 1 gives no mixup)
+_C.TRAIN.MIXUP_SWITCH_PROB = 0.5
 
 # Standard deviation for AlexNet-style PCA jitter (0 gives no PCA jitter)
 _C.TRAIN.PCA_STD = 0.1

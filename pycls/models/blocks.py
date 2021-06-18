@@ -104,6 +104,35 @@ def linear_cx(cx, w_in, w_out, *, bias=False):
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
 
+def multi_head_attention_cx(cx, seq_length, num_heads, hidden_dim):
+    """Accumulates complexity of multihead attention into cx = (h, w, flops, params, acts)."""
+    h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
+
+    # q, k, v = linear(query, in_proj_weight, in_proj_bias).chunk(3, dim=-1)
+    flops += seq_length * (hidden_dim * hidden_dim * 3 + hidden_dim * 3)
+    params += hidden_dim * hidden_dim * 3 + hidden_dim * 3
+    acts += hidden_dim * 3 * seq_length
+
+    # q = q.contiguous().view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)  -- bsz * num_heads, tgt_len, head_dim
+    # k = k.contiguous().view(-1, bsz * num_heads, head_dim).transpose(0, 1)
+    # v = v.contiguous().view(-1, bsz * num_heads, head_dim).transpose(0, 1)
+    # attn_output_weights = torch.bmm(q, k.transpose(1, 2)) -> bsz * num_heads, tgt_len, tgt_len
+    head_dim = hidden_dim // num_heads
+    flops += num_heads * (seq_length * head_dim * seq_length)
+    acts += num_heads * seq_length * seq_length
+
+    # attn_output = torch.bmm(attn_output_weights, v) -> bsz * num_heads, tgt_len, head_dim
+    flops += num_heads * (seq_length * seq_length * head_dim)
+    acts += num_heads * seq_length * head_dim
+
+    # attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
+    # attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
+    flops += seq_length * (hidden_dim * hidden_dim + hidden_dim)
+    params += hidden_dim * hidden_dim + hidden_dim
+    acts += hidden_dim * seq_length
+    return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
+
+
 # ---------------------------------- Shared blocks ----------------------------------- #
 
 

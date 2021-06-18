@@ -57,6 +57,8 @@ def scale_model():
     frozen during training. So one should use this function to generate a new config and
     save it to a file, and then evoke training separately on the new config.
     """
+    if cfg.MODEL.TYPE == "vit":
+        return
     assert cfg.MODEL.TYPE in ["anynet", "effnet", "regnet"]
     # Get scaling factors
     scale_type, scale = cfg.MODEL.SCALING_TYPE, cfg.MODEL.SCALING_FACTOR

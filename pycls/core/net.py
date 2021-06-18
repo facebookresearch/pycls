@@ -87,13 +87,37 @@ class SoftCrossEntropyLoss(torch.nn.Module):
 
 
 def mixup(inputs, labels):
-    """Apply mixup to minibatch (https://arxiv.org/abs/1710.09412)."""
-    alpha = cfg.TRAIN.MIXUP_ALPHA
+    """Apply mixup or cutmix to minibatch."""
+    mixup_a, cutmix_a, p = (
+        cfg.TRAIN.MIXUP_ALPHA,
+        cfg.TRAIN.CUTMIX_ALPHA,
+        cfg.TRAIN.MIXUP_SWITCH_PROB,
+    )
     assert labels.shape[1] == cfg.MODEL.NUM_CLASSES, "mixup labels must be one-hot"
-    if alpha > 0:
-        m = np.random.beta(alpha, alpha)
+    mode = "none"
+    if mixup_a > 0 and cutmix_a > 0:
+        # Randomly select either mixup or cutmix
+        mode = "cutmix" if np.random.rand() < p else "mixup"
+    elif mixup_a > 0 or cutmix_a > 0:
+        mode = "mixup" if mixup_a > 0 else "cutmix"
+    assert mode in ["mixup", "cutmix", "none"], "unknown mixup type"
+    if mode == "mixup":
+        # Apply mixup to minibatch (https://arxiv.org/abs/1710.09412)
+        m = np.random.beta(mixup_a, mixup_a)
         permutation = torch.randperm(labels.shape[0])
         inputs = m * inputs + (1.0 - m) * inputs[permutation, :]
+        labels = m * labels + (1.0 - m) * labels[permutation, :]
+    elif mode == "cutmix":
+        # Apply cutmix to minibatch (https://arxiv.org/abs/1905.04899)
+        m = np.random.beta(cutmix_a, cutmix_a)
+        permutation = torch.randperm(labels.shape[0])
+        w, h = inputs.shape[2], inputs.shape[3]
+        w_b, h_b = np.int(w * np.sqrt(1.0 - m)), np.int(h * np.sqrt(1.0 - m))
+        x_c, y_c = np.random.randint(w), np.random.randint(h)
+        x_0, y_0 = np.clip(x_c - w_b // 2, 0, w), np.clip(y_c - h_b // 2, 0, h)
+        x_1, y_1 = np.clip(x_c + w_b // 2, 0, w), np.clip(y_c + h_b // 2, 0, h)
+        m = 1.0 - ((x_1 - x_0) * (y_1 - y_0) / (h * w))
+        inputs[:, :, x_0:x_1, y_0:y_1] = inputs[permutation, :, x_0:x_1, y_0:y_1]
         labels = m * labels + (1.0 - m) * labels[permutation, :]
     return inputs, labels, labels.argmax(1)
 

@@ -34,6 +34,9 @@ def construct_optimizer(model):
     when the learning rate is changed there is no need to perform the
     momentum correction by scaling V (unlike in the Caffe2 case).
     """
+    assert not (
+        cfg.BN.USE_CUSTOM_WEIGHT_DECAY and cfg.OPTIM.USE_CUSTOM_WEIGHT_DECAY_1D_PARAMS
+    ), "BN.USE_CUSTOM_WEIGHT_DECAY and OPTIM.USE_CUSTOM_WEIGHT_DECAY_1D_PARAMS can't both be on."
     if cfg.BN.USE_CUSTOM_WEIGHT_DECAY:
         # Apply different weight decay to Batchnorm and non-batchnorm parameters.
         p_bn = [p for n, p in model.named_parameters() if "bn" in n]
@@ -42,16 +45,50 @@ def construct_optimizer(model):
             {"params": p_bn, "weight_decay": cfg.BN.CUSTOM_WEIGHT_DECAY},
             {"params": p_non_bn, "weight_decay": cfg.OPTIM.WEIGHT_DECAY},
         ]
+    elif cfg.OPTIM.USE_CUSTOM_WEIGHT_DECAY_1D_PARAMS:
+        # Apply different weight decay to Batchnorm, bias (all 1d) parameters.
+        p_1d = [
+            p
+            for n, p in model.named_parameters()
+            if ".bias" in n or "bn" in n or len(p.shape) == 1
+        ]
+        p_non_1d = [
+            p
+            for n, p in model.named_parameters()
+            if not (".bias" in n or "bn" in n or len(p.shape) == 1)
+        ]
+        optim_params = [
+            {"params": p_1d, "weight_decay": cfg.OPTIM.CUSTOM_WEIGHT_DECAY_1D_PARAMS},
+            {"params": p_non_1d, "weight_decay": cfg.OPTIM.WEIGHT_DECAY},
+        ]
     else:
         optim_params = model.parameters()
-    return torch.optim.SGD(
-        optim_params,
-        lr=cfg.OPTIM.BASE_LR,
-        momentum=cfg.OPTIM.MOMENTUM,
-        weight_decay=cfg.OPTIM.WEIGHT_DECAY,
-        dampening=cfg.OPTIM.DAMPENING,
-        nesterov=cfg.OPTIM.NESTEROV,
-    )
+    if cfg.OPTIM.OPTIMIZER == "sgd":
+        optimizer = torch.optim.SGD(
+            optim_params,
+            lr=cfg.OPTIM.BASE_LR,
+            momentum=cfg.OPTIM.MOMENTUM,
+            weight_decay=cfg.OPTIM.WEIGHT_DECAY,
+            dampening=cfg.OPTIM.DAMPENING,
+            nesterov=cfg.OPTIM.NESTEROV,
+        )
+    elif cfg.OPTIM.OPTIMIZER == "adam":
+        optimizer = torch.optim.Adam(
+            optim_params,
+            lr=cfg.OPTIM.BASE_LR,
+            betas=(cfg.OPTIM.BETA1, cfg.OPTIM.BETA2),
+            weight_decay=cfg.OPTIM.WEIGHT_DECAY,
+        )
+    elif cfg.OPTIM.OPTIMIZER == "adamw":
+        optimizer = torch.optim.AdamW(
+            optim_params,
+            lr=cfg.OPTIM.BASE_LR,
+            betas=(cfg.OPTIM.BETA1, cfg.OPTIM.BETA2),
+            weight_decay=cfg.OPTIM.WEIGHT_DECAY,
+        )
+    else:
+        raise NotImplementedError
+    return optimizer
 
 
 def lr_fun_steps(cur_epoch):
