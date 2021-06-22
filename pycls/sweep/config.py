@@ -84,8 +84,8 @@ _C.SETUP.CONSTRAINTS.REGNET.NUM_STAGES = [4, 4]
 # ------------------------------- Sweep launch options ------------------------------- #
 _C.LAUNCH = CfgNode()
 
-# Actual script to run for each job (should be in pycls directory)
-_C.LAUNCH.SCRIPT = "tools/train_net.py"
+# Mode to launch tools/run_net.py script with (train, test, time, etc.)
+_C.LAUNCH.MODE = "train"
 
 # CONDA environment to use for jobs (defaults to current environment)
 _C.LAUNCH.CONDA_ENV = os.environ["CONDA_PREFIX"]
@@ -198,6 +198,10 @@ SAMPLERS.REGNET_SAMPLER.WA = [8.0, 256.0]
 SAMPLERS.REGNET_SAMPLER.WM = [2.0, 3.0]
 SAMPLERS.REGNET_SAMPLER.GROUP_W = [8, 128]
 SAMPLERS.REGNET_SAMPLER.BOT_MUL = [1.0, 1.0]
+
+
+# --------------------------------- Deprecated keys ---------------------------------- #
+_C.register_deprecated_key("LAUNCH.SCRIPT")
 
 
 # -------------------------------- Utility functions --------------------------------- #

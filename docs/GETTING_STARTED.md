@@ -43,6 +43,12 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Set all the files in ./tools to be executable by the user:
+
+```
+chmod 744 ./tools/*.py
+```
+
 Set up modules:
 
 ```
@@ -51,44 +57,45 @@ python setup.py develop --user
 
 Please see [`DATA.md`](DATA.md) for the instructions on setting up datasets.
 
-### Evaluation
+The examples below use a config for RegNetX-400MF on ImageNet with 8 GPUs.
 
-RegNetX-400MF on ImageNet with 8 GPUs:
+### Model Info
 
 ```
-python tools/test_net.py \
+./tools/run_net.py --mode info \
+    --cfg configs/dds_baselines/regnetx/RegNetX-400MF_dds_8gpu.yaml
+```
+
+### Model Evaluation
+
+```
+./tools/run_net.py --mode test \
     --cfg configs/dds_baselines/regnetx/RegNetX-400MF_dds_8gpu.yaml \
     TEST.WEIGHTS https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905967/RegNetX-400MF_dds_8gpu.pyth \
     OUT_DIR /tmp
 ```
 
-### Training
-
-RegNetX-400MF on ImageNet with 8 GPUs:
+### Model Training
 
 ```
-python tools/train_net.py \
+./tools/run_net.py --mode train \
     --cfg configs/dds_baselines/regnetx/RegNetX-400MF_dds_8gpu.yaml \
     OUT_DIR /tmp
 ```
 
-### Finetuning
-
-RegNetX-400MF on ImageNet with 8 GPUs:
+### Model Finetuning
 
 ```
-python tools/train_net.py \
+./tools/run_net.py --mode train \
     --cfg configs/dds_baselines/regnetx/RegNetX-400MF_dds_8gpu.yaml \
     TRAIN.WEIGHTS https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905967/RegNetX-400MF_dds_8gpu.pyth \
     OUT_DIR /tmp
 ```
 
-### Timing
-
-RegNetX-400MF with 1 GPU:
+### Model Timing
 
 ```
-python tools/time_net.py
+./tools/run_net.py --mode time \
     --cfg configs/dds_baselines/regnetx/RegNetX-400MF_dds_8gpu.yaml \
     NUM_GPUS 1 \
     TRAIN.BATCH_SIZE 64 \
@@ -102,7 +109,7 @@ python tools/time_net.py
 Scale a RegNetY-4GF by 4x using fast compound scaling (see https://arxiv.org/abs/2103.06877):
 
 ```
-python tools/scale_net.py \
+./tools/run_net.py --mode scale \
     --cfg configs/dds_baselines/regnety/RegNetY-4.0GF_dds_8gpu.yaml \
     OUT_DIR ./ \
     CFG_DEST "RegNetY-4.0GF_dds_8gpu_scaled.yaml" \

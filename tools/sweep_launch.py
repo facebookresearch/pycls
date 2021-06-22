@@ -33,6 +33,7 @@ _SBATCH_CMD = (
     "  {current_dir}/sweep_launch_job.py"
     "  --conda-env {conda_env}"
     "  --script-path {script_path}"
+    "  --script-mode {script_mode}"
     "  --cfgs-dir {cfgs_dir}"
     "  --pycls-dir {pycls_dir}"
     "  --logs-dir {logs_dir}"
@@ -49,7 +50,7 @@ def sweep_launch():
     cfgs_dir = os.path.join(sweep_dir, "cfgs")
     logs_dir = os.path.join(sweep_dir, "logs")
     sbatch_dir = os.path.join(logs_dir, "sbatch")
-    script_path = os.path.abspath(launch_cfg.SCRIPT)
+    script_path = os.path.abspath("tools/run_net.py")
     assert os.path.exists(sweep_dir), "Sweep dir {} invalid".format(sweep_dir)
     assert os.path.exists(script_path), "Script path {} invalid".format(script_path)
     n_cfgs = len([c for c in os.listdir(cfgs_dir) if c.endswith(".yaml")])
@@ -77,6 +78,7 @@ def sweep_launch():
         current_dir=current_dir,
         conda_env=launch_cfg.CONDA_ENV,
         script_path=script_path,
+        script_mode=launch_cfg.MODE,
         cfgs_dir=cfgs_dir,
         pycls_dir=pycls_copy_dir,
         logs_dir=logs_dir,

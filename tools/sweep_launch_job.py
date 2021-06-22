@@ -54,6 +54,7 @@ def main():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("--conda-env", required=True)
     parser.add_argument("--script-path", required=True)
+    parser.add_argument("--script-mode", required=True)
     parser.add_argument("--cfgs-dir", required=True)
     parser.add_argument("--pycls-dir", required=True)
     parser.add_argument("--logs-dir", required=True)
@@ -98,9 +99,12 @@ def main():
         "  --output {out_dir}/stdout.log"
         "  --error {out_dir}/stderr.log"
         "  python {script}"
+        "  --mode {mode}"
         "  --cfg {cfg}"
         "  OUT_DIR {out_dir}"
-    ).format(out_dir=out_dir, script=args.script_path, cfg=cfg_file)
+    ).format(
+        out_dir=out_dir, script=args.script_path, mode=args.script_mode, cfg=cfg_file
+    )
     prt("Running cmd:\n", cmd_to_run.replace("  ", "\n  "))
     # Run command in background using subprocess and wait so that signals can be caught
     p = subprocess.Popen(cmd_to_run, shell=True)
