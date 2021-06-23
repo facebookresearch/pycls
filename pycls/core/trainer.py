@@ -7,6 +7,7 @@
 
 """Tools for training and testing a model."""
 
+import os
 import random
 from copy import deepcopy
 
@@ -21,13 +22,18 @@ import pycls.core.meters as meters
 import pycls.core.net as net
 import pycls.core.optimizer as optim
 import pycls.datasets.loader as data_loader
+import pycls.models.scaler as scaler
 import torch
 import torch.cuda.amp as amp
-from pycls.core.config import cfg
+from pycls.core.config import cfg, get_num_gpus_per_node
 from pycls.core.io import pathmgr
 
 
 logger = logging.get_logger(__name__)
+
+
+def dump_env():
+    return "".join([f"{key}: {value}\n" for key, value in sorted(os.environ.items())])
 
 
 def setup_env():
@@ -42,6 +48,7 @@ def setup_env():
     # Log torch, cuda, and cudnn versions
     version = [torch.__version__, torch.version.cuda, torch.backends.cudnn.version()]
     logger.info("PyTorch Version: torch={}, cuda={}, cudnn={}".format(*version))
+    logger.info(f"os.environ:\n{dump_env()}")
     # Log the config as both human readable and as a json
     logger.info("Config:\n{}".format(cfg)) if cfg.VERBOSE else ()
     logger.info(logging.dump_log_data(cfg, "cfg", None))
@@ -61,8 +68,6 @@ def setup_model():
     # Log model complexity
     logger.info(logging.dump_log_data(net.complexity(model), "complexity"))
     # Transfer the model to the current GPU device
-    err_str = "Cannot use more GPU devices than available"
-    assert cfg.NUM_GPUS <= torch.cuda.device_count(), err_str
     cur_device = torch.cuda.current_device()
     model = model.cuda(device=cur_device)
     # Use multi-process data parallel model in the multi-gpu setting
@@ -235,3 +240,25 @@ def time_model_and_loader():
     test_loader = data_loader.construct_test_loader()
     # Compute model and loader timings
     benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)
+
+
+def run(mode, runner):
+    """Run the specified mode."""
+    if mode == "info":
+        print(builders.get_model()())
+        print("complexity:", net.complexity(builders.get_model()))
+    elif mode == "train":
+        runner(train_model)
+    elif mode == "test":
+        runner(test_model)
+    elif mode == "time":
+        runner(time_model)
+    elif mode == "scale":
+        cfg.defrost()
+        cx_orig = net.complexity(builders.get_model())
+        scaler.scale_model()
+        cx_scaled = net.complexity(builders.get_model())
+        cfg_file = config.dump_cfg()
+        print("Scaled config dumped to:", cfg_file)
+        print("Original model complexity:", cx_orig)
+        print("Scaled model complexity:", cx_scaled)

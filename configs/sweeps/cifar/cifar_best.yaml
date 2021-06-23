@@ -67,7 +67,6 @@ SETUP:
 # Launch config options
 LAUNCH:
   PARTITION: devlab
-  NUM_GPUS: 1
   PARALLEL_JOBS: 12
   TIME_LIMIT: 180
 # Analyze config options

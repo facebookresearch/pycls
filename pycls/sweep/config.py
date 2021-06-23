@@ -100,7 +100,6 @@ _C.LAUNCH.MAX_RETRY = 3
 _C.LAUNCH.COMMENT = ""
 
 # Resources to request per job
-_C.LAUNCH.NUM_GPUS = 1
 _C.LAUNCH.CPUS_PER_GPU = 10
 _C.LAUNCH.MEM_PER_GPU = 60
 _C.LAUNCH.PARTITION = "learnfair"
@@ -202,6 +201,7 @@ SAMPLERS.REGNET_SAMPLER.BOT_MUL = [1.0, 1.0]
 
 # --------------------------------- Deprecated keys ---------------------------------- #
 _C.register_deprecated_key("LAUNCH.SCRIPT")
+_C.register_deprecated_key("LAUNCH.NUM_GPUS")
 
 
 # -------------------------------- Utility functions --------------------------------- #

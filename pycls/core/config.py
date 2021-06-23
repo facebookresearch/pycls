@@ -326,6 +326,9 @@ _C.VERBOSE = True
 # Number of GPUs to use (applies to both training and testing)
 _C.NUM_GPUS = 1
 
+# Number of GPUs available per node
+_C.NUM_GPUS_PER_NODE = 8
+
 # Output directory
 _C.OUT_DIR = "/tmp"
 
@@ -381,6 +384,9 @@ def assert_and_infer_cfg(cache_urls=True):
     assert _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
     err_str = "Log destination '{}' not supported"
     assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
+    assert (_C.NUM_GPUS <= _C.NUM_GPUS_PER_NODE) or (
+        _C.NUM_GPUS % _C.NUM_GPUS_PER_NODE == 0
+    ), "Number of GPUs must be divisible by or less than the number of GPUs per node"
     if cache_urls:
         cache_cfg_urls()
 
@@ -408,3 +414,17 @@ def load_cfg(cfg_file):
 def reset_cfg():
     """Reset config to initial state."""
     _C.merge_from_other_cfg(_CFG_DEFAULT)
+
+
+def get_num_gpus_per_node():
+    """Returns the number of GPUs per node required for training."""
+    if _C.NUM_GPUS <= _C.NUM_GPUS_PER_NODE:
+        return _C.NUM_GPUS
+    return _C.NUM_GPUS_PER_NODE
+
+
+def get_num_nodes():
+    """Returns the number of nodes required for training."""
+    if _C.NUM_GPUS <= _C.NUM_GPUS_PER_NODE:
+        return 1
+    return _C.NUM_GPUS // _C.NUM_GPUS_PER_NODE

@@ -8,14 +8,14 @@
 """Execute various operations (train, test, time, etc.) on a classification model."""
 
 import argparse
+import os
+import random
 import sys
 
-import pycls.core.builders as builders
 import pycls.core.config as config
 import pycls.core.distributed as dist
-import pycls.core.net as net
 import pycls.core.trainer as trainer
-import pycls.models.scaler as scaler
+import torch
 from pycls.core.config import cfg
 
 
@@ -34,6 +34,38 @@ def parse_args():
     return parser.parse_args()
 
 
+def _run_local(func):
+    """Run a job locally on the current node.
+
+    Sets up torch.distributed and launches multiple processes if NUM_GPUS > 1.
+    Otherwise, runs the function in the same process.
+    """
+    assert config.get_num_nodes() == 1, "Cannot use run_local for multi node jobs"
+    if config.get_num_gpus_per_node() > 1:
+        master_port = random.randint(cfg.PORT_RANGE[0], cfg.PORT_RANGE[1])
+        torch.multiprocessing.spawn(
+            _run_local_distributed, args=(func, master_port, cfg), nprocs=cfg.NUM_GPUS
+        )
+    else:
+        func()
+
+
+def _run_local_distributed(local_rank, func, master_port, cfg_state):
+    # this is run inside a new process, so the state of cfg is reset and
+    # we set it back again
+    cfg.update(**cfg_state)
+    cfg.freeze()
+
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = str(master_port)
+    os.environ["RANK"] = str(local_rank)
+    os.environ["LOCAL_RANK"] = str(local_rank)
+    os.environ["WORLD_SIZE"] = str(cfg.NUM_GPUS)
+
+    dist.init_distributed()
+    func()
+
+
 def main():
     """Execute operation (train, test, time, etc.)."""
     args = parse_args()
@@ -42,24 +74,7 @@ def main():
     cfg.merge_from_list(args.opts)
     config.assert_and_infer_cfg()
     cfg.freeze()
-    if mode == "info":
-        print(builders.get_model()())
-        print("complexity:", net.complexity(builders.get_model()))
-    elif mode == "train":
-        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.train_model)
-    elif mode == "test":
-        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.test_model)
-    elif mode == "time":
-        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.time_model)
-    elif mode == "scale":
-        cfg.defrost()
-        cx_orig = net.complexity(builders.get_model())
-        scaler.scale_model()
-        cx_scaled = net.complexity(builders.get_model())
-        cfg_file = config.dump_cfg()
-        print("Scaled config dumped to:", cfg_file)
-        print("Original model complexity:", cx_orig)
-        print("Scaled model complexity:", cx_scaled)
+    trainer.run(mode, _run_local)
 
 
 if __name__ == "__main__":

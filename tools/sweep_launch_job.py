@@ -1,125 +1,177 @@
 #!/usr/bin/env python3
-
 # Copyright (c) Facebook, Inc. and its affiliates.
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+"""Launch a job on SLURM managed cluster, called via sweep_launch.py
 
-"""Launch a job on SLURM managed cluster. Should only be called from sweep_launch.py"""
+Submitit based launcher which can be used to submit multi or single node
+multi GPU jobs to SLURM. Supposed to be called from sweep_launch.py to
+set up the correct environment and code isolation.
+"""
 
-import argparse
 import json
 import os
-import signal
-import subprocess
-import sys
-from datetime import datetime
+import random
+
+import pycls.core.config as config
+import pycls.core.distributed as dist
+import pycls.core.trainer as trainer
+import submitit
+from pycls.sweep.config import load_cfg_fom_args, sweep_cfg
 
 
-def prt(*args, **kwargs):
-    """Wrapper for print that prepends a timestamp and flushes output."""
-    print("[{}]".format(str(datetime.now())), *args, flush=True, **kwargs)
+class StreamToFile:
+    """Stream class which clones an output stream over to a file.
+
+    Used to copy the job logs to the specified paths since SLURM / submitit
+    don't give the option to configure the paths directly.
+    """
+
+    def __init__(self, stream, dir_name, file_name, mode="a"):
+        self.stream = stream
+        self.stream_file = open(f"{dir_name}/{file_name}", mode)
+
+    def write(self, message):
+        self.stream.write(message)
+        self.stream_file.write(message)
+
+    def flush(self):
+        self.stream.flush()
+        self.stream_file.flush()
+
+    def close(self):
+        # we only close the stream file, not the original stream
+        self.stream_file.close()
 
 
-def run_os_cmd(cmd):
-    """Runs commands in bash environment in foreground."""
-    os.system('bash -c "{}"'.format(cmd))
+def _runner(func):
+    dist.init_distributed()
+    func()
 
 
-def requeue_job():
-    job_id = os.environ["SLURM_ARRAY_JOB_ID"]
-    task_id = os.environ["SLURM_ARRAY_TASK_ID"]
-    cmd_to_req = "scontrol requeue {}_{}".format(job_id, task_id)
-    prt("Requeuing job using cmd: {}".format(cmd_to_req))
-    os.system(cmd_to_req)
-    prt("Requeued job {}. Exiting.\n\n".format(job_id))
-    sys.exit(0)
+class Trainer(submitit.helpers.Checkpointable):
+    """A callable which is passed to submitit to launch the jobs.
 
+    Since we derive from submitit.helpers.Checkpointable, this job will
+    requeued unlimited times if pre-empted, and max_timeout_retries times
+    after timing out.
 
-def sigusr1_handler(signum, _):
-    """Handles SIGUSR1 that is sent before a job is killed by requeuing it."""
-    prt("Caught SIGUSR1 with code {}".format(signum))
-    requeue_job()
+    We take an array of ports corresponding to each job to ensure there
+    are no port conflicts in jobs running on the same nodes.
+    """
 
+    def __init__(self, sweep_dir, run_mode, ports):
+        self.sweep_dir = sweep_dir
+        self.run_mode = run_mode
+        self.ports = ports
 
-def sigterm_handler(signum, _):
-    """Handles SIGTERM that is sent before a job is preempted by bypassing it."""
-    prt("Caught SIGTERM with code {}".format(signum))
-    prt("Bypassing SIGTERM")
+    def init_distributed_env(self, job_env, port):
+        os.environ["MASTER_ADDR"] = job_env.hostnames[0]
+        os.environ["MASTER_PORT"] = str(port)
+        os.environ["WORLD_SIZE"] = str(job_env.num_tasks)
+        os.environ["RANK"] = str(job_env.global_rank)
+        os.environ["LOCAL_RANK"] = str(job_env.local_rank)
+
+    def __call__(self, array_id):
+        # we import here because this is run in a new process.
+        # objects created before this will be pickled and restored.
+        # such objects will be disconnected from the modules they
+        # are imported from.
+
+        import sys
+
+        import pycls
+        import pycls.core.config as config
+        from pycls.core.config import cfg
+
+        cfgs_dir = f"{self.sweep_dir}/cfgs/"
+        cfg_files = sorted(f for f in os.listdir(cfgs_dir) if f.endswith(".yaml"))
+        cfg_file_name = cfg_files[int(array_id)]
+        cfg_file = os.path.join(cfgs_dir, cfg_file_name)
+        out_sub_dir = cfg_file_name.split(".")[0]
+        out_dir = f"{self.sweep_dir}/logs/{out_sub_dir}"
+        os.makedirs(out_dir, exist_ok=True)
+
+        job_env = submitit.JobEnvironment()
+
+        # save the stdout and stderr of the rank 0 job to files
+        if job_env.global_rank == 0:
+            sys.stdout = StreamToFile(sys.stdout, out_dir, "stdout.log")
+            sys.stderr = StreamToFile(sys.stderr, out_dir, "stderr.log")
+
+        # Create slurm_file with SLURM info
+        slurm_file = os.path.join(out_dir, "SLURM.txt")
+        with open(slurm_file, "a") as f:
+            f.write("SLURM env variables for the job writing to this directory:\n")
+            slurm_info = {
+                k: os.environ[k] for k in os.environ if k.startswith("SLURM_")
+            }
+            f.write(json.dumps(slurm_info, indent=4))
+
+        # print the pycls path to make sure we're running in the copied code base
+        print("Path to pycls", pycls.__file__)
+
+        cfg.merge_from_file(cfg_file)
+        cfg.OUT_DIR = out_dir
+        config.assert_and_infer_cfg()
+        cfg.freeze()
+        self.init_distributed_env(job_env, self.ports[array_id])
+        trainer.run(self.run_mode, _runner)
 
 
 def main():
-    # Parse arguments
-    desc = "Launch a job on SLURM cluster. Should only be called from sweep_launch.py"
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("--conda-env", required=True)
-    parser.add_argument("--script-path", required=True)
-    parser.add_argument("--script-mode", required=True)
-    parser.add_argument("--cfgs-dir", required=True)
-    parser.add_argument("--pycls-dir", required=True)
-    parser.add_argument("--logs-dir", required=True)
-    parser.add_argument("--max-retry", required=True, type=int)
-    args = parser.parse_args()
-    prt("Called with args: {}".format(args))
-    # Attach signal handlers for SIGUSR1 and SIGTERM
-    signal.signal(signal.SIGUSR1, sigusr1_handler)
-    signal.signal(signal.SIGTERM, sigterm_handler)
-    # Print info about run
-    job_id = os.environ["SLURM_ARRAY_JOB_ID"]
-    task_id = os.environ["SLURM_ARRAY_TASK_ID"]
-    prt("Job array master job ID: {}".format(job_id))
-    prt("Job array task ID (index): {}".format(task_id))
-    prt("Running job on: {}".format(str(os.uname())))
-    # Load what we need
-    run_os_cmd("module purge")
-    run_os_cmd("module load anaconda3")
-    run_os_cmd("source deactivate")
-    run_os_cmd("source activate {}".format(args.conda_env))
-    # Get cfg_file to use
-    cfg_files = sorted(f for f in os.listdir(args.cfgs_dir) if f.endswith(".yaml"))
-    cfg_file = os.path.join(args.cfgs_dir, cfg_files[int(task_id)])
-    prt("Using cfg_file: {}".format(cfg_file))
-    # Create out_dir
-    out_dir = os.path.join(args.logs_dir, "{:06}".format(int(task_id)))
-    os.makedirs(out_dir, exist_ok=True)
-    prt("Using out_dir: {}".format(out_dir))
-    # Create slurm_file with SLURM info
-    slurm_file = os.path.join(out_dir, "SLURM.txt")
-    with open(slurm_file, "a") as f:
-        f.write("SLURM env variables for the job writing to this directory:\n")
-        slurm_info = {k: os.environ[k] for k in os.environ if k.startswith("SLURM_")}
-        f.write(json.dumps(slurm_info, indent=4))
-    prt("Dumped SLURM job info to {}".format(slurm_file))
-    # Set PYTHONPATH to pycls copy for sweep
-    os.environ["PYTHONPATH"] = args.pycls_dir
-    prt("Using PYTHONPATH={}".format(args.pycls_dir))
-    # Generate srun command to launch
-    cmd_to_run = (
-        "srun"
-        "  --output {out_dir}/stdout.log"
-        "  --error {out_dir}/stderr.log"
-        "  python {script}"
-        "  --mode {mode}"
-        "  --cfg {cfg}"
-        "  OUT_DIR {out_dir}"
-    ).format(
-        out_dir=out_dir, script=args.script_path, mode=args.script_mode, cfg=cfg_file
+    load_cfg_fom_args()
+    sweep_cfg.freeze()
+
+    sweep_dir = os.path.abspath(os.path.join(sweep_cfg.ROOT_DIR, sweep_cfg.NAME))
+    cfgs_dir = os.path.join(sweep_dir, "cfgs")
+    n_cfgs = len([c for c in os.listdir(cfgs_dir) if c.endswith(".yaml")])
+
+    folder = f"{sweep_dir}/logs/slurm/%j"
+
+    executor = submitit.AutoExecutor(
+        folder=folder, slurm_max_num_timeout=sweep_cfg.LAUNCH.MAX_RETRY
     )
-    prt("Running cmd:\n", cmd_to_run.replace("  ", "\n  "))
-    # Run command in background using subprocess and wait so that signals can be caught
-    p = subprocess.Popen(cmd_to_run, shell=True)
-    prt("Waiting for job to complete")
-    p.wait()
-    prt("Completed waiting. Return code for job: {}".format(p.returncode))
-    if p.returncode != 0:
-        retry_file = os.path.join(out_dir, "RETRY.txt")
-        with open(retry_file, "a") as f:
-            f.write("Encountered non-zero exit code\n")
-        with open(retry_file, "r") as f:
-            retry_count = len(f.readlines()) - 1
-        prt("Retry count for job: {}".format(retry_count))
-        if retry_count < args.max_retry:
-            requeue_job()
+
+    num_gpus_per_node = config.get_num_gpus_per_node()
+    nodes = config.get_num_nodes()
+    partition = sweep_cfg.LAUNCH.PARTITION
+    timeout_min = sweep_cfg.LAUNCH.TIME_LIMIT
+    kwargs = {}
+    kwargs["slurm_constraint"] = sweep_cfg.LAUNCH.GPU_TYPE
+    if sweep_cfg.LAUNCH.COMMENT:
+        kwargs["comment"] = sweep_cfg.LAUNCH.COMMENT
+    if partition is not None:
+        kwargs["slurm_partition"] = partition
+
+    executor.update_parameters(
+        mem_gb=sweep_cfg.LAUNCH.MEM_PER_GPU * num_gpus_per_node,
+        gpus_per_node=num_gpus_per_node,
+        tasks_per_node=num_gpus_per_node,
+        cpus_per_task=sweep_cfg.LAUNCH.CPUS_PER_GPU,
+        nodes=nodes,
+        timeout_min=timeout_min,
+        name=sweep_cfg.NAME,
+        slurm_array_parallelism=sweep_cfg.LAUNCH.PARALLEL_JOBS,
+        **kwargs,
+    )
+
+    trainer = Trainer(
+        sweep_dir=sweep_dir,
+        run_mode=sweep_cfg.LAUNCH.MODE,
+        ports=[
+            random.randint(
+                sweep_cfg.SETUP.BASE_CFG.PORT_RANGE[0],
+                sweep_cfg.SETUP.BASE_CFG.PORT_RANGE[1],
+            )
+            for _ in range(n_cfgs)
+        ],
+    )
+
+    jobs = executor.map_array(trainer, list(range(n_cfgs)))
+
+    print(f"Submitted jobs {[job.job_id for job in jobs]} with sweep_dir: {sweep_dir}")
 
 
 if __name__ == "__main__":
