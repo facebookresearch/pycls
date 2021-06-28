@@ -265,6 +265,9 @@ _C.TRAIN.LABEL_SMOOTHING = 0.0
 # Batch mixup regularization value in 0 to 1 (0 gives no mixup)
 _C.TRAIN.MIXUP_ALPHA = 0.0
 
+# Batch cutmix regularization value in 0 to 1 (0 gives no cutmix)
+_C.TRAIN.CUTMIX_ALPHA = 0.0
+
 # Standard deviation for AlexNet-style PCA jitter (0 gives no PCA jitter)
 _C.TRAIN.PCA_STD = 0.1
 
