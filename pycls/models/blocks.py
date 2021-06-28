@@ -64,7 +64,8 @@ def activation():
 
 def conv2d_cx(cx, w_in, w_out, k, *, stride=1, groups=1, bias=False):
     """Accumulates complexity of conv2d into cx = (h, w, flops, params, acts)."""
-    assert k % 2 == 1, "Only odd size kernels supported to avoid padding issues."
+    assert k % 2 == 1 or cx["h"] % k == 0 and cx["w"] % stride == 0, \
+        "Only odd size kernels, or kernel sizes divisible by input sizes, are supported to avoid padding issues."
     h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
     h, w = (h - 1) // stride + 1, (w - 1) // stride + 1
     flops += k * k * w_in * w_out * h * w // groups + (w_out if bias else 0)
