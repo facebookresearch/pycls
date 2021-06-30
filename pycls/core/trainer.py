@@ -7,6 +7,7 @@
 
 """Tools for training and testing a model."""
 
+import os
 import random
 from copy import deepcopy
 
@@ -42,6 +43,8 @@ def setup_env():
     # Log torch, cuda, and cudnn versions
     version = [torch.__version__, torch.version.cuda, torch.backends.cudnn.version()]
     logger.info("PyTorch Version: torch={}, cuda={}, cudnn={}".format(*version))
+    env = "".join([f"{key}: {value}\n" for key, value in sorted(os.environ.items())])
+    logger.info(f"os.environ:\n{env}")
     # Log the config as both human readable and as a json
     logger.info("Config:\n{}".format(cfg)) if cfg.VERBOSE else ()
     logger.info(logging.dump_log_data(cfg, "cfg", None))
