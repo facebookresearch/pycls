@@ -43,7 +43,8 @@ def sample_cfgs(seed):
         if not is_valid:
             continue
         # Special logic for dealing w model scaling (side effect is to standardize cfg)
-        scaler.scale_model()
+        if cfg.MODEL.TYPE in ["anynet", "effnet", "regnet"]:
+            scaler.scale_model()
         # Check if config is valid, if not continue
         is_valid = samplers.check_complexity_constraints(setup_cfg.CONSTRAINTS)
         if not is_valid:
