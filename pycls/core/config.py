@@ -193,8 +193,22 @@ _C.BN.USE_CUSTOM_WEIGHT_DECAY = False
 _C.BN.CUSTOM_WEIGHT_DECAY = 0.0
 
 
+# -------------------------------- Layer norm options -------------------------------- #
+_C.LN = CfgNode()
+
+# LN epsilon
+_C.LN.EPS = 1e-5
+
+# Use a different weight decay for LN layers
+_C.LN.USE_CUSTOM_WEIGHT_DECAY = False
+_C.LN.CUSTOM_WEIGHT_DECAY = 0.0
+
+
 # -------------------------------- Optimizer options --------------------------------- #
 _C.OPTIM = CfgNode()
+
+# Type of optimizer select from {'sgd', 'adam', 'adamw'}
+_C.OPTIM.OPTIMIZER = "sgd"
 
 # Learning rate ranges from BASE_LR to MIN_LR*BASE_LR according to the LR_POLICY
 _C.OPTIM.BASE_LR = 0.1
@@ -221,8 +235,16 @@ _C.OPTIM.DAMPENING = 0.0
 # Nesterov momentum
 _C.OPTIM.NESTEROV = True
 
+# Betas (for Adam/AdamW optimizer)
+_C.OPTIM.BETA1 = 0.9
+_C.OPTIM.BETA2 = 0.999
+
 # L2 regularization
 _C.OPTIM.WEIGHT_DECAY = 5e-4
+
+# Use a different weight decay for all biases (excluding those in BN/LN layers)
+_C.OPTIM.BIAS_USE_CUSTOM_WEIGHT_DECAY = False
+_C.OPTIM.BIAS_CUSTOM_WEIGHT_DECAY = 0.0
 
 # Start the warm up from OPTIM.BASE_LR * OPTIM.WARMUP_FACTOR
 _C.OPTIM.WARMUP_FACTOR = 0.1
