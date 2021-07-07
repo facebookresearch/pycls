@@ -172,6 +172,40 @@ _C.EN.DC_RATIO = 0.0
 _C.EN.DROPOUT_RATIO = 0.0
 
 
+# ---------------------------- Vision Transformer options ---------------------------- #
+_C.VIT = CfgNode()
+
+# Patch Size (TRAIN.IM_SIZE must be divisible by PATCH_SIZE)
+_C.VIT.PATCH_SIZE = 16
+
+# Type of stem select from {'patchify', 'conv'}
+_C.VIT.STEM_TYPE = "patchify"
+
+# C-stem conv kernel sizes (https://arxiv.org/abs/2106.14881)
+_C.VIT.C_STEM_KERNELS = []
+
+# C-stem conv strides (the product of which must equal PATCH_SIZE)
+_C.VIT.C_STEM_STRIDES = []
+
+# C-stem conv output dims (last dim must equal HIDDEN_DIM)
+_C.VIT.C_STEM_DIMS = []
+
+# Number of layers in the encoder
+_C.VIT.NUM_LAYERS = 12
+
+# Number of self attention heads
+_C.VIT.NUM_HEADS = 12
+
+# Hidden dimension
+_C.VIT.HIDDEN_DIM = 768
+
+# Dimension of the MLP in the encoder
+_C.VIT.MLP_DIM = 3072
+
+# Type of classifier select from {'token', 'pooled'}
+_C.VIT.CLASSIFIER_TYPE = "token"
+
+
 # -------------------------------- Batch norm options -------------------------------- #
 _C.BN = CfgNode()
 

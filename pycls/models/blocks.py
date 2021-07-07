@@ -24,6 +24,11 @@ def conv2d(w_in, w_out, k, *, stride=1, groups=1, bias=False):
     return nn.Conv2d(w_in, w_out, k, stride=s, padding=p, groups=g, bias=b)
 
 
+def patchify2d(w_in, w_out, k, *, bias=True):
+    """Helper for building a patchify layer as used by ViT models."""
+    return nn.Conv2d(w_in, w_out, k, stride=k, padding=0, bias=bias)
+
+
 def norm2d(w_in):
     """Helper for building a norm2d layer."""
     return nn.BatchNorm2d(num_features=w_in, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
@@ -40,14 +45,19 @@ def gap2d(_w_in):
     return nn.AdaptiveAvgPool2d((1, 1))
 
 
+def layernorm(w_in):
+    """Helper for building a layernorm layer."""
+    return nn.LayerNorm(w_in, eps=cfg.LN.EPS)
+
+
 def linear(w_in, w_out, *, bias=False):
     """Helper for building a linear layer."""
     return nn.Linear(w_in, w_out, bias=bias)
 
 
-def activation():
+def activation(activation_fun=None):
     """Helper for building an activation layer."""
-    activation_fun = cfg.MODEL.ACTIVATION_FUN.lower()
+    activation_fun = (activation_fun or cfg.MODEL.ACTIVATION_FUN).lower()
     if activation_fun == "relu":
         return nn.ReLU(inplace=cfg.MODEL.ACTIVATION_INPLACE)
     elif activation_fun == "silu" or activation_fun == "swish":
@@ -55,6 +65,8 @@ def activation():
             return torch.nn.SiLU()
         except AttributeError:
             return SiLU()
+    elif activation_fun == "gelu":
+        return torch.nn.GELU()
     else:
         raise AssertionError("Unknown MODEL.ACTIVATION_FUN: " + activation_fun)
 
@@ -69,6 +81,18 @@ def conv2d_cx(cx, w_in, w_out, k, *, stride=1, groups=1, bias=False):
     h, w = (h - 1) // stride + 1, (w - 1) // stride + 1
     flops += k * k * w_in * w_out * h * w // groups + (w_out if bias else 0)
     params += k * k * w_in * w_out // groups + (w_out if bias else 0)
+    acts += w_out * h * w
+    return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
+
+
+def patchify2d_cx(cx, w_in, w_out, k, *, bias=True):
+    """Accumulates complexity of patchify2d into cx = (h, w, flops, params, acts)."""
+    err_str = "Only kernel sizes divisible by the input size are supported."
+    assert cx["h"] % k == 0 and cx["w"] % k == 0, err_str
+    h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
+    h, w = h // k, w // k
+    flops += k * k * w_in * w_out * h * w + (w_out * h * w if bias else 0)
+    params += k * k * w_in * w_out + (w_out if bias else 0)
     acts += w_out * h * w
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
@@ -95,12 +119,19 @@ def gap2d_cx(cx, _w_in):
     return {"h": 1, "w": 1, "flops": flops, "params": params, "acts": acts}
 
 
-def linear_cx(cx, w_in, w_out, *, bias=False):
+def layernorm_cx(cx, w_in):
+    """Accumulates complexity of layernorm into cx = (h, w, flops, params, acts)."""
+    h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
+    params += 2 * w_in
+    return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
+
+
+def linear_cx(cx, w_in, w_out, *, bias=False, num_locations=1):
     """Accumulates complexity of linear into cx = (h, w, flops, params, acts)."""
     h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
-    flops += w_in * w_out + (w_out if bias else 0)
+    flops += w_in * w_out * num_locations + (w_out * num_locations if bias else 0)
     params += w_in * w_out + (w_out if bias else 0)
-    acts += w_out
+    acts += w_out * num_locations
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
 
@@ -143,6 +174,39 @@ class SE(Module):
         cx = conv2d_cx(cx, w_se, w_in, 1, bias=True)
         cx["h"], cx["w"] = h, w
         return cx
+
+
+class MultiheadAttention(Module):
+    """Multi-head Attention block from Transformer models."""
+
+    def __init__(self, hidden_d, n_heads):
+        super(MultiheadAttention, self).__init__()
+        self.block = nn.MultiheadAttention(hidden_d, n_heads)
+
+    def forward(self, query, key, value, need_weights=False):
+        return self.block(query=query, key=key, value=value, need_weights=need_weights)
+
+    @staticmethod
+    def complexity(cx, hidden_d, n_heads, seq_len):
+        # See https://github.com/pytorch/pytorch/blob/master/torch/nn/functional.py
+        h, w = cx["h"], cx["w"]
+        flops, params, acts = cx["flops"], cx["params"], cx["acts"]
+        # q, k, v = linear(input).chunk(3)
+        flops += seq_len * (hidden_d * hidden_d * 3 + hidden_d * 3)
+        params += hidden_d * hidden_d * 3 + hidden_d * 3
+        acts += hidden_d * 3 * seq_len
+        # attn_output_weights = torch.bmm(q, k.transpose)
+        head_d = hidden_d // n_heads
+        flops += n_heads * (seq_len * head_d * seq_len)
+        acts += n_heads * seq_len * seq_len
+        # attn_output = torch.bmm(attn_output_weights, v)
+        flops += n_heads * (seq_len * seq_len * head_d)
+        acts += n_heads * seq_len * head_d
+        # attn_output = linear(attn_output)
+        flops += seq_len * (hidden_d * hidden_d + hidden_d)
+        params += hidden_d * hidden_d + hidden_d
+        acts += hidden_d * seq_len
+        return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
 
 # ---------------------------------- Miscellaneous ----------------------------------- #
