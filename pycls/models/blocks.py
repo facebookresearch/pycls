@@ -79,7 +79,7 @@ def conv2d_cx(cx, w_in, w_out, k, *, stride=1, groups=1, bias=False):
     assert k % 2 == 1, "Only odd size kernels supported to avoid padding issues."
     h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
     h, w = (h - 1) // stride + 1, (w - 1) // stride + 1
-    flops += k * k * w_in * w_out * h * w // groups + (w_out if bias else 0)
+    flops += k * k * w_in * w_out * h * w // groups + (w_out * h * w if bias else 0)
     params += k * k * w_in * w_out // groups + (w_out if bias else 0)
     acts += w_out * h * w
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
