@@ -25,7 +25,7 @@ import pycls.datasets.loader as data_loader
 import torch
 import torch.cuda.amp as amp
 from pycls.core.config import cfg
-from pycls.core.io import pathmgr
+from pycls.core.io import cache_url, pathmgr
 
 
 logger = logging.get_logger(__name__)
@@ -74,6 +74,15 @@ def setup_model():
         ddp = torch.nn.parallel.DistributedDataParallel
         model = ddp(module=model, device_ids=[cur_device], output_device=cur_device)
     return model
+
+
+def get_weights_file(weights_file):
+    """Download weights file if stored as a URL."""
+    download = dist.is_master_proc()
+    weights_file = cache_url(weights_file, cfg.DOWNLOAD_CACHE, download=download)
+    if cfg.NUM_GPUS > 1:
+        torch.distributed.barrier()
+    return weights_file
 
 
 def train_epoch(loader, model, ema, loss_fun, optimizer, scaler, meter, cur_epoch):
@@ -166,8 +175,9 @@ def train_model():
         logger.info("Loaded checkpoint from: {}".format(file))
         start_epoch = epoch + 1
     elif cfg.TRAIN.WEIGHTS:
-        cp.load_checkpoint(cfg.TRAIN.WEIGHTS, model, ema)
-        logger.info("Loaded initial weights from: {}".format(cfg.TRAIN.WEIGHTS))
+        train_weights = get_weights_file(cfg.TRAIN.WEIGHTS)
+        cp.load_checkpoint(train_weights, model, ema)
+        logger.info("Loaded initial weights from: {}".format(train_weights))
     # Create data loaders and meters
     train_loader = data_loader.construct_train_loader()
     test_loader = data_loader.construct_test_loader()
@@ -206,8 +216,9 @@ def test_model():
     # Construct the model
     model = setup_model()
     # Load model weights
-    cp.load_checkpoint(cfg.TEST.WEIGHTS, model)
-    logger.info("Loaded model weights from: {}".format(cfg.TEST.WEIGHTS))
+    test_weights = get_weights_file(cfg.TEST.WEIGHTS)
+    cp.load_checkpoint(test_weights, model)
+    logger.info("Loaded model weights from: {}".format(test_weights))
     # Create data loaders and meters
     test_loader = data_loader.construct_test_loader()
     test_meter = meters.TestMeter(len(test_loader))

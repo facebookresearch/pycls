@@ -9,7 +9,7 @@
 
 import os
 
-from pycls.core.io import cache_url, pathmgr
+from pycls.core.io import pathmgr
 from yacs.config import CfgNode
 
 
@@ -427,7 +427,7 @@ _C.register_deprecated_key("TRAIN.EVAL_PERIOD")
 _C.register_deprecated_key("TRAIN.CHECKPOINT_PERIOD")
 
 
-def assert_and_infer_cfg(cache_urls=True):
+def assert_cfg():
     """Checks config values invariants."""
     err_str = "The first lr step must start at 0"
     assert not _C.OPTIM.STEPS or _C.OPTIM.STEPS[0] == 0, err_str
@@ -440,14 +440,6 @@ def assert_and_infer_cfg(cache_urls=True):
     assert _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
     err_str = "Log destination '{}' not supported"
     assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
-    if cache_urls:
-        cache_cfg_urls()
-
-
-def cache_cfg_urls():
-    """Download URLs in config, cache them, and rewrite cfg to use cached file."""
-    _C.TRAIN.WEIGHTS = cache_url(_C.TRAIN.WEIGHTS, _C.DOWNLOAD_CACHE)
-    _C.TEST.WEIGHTS = cache_url(_C.TEST.WEIGHTS, _C.DOWNLOAD_CACHE)
 
 
 def dump_cfg():
