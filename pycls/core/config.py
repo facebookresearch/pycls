@@ -375,6 +375,29 @@ _C.PREC_TIME.WARMUP_ITER = 3
 _C.PREC_TIME.NUM_ITER = 30
 
 
+# ---------------------------------- Launch options ---------------------------------- #
+_C.LAUNCH = CfgNode()
+
+# The launch mode, may be 'local' or 'slurm' (or 'submitit_local' for debugging)
+# The 'local' mode uses a multi-GPU setup via torch.multiprocessing.run_processes.
+# The 'slurm' mode uses submitit to launch a job on a SLURM cluster and provides
+# support for MULTI-NODE jobs (and is the only way to launch MULTI-NODE jobs).
+# In 'slurm' mode, the LAUNCH options below can be used to control the SLURM options.
+# Note that NUM_GPUS (not part of LAUNCH options) determines total GPUs requested.
+_C.LAUNCH.MODE = "local"
+
+# Launch options that are only used if LAUNCH.MODE is 'slurm'
+_C.LAUNCH.MAX_RETRY = 3
+_C.LAUNCH.NAME = "pycls_job"
+_C.LAUNCH.COMMENT = ""
+_C.LAUNCH.CPUS_PER_GPU = 10
+_C.LAUNCH.MEM_PER_GPU = 60
+_C.LAUNCH.PARTITION = "devlab"
+_C.LAUNCH.GPU_TYPE = "volta"
+_C.LAUNCH.TIME_LIMIT = 4200
+_C.LAUNCH.EMAIL = ""
+
+
 # ----------------------------------- Misc options ----------------------------------- #
 # Optional description of a config
 _C.DESC = ""
@@ -384,6 +407,9 @@ _C.VERBOSE = True
 
 # Number of GPUs to use (applies to both training and testing)
 _C.NUM_GPUS = 1
+
+# Maximum number of GPUs available per node (unlikely to need to be changed)
+_C.MAX_GPUS_PER_NODE = 8
 
 # Output directory
 _C.OUT_DIR = "/tmp"
@@ -440,6 +466,11 @@ def assert_cfg():
     assert _C.TEST.BATCH_SIZE % _C.NUM_GPUS == 0, err_str
     err_str = "Log destination '{}' not supported"
     assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
+    err_str = "NUM_GPUS must be divisible by or less than MAX_GPUS_PER_NODE"
+    num_gpus, max_gpus_per_node = _C.NUM_GPUS, _C.MAX_GPUS_PER_NODE
+    assert num_gpus <= max_gpus_per_node or num_gpus % max_gpus_per_node == 0, err_str
+    err_str = "Invalid mode {}".format(_C.LAUNCH.MODE)
+    assert _C.LAUNCH.MODE in ["local", "submitit_local", "slurm"], err_str
 
 
 def dump_cfg():
