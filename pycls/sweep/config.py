@@ -232,13 +232,19 @@ def load_sampler(param, sampler):
     return full_sampler
 
 
-def load_cfg_fom_args(description="Config file options."):
+def load_cfg_fom_args(description="Config file options.", parse_stage=False):
     """Loads sweep cfg from command line argument."""
     parser = argparse.ArgumentParser(description=description)
     help_str = "Path to sweep_cfg file"
     parser.add_argument("--sweep-cfg", help=help_str, required=True)
+    if parse_stage:
+        help_str = "Sweep launch stage. 'launch' starts the sweep, 'setup' additionally"
+        help_str += " copies pycls to the sweep dir for code isolation"
+        choices = ["setup", "launch"]
+        parser.add_argument("--stage", help=help_str, choices=choices, default="setup")
     args = parser.parse_args()
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
     load_cfg(args.sweep_cfg)
+    return args.stage if parse_stage else None
