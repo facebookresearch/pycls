@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 _PYCLS_BASE_URL = "https://dl.fbaipublicfiles.com/pycls"
 
 
-def cache_url(url_or_file, cache_dir, base_url=_PYCLS_BASE_URL):
+def cache_url(url_or_file, cache_dir, base_url=_PYCLS_BASE_URL, download=True):
     """Download the file specified by the URL to the cache_dir and return the path to
     the cached file. If the argument is not a URL, simply return it as is.
     """
@@ -39,8 +39,9 @@ def cache_url(url_or_file, cache_dir, base_url=_PYCLS_BASE_URL):
     cache_file_dir = os.path.dirname(cache_file_path)
     if not pathmgr.exists(cache_file_dir):
         pathmgr.mkdirs(cache_file_dir)
-    logger.info("Downloading remote file {} to {}".format(url, cache_file_path))
-    download_url(url, cache_file_path)
+    if download:
+        logger.info("Downloading remote file {} to {}".format(url, cache_file_path))
+        download_url(url, cache_file_path)
     return cache_file_path
 
 

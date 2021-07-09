@@ -40,7 +40,7 @@ def main():
     mode = args.mode
     config.load_cfg(args.cfg)
     cfg.merge_from_list(args.opts)
-    config.assert_and_infer_cfg()
+    config.assert_cfg()
     cfg.freeze()
     if mode == "info":
         print(builders.get_model()())
