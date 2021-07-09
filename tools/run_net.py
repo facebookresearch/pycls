@@ -9,13 +9,11 @@
 
 import argparse
 import sys
+from functools import partial
 
-import pycls.core.builders as builders
 import pycls.core.config as config
 import pycls.core.distributed as dist
-import pycls.core.net as net
 import pycls.core.trainer as trainer
-import pycls.models.scaler as scaler
 from pycls.core.config import cfg
 
 
@@ -42,24 +40,8 @@ def main():
     cfg.merge_from_list(args.opts)
     config.assert_cfg()
     cfg.freeze()
-    if mode == "info":
-        print(builders.get_model()())
-        print("complexity:", net.complexity(builders.get_model()))
-    elif mode == "train":
-        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.train_model)
-    elif mode == "test":
-        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.test_model)
-    elif mode == "time":
-        dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.time_model)
-    elif mode == "scale":
-        cfg.defrost()
-        cx_orig = net.complexity(builders.get_model())
-        scaler.scale_model()
-        cx_scaled = net.complexity(builders.get_model())
-        cfg_file = config.dump_cfg()
-        print("Scaled config dumped to:", cfg_file)
-        print("Original model complexity:", cx_orig)
-        print("Scaled model complexity:", cx_scaled)
+    runner = partial(dist.multi_proc_run, num_proc=cfg.NUM_GPUS)
+    trainer.run_model(mode, runner)
 
 
 if __name__ == "__main__":

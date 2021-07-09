@@ -77,7 +77,7 @@ def scaled_all_reduce(tensors):
     return tensors
 
 
-def setup_distributed(cfg_state):
+def setup_distributed(cfg_state=None):
     """
     Initialize torch.distributed and set the CUDA device.
 
@@ -87,9 +87,10 @@ def setup_distributed(cfg_state):
 
     This is run inside a new process, so the cfg is reset and must be set explicitly.
     """
-    cfg.defrost()
-    cfg.update(**cfg_state)
-    cfg.freeze()
+    if cfg_state is not None:
+        cfg.defrost()
+        cfg.update(**cfg_state)
+        cfg.freeze()
     local_rank = int(os.environ["LOCAL_RANK"])
     torch.distributed.init_process_group(backend=cfg.DIST_BACKEND)
     torch.cuda.set_device(local_rank)

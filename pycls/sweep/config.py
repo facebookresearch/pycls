@@ -85,27 +85,13 @@ _C.SETUP.CONSTRAINTS.REGNET.NUM_STAGES = [4, 4]
 _C.LAUNCH = CfgNode()
 
 # Mode to launch tools/run_net.py script with (train, test, time, etc.)
-_C.LAUNCH.MODE = "train"
+_C.LAUNCH.RUN_MODE = "train"
 
 # CONDA environment to use for jobs (defaults to current environment)
 _C.LAUNCH.CONDA_ENV = os.environ["CONDA_PREFIX"]
 
 # Max number of parallel jobs to run (subject to resource constraints)
 _C.LAUNCH.PARALLEL_JOBS = 128
-
-# Max number of times to retry a job
-_C.LAUNCH.MAX_RETRY = 3
-
-# Optional comment for sbatch (may be required when using high priority partitions)
-_C.LAUNCH.COMMENT = ""
-
-# Resources to request per job
-_C.LAUNCH.NUM_GPUS = 1
-_C.LAUNCH.CPUS_PER_GPU = 10
-_C.LAUNCH.MEM_PER_GPU = 60
-_C.LAUNCH.PARTITION = "learnfair"
-_C.LAUNCH.GPU_TYPE = "volta"
-_C.LAUNCH.TIME_LIMIT = 4200
 
 
 # ------------------------------ Sweep collect options ------------------------------- #
@@ -202,6 +188,14 @@ SAMPLERS.REGNET_SAMPLER.BOT_MUL = [1.0, 1.0]
 
 # --------------------------------- Deprecated keys ---------------------------------- #
 _C.register_deprecated_key("LAUNCH.SCRIPT")
+_C.register_deprecated_key("LAUNCH.MAX_RETRY")
+_C.register_deprecated_key("LAUNCH.COMMENT")
+_C.register_deprecated_key("LAUNCH.NUM_GPUS")
+_C.register_deprecated_key("LAUNCH.CPUS_PER_GPU")
+_C.register_deprecated_key("LAUNCH.MEM_PER_GPU")
+_C.register_deprecated_key("LAUNCH.PARTITION")
+_C.register_deprecated_key("LAUNCH.GPU_TYPE")
+_C.register_deprecated_key("LAUNCH.TIME_LIMIT")
 
 
 # -------------------------------- Utility functions --------------------------------- #

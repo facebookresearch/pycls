@@ -64,12 +64,12 @@ SETUP:
       NUM_WORKERS: 4
     LOG_PERIOD: 25
     VERBOSE: False
+    LAUNCH:
+      PARTITION: devlab
+      TIME_LIMIT: 180
 # Launch config options
 LAUNCH:
-  PARTITION: devlab
-  NUM_GPUS: 1
   PARALLEL_JOBS: 12
-  TIME_LIMIT: 180
 # Analyze config options
 ANALYZE:
   PLOT_METRIC_VALUES: False
