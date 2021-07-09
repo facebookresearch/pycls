@@ -75,6 +75,15 @@ The examples below use a config for RegNetX-400MF on ImageNet with 8 GPUs.
     OUT_DIR /tmp
 ```
 
+### Model Evaluation (multi-node)
+
+```
+ ./tools/run_net.py --mode test \
+    --cfg configs/dds_baselines/regnetx/RegNetX-400MF_dds_8gpu.yaml \
+    TEST.WEIGHTS https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905967/RegNetX-400MF_dds_8gpu.pyth \
+    OUT_DIR test/ LOG_DEST file LAUNCH.MODE slurm LAUNCH.PARTITION devlab NUM_GPUS 16 LAUNCH.NAME pycls_eval_test
+```
+
 ### Model Training
 
 ```
