@@ -64,8 +64,6 @@ def setup_model():
     # Log model complexity
     logger.info(logging.dump_log_data(net.complexity(model), "complexity"))
     # Transfer the model to the current GPU device
-    err_str = "Cannot use more GPU devices than available"
-    assert cfg.NUM_GPUS <= torch.cuda.device_count(), err_str
     cur_device = torch.cuda.current_device()
     model = model.cuda(device=cur_device)
     # Use multi-process data parallel model in the multi-gpu setting
@@ -78,7 +76,7 @@ def setup_model():
 
 def get_weights_file(weights_file):
     """Download weights file if stored as a URL."""
-    download = dist.is_master_proc()
+    download = dist.is_master_proc(local=True)
     weights_file = cache_url(weights_file, cfg.DOWNLOAD_CACHE, download=download)
     if cfg.NUM_GPUS > 1:
         torch.distributed.barrier()
