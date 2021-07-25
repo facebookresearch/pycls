@@ -5,10 +5,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-"""Execute various operations (train, test, time, etc.) on a classification model."""
+"""Execute training operation on a classification model with code isolation."""
 
-import os
 import argparse
+import os
 import sys
 
 import pycls.core.config as config
@@ -53,7 +53,9 @@ def main():
     print("Cmd to copy pycls:", cmd_to_copy_pycls)
     # Prepare launch command
     opts = " ".join(args.opts)
-    cmd_to_launch_job = _LAUNCH_CMD.format(script=script_path, mode="train", cfg=args.cfg, opts=opts)
+    cmd_to_launch_job = _LAUNCH_CMD.format(
+        script=script_path, mode="train", cfg=args.cfg, opts=opts
+    )
     print("Cmd to launch job:", cmd_to_launch_job)
     # Prompt user to resume or launch job
     if os.path.exists(out_dir):
@@ -66,6 +68,7 @@ def main():
         if input().lower() == "y":
             os.makedirs(out_dir, exist_ok=False)
             os.environ["PYTHONPATH"] = pycls_copy_dir
+            print("Using PYTHONPATH={}".format(pycls_copy_dir))
             os.system(cmd_to_copy_pycls)
             os.system(cmd_to_launch_job)
 
