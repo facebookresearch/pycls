@@ -20,7 +20,7 @@ import numpy as np
 import torch
 from pycls.core.config import cfg
 from pycls.models.blocks import (
-    MultiheadAttention,
+    MultiheadSelfAttention,
     activation,
     conv2d,
     conv2d_cx,
@@ -76,21 +76,19 @@ class ViTEncoderBlock(Module):
     def __init__(self, hidden_d, n_heads, mlp_d):
         super().__init__()
         self.ln_1 = layernorm(hidden_d)
-        self.self_attention = MultiheadAttention(hidden_d, n_heads)
+        self.self_attention = MultiheadSelfAttention(hidden_d, n_heads)
         self.ln_2 = layernorm(hidden_d)
         self.mlp_block = MLPBlock(hidden_d, mlp_d)
 
     def forward(self, x):
-        x_p = self.ln_1(x)
-        x_p, _ = self.self_attention(x_p, x_p, x_p)
-        x = x + x_p
-        x_p = self.mlp_block(self.ln_2(x))
-        return x + x_p
+        x = x + self.self_attention(self.ln_1(x))
+        x = x + self.mlp_block(self.ln_2(x))
+        return x
 
     @staticmethod
     def complexity(cx, hidden_d, n_heads, mlp_d, seq_len):
         cx = layernorm_cx(cx, hidden_d)
-        cx = MultiheadAttention.complexity(cx, hidden_d, n_heads, seq_len)
+        cx = MultiheadSelfAttention.complexity(cx, hidden_d, n_heads, seq_len)
         cx = layernorm_cx(cx, hidden_d)
         cx = MLPBlock.complexity(cx, hidden_d, mlp_d, seq_len)
         return cx
@@ -216,7 +214,7 @@ class ViT(Module):
             seq_len += 1
         else:
             self.class_token = None
-        self.pos_embedding = Parameter(torch.zeros(seq_len, 1, p["hidden_d"]))
+        self.pos_embedding = Parameter(torch.zeros(1, seq_len, p["hidden_d"]))
         self.encoder = ViTEncoder(
             p["n_layers"], p["hidden_d"], p["n_heads"], p["mlp_d"]
         )
@@ -228,16 +226,16 @@ class ViT(Module):
         x = self.stem(x)
         # (n, hidden_d, n_h, n_w) -> (n, hidden_d, (n_h * n_w))
         x = x.reshape(x.size(0), x.size(1), -1)
-        # (n, hidden_d, (n_h * n_w)) -> ((n_h * n_w), n, hidden_d)
-        x = x.permute(2, 0, 1)
+        # (n, hidden_d, (n_h * n_w)) -> (n, (n_h * n_w), hidden_d)
+        x = x.permute(0, 2, 1)
         if self.class_token is not None:
             # Expand the class token to the full batch
-            class_token = self.class_token.expand(-1, x.size(1), -1)
-            x = torch.cat([class_token, x], dim=0)
+            class_token = self.class_token.expand(x.size(0), -1, -1)
+            x = torch.cat([class_token, x], dim=1)
         x = x + self.pos_embedding
         x = self.encoder(x)
         # `token` or `pooled` features for classification
-        x = x[0, :, :] if self.class_token is not None else x.mean(dim=0)
+        x = x[:, 0, :] if self.class_token is not None else x.mean(dim=1)
         return self.head(x)
 
     @staticmethod
@@ -283,8 +281,14 @@ def init_weights_vit(model):
                 raise NotImplementedError
         if isinstance(m, torch.nn.Linear):
             if "self_attention" in k:
-                # Use default pytorch init for multi-head attention module
-                pass
+                if "attn_proj" in k:
+                    # Use xavier uniform for attention projection layer
+                    init.xavier_uniform_(m.weight, gain=np.sqrt(2.0))
+                elif "out_proj" in k:
+                    # Use default pytorch init for out projection layer
+                    pass
+                else:
+                    raise NotImplementedError
             elif "mlp_block" in k:
                 # MLP block init
                 init.xavier_uniform_(m.weight)
