@@ -10,6 +10,7 @@
 from collections import deque
 
 import numpy as np
+import pycls.core.distributed as dist
 import pycls.core.logging as logging
 import torch
 from pycls.core.config import cfg
@@ -151,6 +152,13 @@ class TrainMeter(object):
         if (cur_iter + 1) % cfg.LOG_PERIOD == 0:
             stats = self.get_iter_stats(cur_epoch, cur_iter)
             logger.info(logging.dump_log_data(stats, self.phase + "_iter"))
+            if dist.is_master_proc():
+                # Log to TensorBoard
+                log_keys = ["top1_err", "top5_err", "loss", "lr"]
+                key_str = f"{self.phase}_iter/"
+                tot_iter = cur_epoch * self.epoch_iters + cur_iter + 1
+                for k in log_keys:
+                    logging.get_tb_logger().add_scalar(key_str + k, stats[k], tot_iter)
 
     def get_epoch_stats(self, cur_epoch):
         cur_iter_total = (cur_epoch + 1) * self.epoch_iters
@@ -175,6 +183,12 @@ class TrainMeter(object):
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
         logger.info(logging.dump_log_data(stats, self.phase + "_epoch"))
+        if dist.is_master_proc():
+            # Log to TensorBoard
+            log_keys = ["time_avg", "time_epoch", "top1_err", "top5_err", "loss", "lr"]
+            key_str = f"{self.phase}_epoch/"
+            for k in log_keys:
+                logging.get_tb_logger().add_scalar(key_str + k, stats[k], cur_epoch + 1)
 
 
 class TestMeter(object):
@@ -258,3 +272,9 @@ class TestMeter(object):
     def log_epoch_stats(self, cur_epoch):
         stats = self.get_epoch_stats(cur_epoch)
         logger.info(logging.dump_log_data(stats, self.phase + "_epoch"))
+        if dist.is_master_proc():
+            # Log to TensorBoard
+            log_keys = ["top1_err", "top5_err", "min_top1_err", "min_top5_err"]
+            key_str = f"{self.phase}_epoch/"
+            for k in log_keys:
+                logging.get_tb_logger().add_scalar(key_str + k, stats[k], cur_epoch + 1)

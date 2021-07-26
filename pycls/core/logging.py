@@ -17,6 +17,7 @@ import pycls.core.distributed as dist
 import simplejson
 from pycls.core.config import cfg
 from pycls.core.io import pathmgr
+from torch.utils.tensorboard import SummaryWriter
 
 
 # Show filename and line number in logs
@@ -30,6 +31,12 @@ _TAG = "json_stats: "
 
 # Data output with dump_log_data(data, data_type) will have data[_TYPE]=data_type
 _TYPE = "_type"
+
+# TensorBoard log writer
+_TB_LOGGER = None
+
+# TensorBoard log folder
+_TB_LOG_DIR = "tb_log"
 
 
 def _suppress_print():
@@ -64,6 +71,15 @@ def setup_logging():
 def get_logger(name):
     """Retrieves the logger."""
     return logging.getLogger(name)
+
+
+def get_tb_logger():
+    """Retrieves the TensorBoard logger."""
+    global _TB_LOGGER
+    if _TB_LOGGER is None:
+        tb_log_dir = os.path.join(cfg.OUT_DIR, _TB_LOG_DIR)
+        _TB_LOGGER = SummaryWriter(tb_log_dir)
+    return _TB_LOGGER
 
 
 def dump_log_data(data, data_type, prec=4):
