@@ -22,7 +22,6 @@ import pycls.core.meters as meters
 import pycls.core.net as net
 import pycls.core.optimizer as optim
 import pycls.datasets.loader as data_loader
-import pycls.models.scaler as scaler
 import torch
 import torch.cuda.amp as amp
 from pycls.core.config import cfg
@@ -248,24 +247,3 @@ def time_model_and_loader():
     test_loader = data_loader.construct_test_loader()
     # Compute model and loader timings
     benchmark.compute_time_full(model, loss_fun, train_loader, test_loader)
-
-
-def run_model(mode, runner):
-    if mode == "info":
-        print(builders.get_model()())
-        print("complexity:", net.complexity(builders.get_model()))
-    elif mode == "train":
-        runner(fun=train_model)
-    elif mode == "test":
-        runner(fun=test_model)
-    elif mode == "time":
-        runner(fun=time_model)
-    elif mode == "scale":
-        cfg.defrost()
-        cx_orig = net.complexity(builders.get_model())
-        scaler.scale_model()
-        cx_scaled = net.complexity(builders.get_model())
-        cfg_file = config.dump_cfg()
-        print("Scaled config dumped to:", cfg_file)
-        print("Original model complexity:", cx_orig)
-        print("Scaled model complexity:", cx_scaled)

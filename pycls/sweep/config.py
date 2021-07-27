@@ -84,7 +84,7 @@ _C.SETUP.CONSTRAINTS.REGNET.NUM_STAGES = [4, 4]
 # ------------------------------- Sweep launch options ------------------------------- #
 _C.LAUNCH = CfgNode()
 
-# Mode to launch tools/run_net.py script with (train, test, time, etc.)
+# Mode to launch tools/run_net.py script with (train, test, time)
 _C.LAUNCH.RUN_MODE = "train"
 
 # CONDA environment to use for jobs (defaults to current environment)
@@ -208,6 +208,9 @@ def load_cfg(sweep_cfg_file):
     assert _C.ROOT_DIR, err_msg.format("ROOT_DIR")
     assert _C.NAME, err_msg.format("NAME")
     assert _C.SETUP.NUM_CONFIGS, err_msg.format("SETUP.NUM_CONFIGS")
+    # Check for argument values
+    err_msg = "LAUNCH.RUN_MODE has to be one of 'train', 'test' or 'time'"
+    assert _C.LAUNCH.RUN_MODE in ["train", "test", "time"], err_msg
     # Check for allowed arguments
     opts = ["all", "last", "none"]
     err_msg = "COLLECT.CHECKPOINTS_KEEP has to be one of {}".format(opts)
@@ -239,7 +242,7 @@ def load_cfg_fom_args(description="Config file options.", parse_stage=False):
     parser.add_argument("--sweep-cfg", help=help_str, required=True)
     if parse_stage:
         help_str = "Sweep launch stage. 'launch' starts the sweep, 'setup' additionally"
-        help_str += " copies pycls to the sweep dir for code isolation"
+        help_str += " copies pycls to the sweep dir and activates the correct conda env"
         choices = ["setup", "launch"]
         parser.add_argument("--stage", help=help_str, choices=choices, default="setup")
     args = parser.parse_args()

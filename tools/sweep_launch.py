@@ -7,7 +7,7 @@
 Launch sweep on a SLURM managed cluster.
 
 Submitit based launcher which can be used to submit multi or single node
-multi GPU jobs to SLURM.
+multi GPU sweep jobs to SLURM.
 """
 
 
@@ -107,15 +107,17 @@ class SubmititRunner(submitit.helpers.Checkpointable):
         config.assert_cfg()
         cfg.freeze()
         # run the trainer
-        trainer.run_model(self.run_mode, _runner)
-
-
-def _runner(fun):
-    dist.setup_distributed()
-    fun()
+        dist.setup_distributed()
+        if self.run_mode == "train":
+            trainer.train_model()
+        elif self.run_mode == "test":
+            trainer.test_model()
+        elif self.run_mode == "time":
+            trainer.time_model()
 
 
 def sweep_launch():
+    """Launch sweep on a SLURM managed cluster."""
     cfg = sweep_cfg.SETUP.BASE_CFG
     launch = cfg.LAUNCH
     sweep_dir = os.path.abspath(os.path.join(sweep_cfg.ROOT_DIR, sweep_cfg.NAME))
@@ -150,7 +152,11 @@ def sweep_launch():
 
 
 def sweep_setup_and_launch():
-    """Launch sweep on a SLURM managed cluster."""
+    """Setup and launch sweep on a SLURM managed cluster.
+    
+    Note: This function copies pycls to the sweep dir for code isolation and then calls
+        sweep_launch() from the copied directory.
+    """
     # Get and check directory and script locations
     current_dir = os.path.dirname(os.path.abspath(__file__))
     sweep_dir = os.path.abspath(os.path.join(sweep_cfg.ROOT_DIR, sweep_cfg.NAME))
