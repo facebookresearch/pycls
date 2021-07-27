@@ -38,7 +38,7 @@ A sweep config consists of three main parts (usage described in more detail shor
 In addition to these parts, there are a few top-level options that should be set, including:
 - `ROOT_DIR`: root directory where all sweep output subdirectories will be placed
 - `NAME`: the sweep name must be unique and defines the output subdirectory(s)
-- `RUN_MODE`: the mode to launch the sweep in (`train`, `test` or `time`)
+- `RUN_MODE`: mode to launch the sweep with (`train`, `test` or `time`)
 
 For full documentation see: [`sweep/config.py`](../pycls/sweep/config.py). It is easier to get started by looking at the example sweeps at the end of this doc prior to looking at the full documentation.
 

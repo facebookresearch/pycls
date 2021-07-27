@@ -116,20 +116,7 @@ def multi_proc_run(num_proc, fun):
         executor = submitit.AutoExecutor if use_slurm else submitit.LocalExecutor
         kwargs = {"slurm_max_num_timeout": launch.MAX_RETRY} if use_slurm else {}
         executor = executor(folder=cfg.OUT_DIR, **kwargs)
-        num_gpus_per_node = min(cfg.NUM_GPUS, cfg.MAX_GPUS_PER_NODE)
-        executor.update_parameters(
-            mem_gb=launch.MEM_PER_GPU * num_gpus_per_node,
-            gpus_per_node=num_gpus_per_node,
-            tasks_per_node=num_gpus_per_node,
-            cpus_per_task=launch.CPUS_PER_GPU,
-            nodes=max(1, cfg.NUM_GPUS // cfg.MAX_GPUS_PER_NODE),
-            timeout_min=launch.TIME_LIMIT,
-            name=launch.NAME,
-            slurm_partition=launch.PARTITION,
-            slurm_comment=launch.COMMENT,
-            slurm_constraint=launch.GPU_TYPE,
-            slurm_additional_parameters={"mail-user": launch.EMAIL, "mail-type": "END"},
-        )
+        setup_executor(executor, launch.NAME, cfg)
         master_port = random.randint(cfg.PORT_RANGE[0], cfg.PORT_RANGE[1])
         job = executor.submit(SubmititRunner(master_port, fun, cfg))
         print("Submitted job_id {} with out_dir: {}".format(job.job_id, cfg.OUT_DIR))
@@ -145,3 +132,22 @@ def multi_proc_run(num_proc, fun):
         mp_runner(single_proc_run, args=args, nprocs=num_proc, start_method="fork")
     else:
         fun()
+
+
+def setup_executor(executor, name, cfg, **kwargs):
+    launch = cfg.LAUNCH
+    num_gpus_per_node = min(cfg.NUM_GPUS, cfg.MAX_GPUS_PER_NODE)
+    executor.update_parameters(
+        mem_gb=launch.MEM_PER_GPU * num_gpus_per_node,
+        gpus_per_node=num_gpus_per_node,
+        tasks_per_node=num_gpus_per_node,
+        cpus_per_task=launch.CPUS_PER_GPU,
+        nodes=max(1, cfg.NUM_GPUS // cfg.MAX_GPUS_PER_NODE),
+        timeout_min=launch.TIME_LIMIT,
+        name=name,
+        slurm_partition=launch.PARTITION,
+        slurm_comment=launch.COMMENT,
+        slurm_constraint=launch.GPU_TYPE,
+        slurm_additional_parameters={"mail-user": launch.EMAIL, "mail-type": "END"},
+        **kwargs,
+    )

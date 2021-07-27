@@ -15,9 +15,9 @@ import json
 import os
 import random
 
-import pycls.core.distributed as dist
 import pycls.core.trainer as trainer
 import submitit
+from pycls.core.distributed import setup_distributed, setup_executor
 from pycls.sweep.config import load_cfg_fom_args, sweep_cfg
 
 
@@ -107,7 +107,7 @@ class SubmititRunner(submitit.helpers.Checkpointable):
         config.assert_cfg()
         cfg.freeze()
         # run the trainer
-        dist.setup_distributed()
+        setup_distributed()
         if self.run_mode == "train":
             trainer.train_model()
         elif self.run_mode == "test":
@@ -119,29 +119,15 @@ class SubmititRunner(submitit.helpers.Checkpointable):
 def sweep_launch():
     """Launch sweep on a SLURM managed cluster."""
     cfg = sweep_cfg.SETUP.BASE_CFG
-    launch = cfg.LAUNCH
     sweep_dir = os.path.abspath(os.path.join(sweep_cfg.ROOT_DIR, sweep_cfg.NAME))
     cfgs_dir = os.path.join(sweep_dir, "cfgs")
     n_cfgs = len([c for c in os.listdir(cfgs_dir) if c.endswith(".yaml")])
     folder = f"{sweep_dir}/logs/slurm/%j"
     # setup executor
-    kwargs = dict(folder=folder, slurm_max_num_timeout=launch.MAX_RETRY)
+    kwargs = dict(folder=folder, slurm_max_num_timeout=cfg.LAUNCH.MAX_RETRY)
     executor = submitit.AutoExecutor(**kwargs)
-    num_gpus_per_node = min(cfg.NUM_GPUS, cfg.MAX_GPUS_PER_NODE)
-    executor.update_parameters(
-        mem_gb=launch.MEM_PER_GPU * num_gpus_per_node,
-        gpus_per_node=num_gpus_per_node,
-        tasks_per_node=num_gpus_per_node,
-        cpus_per_task=launch.CPUS_PER_GPU,
-        nodes=max(1, cfg.NUM_GPUS // cfg.MAX_GPUS_PER_NODE),
-        timeout_min=launch.TIME_LIMIT,
-        name=sweep_cfg.NAME,
-        slurm_partition=launch.PARTITION,
-        slurm_comment=launch.COMMENT,
-        slurm_constraint=launch.GPU_TYPE,
-        slurm_additional_parameters={"mail-user": launch.EMAIL, "mail-type": "END"},
-        slurm_array_parallelism=sweep_cfg.PARALLEL_JOBS,
-    )
+    parallelism = sweep_cfg.PARALLEL_JOBS
+    setup_executor(executor, sweep_cfg.NAME, cfg, slurm_array_parallelism=parallelism)
     # submit sweep
     port_range = cfg.PORT_RANGE
     ports = [random.randint(port_range[0], port_range[1]) for _ in range(n_cfgs)]
@@ -153,7 +139,7 @@ def sweep_launch():
 
 def sweep_setup_and_launch():
     """Setup and launch sweep on a SLURM managed cluster.
-    
+
     Note: This function copies pycls to the sweep dir for code isolation and then calls
         sweep_launch() from the copied directory.
     """
