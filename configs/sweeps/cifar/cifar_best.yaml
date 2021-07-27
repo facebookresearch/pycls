@@ -67,9 +67,7 @@ SETUP:
     LAUNCH:
       PARTITION: devlab
       TIME_LIMIT: 180
-# Launch config options
-LAUNCH:
-  PARALLEL_JOBS: 12
+PARALLEL_JOBS: 12
 # Analyze config options
 ANALYZE:
   PLOT_METRIC_VALUES: False

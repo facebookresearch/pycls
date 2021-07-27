@@ -140,12 +140,12 @@ def sweep_launch():
         slurm_comment=launch.COMMENT,
         slurm_constraint=launch.GPU_TYPE,
         slurm_additional_parameters={"mail-user": launch.EMAIL, "mail-type": "END"},
-        slurm_array_parallelism=sweep_cfg.LAUNCH.PARALLEL_JOBS,
+        slurm_array_parallelism=sweep_cfg.PARALLEL_JOBS,
     )
     # submit sweep
     port_range = cfg.PORT_RANGE
     ports = [random.randint(port_range[0], port_range[1]) for _ in range(n_cfgs)]
-    run_mode = sweep_cfg.LAUNCH.RUN_MODE
+    run_mode = sweep_cfg.RUN_MODE
     trainer = SubmititRunner(sweep_dir=sweep_dir, run_mode=run_mode, ports=ports)
     jobs = executor.map_array(trainer, list(range(n_cfgs)))
     print(f"Submitted jobs {[job.job_id for job in jobs]} with sweep_dir: {sweep_dir}")
@@ -171,7 +171,7 @@ def sweep_setup_and_launch():
     print("Cmd to copy pycls:", cmd_to_copy_pycls)
     # Prepare launch command
     cmd_to_launch_sweep = (
-        f'bash -c "source activate {sweep_cfg.LAUNCH.CONDA_ENV} && '
+        f'bash -c "source activate {sweep_cfg.CONDA_ENV} && '
         f"{pycls_copy_dir}/tools/sweep_launch.py --stage launch "
         f'--sweep-cfg {sweep_cfg.SWEEP_CFG_FILE}"'
     )

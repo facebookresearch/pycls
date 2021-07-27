@@ -39,6 +39,15 @@ _C.NUM_PROC = multiprocessing.cpu_count()
 # Automatically overwritten to the file from which the sweep_cfg is loaded
 _C.SWEEP_CFG_FILE = ""
 
+# Mode to launch the sweep script with (train, test, time)
+_C.RUN_MODE = "train"
+
+# CONDA environment to use for jobs (defaults to current environment)
+_C.CONDA_ENV = os.environ["CONDA_PREFIX"]
+
+# Max number of parallel jobs to run (subject to resource constraints)
+_C.PARALLEL_JOBS = 128
+
 
 # ------------------------------- Sweep setup options -------------------------------- #
 _C.SETUP = CfgNode()
@@ -79,19 +88,6 @@ _C.SETUP.CONSTRAINTS.CX.ACTS = [0, 0]
 # RegNet specific constraints
 _C.SETUP.CONSTRAINTS.REGNET = CfgNode()
 _C.SETUP.CONSTRAINTS.REGNET.NUM_STAGES = [4, 4]
-
-
-# ------------------------------- Sweep launch options ------------------------------- #
-_C.LAUNCH = CfgNode()
-
-# Mode to launch tools/run_net.py script with (train, test, time)
-_C.LAUNCH.RUN_MODE = "train"
-
-# CONDA environment to use for jobs (defaults to current environment)
-_C.LAUNCH.CONDA_ENV = os.environ["CONDA_PREFIX"]
-
-# Max number of parallel jobs to run (subject to resource constraints)
-_C.LAUNCH.PARALLEL_JOBS = 128
 
 
 # ------------------------------ Sweep collect options ------------------------------- #
@@ -188,6 +184,9 @@ SAMPLERS.REGNET_SAMPLER.BOT_MUL = [1.0, 1.0]
 
 # --------------------------------- Deprecated keys ---------------------------------- #
 _C.register_deprecated_key("LAUNCH.SCRIPT")
+_C.register_deprecated_key("LAUNCH.MODE")
+_C.register_deprecated_key("LAUNCH.CONDA_ENV")
+_C.register_deprecated_key("LAUNCH.PARALLEL_JOBS")
 _C.register_deprecated_key("LAUNCH.MAX_RETRY")
 _C.register_deprecated_key("LAUNCH.COMMENT")
 _C.register_deprecated_key("LAUNCH.NUM_GPUS")
@@ -209,8 +208,8 @@ def load_cfg(sweep_cfg_file):
     assert _C.NAME, err_msg.format("NAME")
     assert _C.SETUP.NUM_CONFIGS, err_msg.format("SETUP.NUM_CONFIGS")
     # Check for argument values
-    err_msg = "LAUNCH.RUN_MODE has to be one of 'train', 'test' or 'time'"
-    assert _C.LAUNCH.RUN_MODE in ["train", "test", "time"], err_msg
+    err_msg = "RUN_MODE has to be one of 'train', 'test' or 'time'"
+    assert _C.RUN_MODE in ["train", "test", "time"], err_msg
     # Check for allowed arguments
     opts = ["all", "last", "none"]
     err_msg = "COLLECT.CHECKPOINTS_KEEP has to be one of {}".format(opts)

@@ -30,15 +30,15 @@ Before beginning with the sweep code, please make sure to complete the following
 
 ### The sweep config
 
-A sweep config consists of four main parts (usage described in more detail shortly):
+A sweep config consists of three main parts (usage described in more detail shortly):
 - `SETUP` options: used to specify a base pycls config along with samplers
-- `LAUNCH` options: used to specify options for launching the sweep on the cluster
 - `COLLECT` options: used to specify options for collecting the sweep results
 - `ANALYSIS` options: used to specify option for analyzing the sweep results
 
 In addition to these parts, there are a few top-level options that should be set, including:
 - `ROOT_DIR`: root directory where all sweep output subdirectories will be placed
 - `NAME`: the sweep name must be unique and defines the output subdirectory(s)
+- `RUN_MODE`: the mode to launch the sweep in (`train`, `test` or `time`)
 
 For full documentation see: [`sweep/config.py`](../pycls/sweep/config.py). It is easier to get started by looking at the example sweeps at the end of this doc prior to looking at the full documentation.
 
