@@ -179,31 +179,26 @@ class SE(Module):
 class MultiheadSelfAttention(Module):
     """Multi-head Attention block from Transformer models."""
 
-    def __init__(self, hidden_d, n_heads, qkv_bias=False, attn_drop=0.0, out_drop=0.0):
+    def __init__(self, hidden_d, n_heads, bias=True):
         super(MultiheadSelfAttention, self).__init__()
         self.n_heads = n_heads
         self.scaler = (hidden_d // n_heads) ** -0.5
-        self.attn_proj = linear(hidden_d, hidden_d * 3, bias=qkv_bias)
-        self.attn_drop = nn.Dropout(attn_drop)
-        self.out_proj = linear(hidden_d, hidden_d)
-        self.out_drop = nn.Dropout(out_drop)
+        self.attn_proj = linear(hidden_d, hidden_d * 3, bias=bias)
+        self.out_proj = linear(hidden_d, hidden_d, bias=bias)
 
     def forward(self, x):
-        B, N, C = x.shape
-        qkv = self.attn_proj(x).reshape(B, N, 3, self.n_heads, C // self.n_heads)
+        b, n, c = x.shape
+        qkv = self.attn_proj(x).reshape(b, n, 3, self.n_heads, c // self.n_heads)
         qkv = qkv.permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         attn = (q @ k.transpose(-2, -1)) * self.scaler
         attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
-        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        x = (attn @ v).transpose(1, 2).reshape(b, n, c)
         x = self.out_proj(x)
-        x = self.out_drop(x)
         return x
 
     @staticmethod
     def complexity(cx, hidden_d, n_heads, seq_len):
-        # See https://github.com/pytorch/pytorch/blob/master/torch/nn/functional.py
         h, w = cx["h"], cx["w"]
         flops, params, acts = cx["flops"], cx["params"], cx["acts"]
         # q, k, v = linear(input).chunk(3)

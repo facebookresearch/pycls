@@ -283,10 +283,13 @@ def init_weights_vit(model):
             if "self_attention" in k:
                 if "attn_proj" in k:
                     # Use xavier uniform for attention projection layer
-                    init.xavier_uniform_(m.weight, gain=np.sqrt(2.0))
+                    init.xavier_uniform_(m.weight)
+                    if hasattr(m, "bias"):
+                        init.zeros_(m.bias)
                 elif "out_proj" in k:
-                    # Use default pytorch init for out projection layer
-                    pass
+                    # Use default pytorch init for out projection weight
+                    if hasattr(m, "bias"):
+                        init.zeros_(m.bias)
                 else:
                     raise NotImplementedError
             elif "mlp_block" in k:

@@ -36,7 +36,7 @@ def main():
             print("\nWorking dir:", dir)
             msg = ["{:03d}: {}".format(idx, file) for idx, file in enumerate(files)]
             print("\n".join(["Checkpoints:"] + msg))
-            print("\nCleanup [yes/n]? (Keep: {} checkpoints)".format(args.keep))
+            print("\nCleanup {}\n[yes/n]? (Keep: {} checkpoints)".format(dir, args.keep))
             if input().lower() == "yes":
                 cp.delete_checkpoints(dir, keep=args.keep)
 
