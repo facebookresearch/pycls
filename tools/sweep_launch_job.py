@@ -67,7 +67,7 @@ def main():
     # Print info about run
     job_id = os.environ["SLURM_ARRAY_JOB_ID"]
     task_id = os.environ["SLURM_ARRAY_TASK_ID"]
-    prt("Job array master job ID: {}".format(job_id))
+    prt("Job array main job ID: {}".format(job_id))
     prt("Job array task ID (index): {}".format(task_id))
     prt("Running job on: {}".format(str(os.uname())))
     # Load what we need
