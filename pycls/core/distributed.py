@@ -42,7 +42,7 @@ def is_main_proc(local=False):
     """
     Determines if the current process is the main process.
 
-    Master process is responsible for logging, writing and loading checkpoints. In
+    Main process is responsible for logging, writing and loading checkpoints. In
     the multi GPU setting, we assign the main role to the rank 0 process. When
     training using a single GPU, there is a single process which is considered main.
 
