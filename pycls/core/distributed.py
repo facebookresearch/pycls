@@ -38,15 +38,15 @@ class SubmititRunner(submitit.helpers.Checkpointable):
         self.fun()
 
 
-def is_master_proc(local=False):
+def is_main_proc(local=False):
     """
-    Determines if the current process is the master process.
+    Determines if the current process is the main process.
 
-    Master process is responsible for logging, writing and loading checkpoints. In
-    the multi GPU setting, we assign the master role to the rank 0 process. When
-    training using a single GPU, there is a single process which is considered master.
+    Main process is responsible for logging, writing and loading checkpoints. In
+    the multi GPU setting, we assign the main role to the rank 0 process. When
+    training using a single GPU, there is a single process which is considered main.
 
-    If local==True, then check if the current process is the master on the current node.
+    If local==True, then check if the current process is the main on the current node.
     """
     m = cfg.MAX_GPUS_PER_NODE if local else cfg.NUM_GPUS
     return cfg.NUM_GPUS == 1 or torch.distributed.get_rank() % m == 0
@@ -95,10 +95,10 @@ def setup_distributed(cfg_state):
     torch.cuda.set_device(local_rank)
 
 
-def single_proc_run(local_rank, fun, master_port, cfg_state, world_size):
+def single_proc_run(local_rank, fun, main_port, cfg_state, world_size):
     """Executes fun() on a single GPU in a multi-GPU setup."""
     os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = str(master_port)
+    os.environ["MASTER_PORT"] = str(main_port)
     os.environ["RANK"] = str(local_rank)
     os.environ["LOCAL_RANK"] = str(local_rank)
     os.environ["WORLD_SIZE"] = str(world_size)
@@ -129,15 +129,15 @@ def multi_proc_run(num_proc, fun):
             slurm_constraint=launch.GPU_TYPE,
             slurm_additional_parameters={"mail-user": launch.EMAIL, "mail-type": "END"},
         )
-        master_port = random.randint(cfg.PORT_RANGE[0], cfg.PORT_RANGE[1])
-        job = executor.submit(SubmititRunner(master_port, fun, cfg))
+        main_port = random.randint(cfg.PORT_RANGE[0], cfg.PORT_RANGE[1])
+        job = executor.submit(SubmititRunner(main_port, fun, cfg))
         print("Submitted job_id {} with out_dir: {}".format(job.job_id, cfg.OUT_DIR))
         if not use_slurm:
             job.wait()
     elif num_proc > 1:
-        master_port = random.randint(cfg.PORT_RANGE[0], cfg.PORT_RANGE[1])
+        main_port = random.randint(cfg.PORT_RANGE[0], cfg.PORT_RANGE[1])
         mp_runner = torch.multiprocessing.start_processes
-        args = (fun, master_port, cfg, num_proc)
+        args = (fun, main_port, cfg, num_proc)
         # Note: using "fork" below, "spawn" causes time and error regressions. Using
         # spawn changes the default multiprocessing context to spawn, which doesn't
         # interact well with the dataloaders (likely due to the use of OpenCV).

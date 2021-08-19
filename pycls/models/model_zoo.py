@@ -19,7 +19,7 @@ from pycls.core.io import cache_url
 _URL_WEIGHTS = "https://dl.fbaipublicfiles.com/pycls"
 
 # URL prefix for model config files
-_URL_CONFIGS = "https://raw.githubusercontent.com/facebookresearch/pycls/master/configs"
+_URL_CONFIGS = "https://raw.githubusercontent.com/facebookresearch/pycls/main/configs"
 
 # Model weights download cache directory
 _DOWNLOAD_CACHE = "/tmp/pycls-download-cache"

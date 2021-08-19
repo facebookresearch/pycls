@@ -33,7 +33,7 @@ logger = logging.get_logger(__name__)
 
 def setup_env():
     """Sets up environment for training or testing."""
-    if dist.is_master_proc():
+    if dist.is_main_proc():
         # Ensure that the output dir exists
         pathmgr.mkdirs(cfg.OUT_DIR)
         # Save the config
@@ -76,7 +76,7 @@ def setup_model():
 
 def get_weights_file(weights_file):
     """Download weights file if stored as a URL."""
-    download = dist.is_master_proc(local=True)
+    download = dist.is_main_proc(local=True)
     weights_file = cache_url(weights_file, cfg.DOWNLOAD_CACHE, download=download)
     if cfg.NUM_GPUS > 1:
         torch.distributed.barrier()

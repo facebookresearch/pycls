@@ -57,8 +57,8 @@ def has_checkpoint():
 
 def save_checkpoint(model, model_ema, optimizer, epoch, test_err, ema_err):
     """Saves a checkpoint and also the best weights so far in a best checkpoint."""
-    # Save checkpoints only from the master process
-    if not dist.is_master_proc():
+    # Save checkpoints only from the main process
+    if not dist.is_main_proc():
         return
     # Ensure that the checkpoint dir exists
     pathmgr.mkdirs(get_checkpoint_dir())
