@@ -205,6 +205,7 @@ _C.VIT.MLP_DIM = 3072
 # Type of classifier select from {'token', 'pooled'}
 _C.VIT.CLASSIFIER_TYPE = "token"
 
+_C.VIT.BATCH_FIRST = True
 
 # -------------------------------- Batch norm options -------------------------------- #
 _C.BN = CfgNode()
@@ -292,6 +293,7 @@ _C.OPTIM.EMA_ALPHA = 1e-5
 # Iteration frequency with which to update EMA weights
 _C.OPTIM.EMA_UPDATE_PERIOD = 32
 
+_C.OPTIM.MTA = False
 
 # --------------------------------- Training options --------------------------------- #
 _C.TRAIN = CfgNode()
@@ -396,6 +398,13 @@ _C.LAUNCH.PARTITION = "devlab"
 _C.LAUNCH.GPU_TYPE = "volta"
 _C.LAUNCH.TIME_LIMIT = 4200
 _C.LAUNCH.EMAIL = ""
+
+# --------------------------------- FSDP keys -----------------------------------------#
+_C.FSDP = CfgNode()
+_C.FSDP.ENABLED = False
+_C.FSDP.DO_NOT_RESHARD_AFTER_FW = False
+_C.FSDP.MIXED_PRECISION = False
+_C.FSDP.LAYER_NORM_FP32 =  False
 
 
 # ----------------------------------- Misc options ----------------------------------- #
