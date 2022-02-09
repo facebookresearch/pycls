@@ -83,11 +83,7 @@ def save_checkpoint(model, model_ema, optimizer, epoch, test_err, ema_err):
     if not pathmgr.exists(get_checkpoint_best()):
         with pathmgr.open(get_checkpoint_best(), "wb") as f:
             torch.save(checkpoint, f)
-        # pathmgr.copy(checkpoint_file, get_checkpoint_best())
     else:
-        print(f"get_checkpoint_best() {get_checkpoint_best()}")
-        # with pathmgr.open(get_checkpoint_best(), "rb") as f:
-            # best = torch.load(f, map_location="cpu")
         with open(get_checkpoint_best(), "rb") as f:
             best = torch.load(f, map_location="cpu")
         # Select the best model weights and the best model_ema weights

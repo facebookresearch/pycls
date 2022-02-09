@@ -293,6 +293,7 @@ _C.OPTIM.EMA_ALPHA = 1e-5
 # Iteration frequency with which to update EMA weights
 _C.OPTIM.EMA_UPDATE_PERIOD = 32
 
+# Enable usage of multi tensor apply optimizers for better performance.
 _C.OPTIM.MTA = False
 
 # --------------------------------- Training options --------------------------------- #
@@ -401,9 +402,17 @@ _C.LAUNCH.EMAIL = ""
 
 # --------------------------------- FSDP keys -----------------------------------------#
 _C.FSDP = CfgNode()
+
+# Enable FSDP sharding
 _C.FSDP.ENABLED = False
+
+# Disable resharding after the FW pass. This saves on communication but tradesoff memory savings.
 _C.FSDP.DO_NOT_RESHARD_AFTER_FW = False
+
+# Enable FP16 training which should be set to True in conjunction with TRAIN.MIXED_PRECISION.
 _C.FSDP.MIXED_PRECISION = False
+
+# Enable wrapping LayerNorm in a FSDP wrapper which allows weights and stats to remain in FP32.
 _C.FSDP.LAYER_NORM_FP32 =  False
 
 
