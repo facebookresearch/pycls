@@ -205,6 +205,7 @@ _C.VIT.MLP_DIM = 3072
 # Type of classifier select from {'token', 'pooled'}
 _C.VIT.CLASSIFIER_TYPE = "token"
 
+# TODO(anj): Debug error: https://www.internalfb.com/phabricator/paste/view/P479199402
 _C.VIT.BATCH_FIRST = True
 
 # -------------------------------- Batch norm options -------------------------------- #
