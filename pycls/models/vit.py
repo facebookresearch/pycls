@@ -216,7 +216,7 @@ class ViT(Module):
             seq_len += 1
         else:
             self.class_token = None
-        self.pos_embedding = Parameter(torch.zeros(seq_len, 1, p["hidden_d"]))
+        self.pos_embedding = Parameter(torch.zeros(1, seq_len, p["hidden_d"]))
         self.encoder = ViTEncoder(
             p["n_layers"], p["hidden_d"], p["n_heads"], p["mlp_d"]
         )
@@ -228,16 +228,16 @@ class ViT(Module):
         x = self.stem(x)
         # (n, hidden_d, n_h, n_w) -> (n, hidden_d, (n_h * n_w))
         x = x.reshape(x.size(0), x.size(1), -1)
-        # (n, hidden_d, (n_h * n_w)) -> ((n_h * n_w), n, hidden_d)
-        x = x.permute(2, 0, 1)
+        # (n, hidden_d, (n_h * n_w)) -> (n, (n_h * n_w), hidden_d)
+        x = x.permute(0, 2, 1)
         if self.class_token is not None:
             # Expand the class token to the full batch
-            class_token = self.class_token.expand(-1, x.size(1), -1)
-            x = torch.cat([class_token, x], dim=0)
+            class_token = self.class_token.expand(x.size(0), -1, -1)
+            x = torch.cat([class_token, x], dim=1)
         x = x + self.pos_embedding
         x = self.encoder(x)
         # `token` or `pooled` features for classification
-        x = x[0, :, :] if self.class_token is not None else x.mean(dim=0)
+        x = x[:, 0, :] if self.class_token is not None else x.mean(dim=1)
         return self.head(x)
 
     @staticmethod
@@ -274,11 +274,11 @@ def init_weights_vit(model):
                 init.zeros_(m.bias)
             elif "cstem_last" in k:
                 # The last 1x1 conv of the conv stem
-                init.normal_(m.weight, mean=0.0, std=math.sqrt(2.0 / m.out_channels))
+                init.normal_(m.weight, mean=0.0, std=math.sqrt(1.0 / m.out_channels))
                 init.zeros_(m.bias)
             elif "cstem" in k:
-                # Use default pytorch init for other conv layers in the C-stem
-                pass
+                # The 3x3 convs of the conv stem
+                init.normal_(m.weight, mean=0.0, std=math.sqrt(2.0 / m.out_channels))
             else:
                 raise NotImplementedError
         if isinstance(m, torch.nn.Linear):
