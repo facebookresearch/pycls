@@ -208,6 +208,7 @@ def train_epoch(loader, model, ema, loss_fun, optimizer, scaler, meter, cur_epoc
         loss, top1_err, top5_err = dist.scaled_all_reduce([loss, top1_err, top5_err])
         # Copy the stats from GPU to CPU (sync point)
         loss, top1_err, top5_err = loss.item(), top1_err.item(), top5_err.item()
+        meter.iter_toc()
         # Update and log stats
         mb_size = inputs.size(0) * cfg.NUM_GPUS
         meter.update_stats(top1_err, top5_err, loss, lr, mb_size)
