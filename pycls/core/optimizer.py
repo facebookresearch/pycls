@@ -48,7 +48,11 @@ def construct_optimizer(model):
     param_wds = [{"params": p, "weight_decay": w} for (p, w) in zip(params, wds) if p]
     # Set up optimizer
     if optim.OPTIMIZER == "sgd":
-        optimizer = torch.optim.SGD(
+        if cfg.OPTIM.MTA:
+            optimizer_fn = torch.optim._multi_tensor.SGD
+        else:
+            optimizer_fn = torch.optim.SGD
+        return optimizer_fn(
             param_wds,
             lr=optim.BASE_LR,
             momentum=optim.MOMENTUM,
@@ -57,14 +61,22 @@ def construct_optimizer(model):
             nesterov=optim.NESTEROV,
         )
     elif optim.OPTIMIZER == "adam":
-        optimizer = torch.optim.Adam(
+        if cfg.OPTIM.MTA:
+            optimizer_fn = torch.optim._multi_tensor.Adam
+        else:
+            optimizer_fn = torch.optim.Adam
+        return optimizer_fn(
             param_wds,
             lr=optim.BASE_LR,
             betas=(optim.BETA1, optim.BETA2),
             weight_decay=wd,
         )
     elif optim.OPTIMIZER == "adamw":
-        optimizer = torch.optim.AdamW(
+        if cfg.OPTIM.MTA:
+            optimizer_fn = torch.optim._multi_tensor.AdamW
+        else:
+            optimizer_fn = torch.optim.AdamW
+        return optimizer_fn(
             param_wds,
             lr=optim.BASE_LR,
             betas=(optim.BETA1, optim.BETA2),
@@ -72,7 +84,6 @@ def construct_optimizer(model):
         )
     else:
         raise NotImplementedError
-    return optimizer
 
 
 def lr_fun_steps(cur_epoch):
