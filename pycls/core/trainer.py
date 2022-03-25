@@ -35,7 +35,7 @@ from pycls.core.io import cache_url, pathmgr
 logger = logging.get_logger(__name__)
 
 
-def auto_wrap_ln(module, fsdp_config=None, wrap_it=None, assert_on_collision=None):
+def auto_wrap_ln(module, fsdp_config=None, wrap_it=True, assert_on_collision=True):
     """
     Auto wrap all LayerNorm instances with a safer FSDP, esp. when convert
     to LayerNorm is used and the outer FSDP is flattening.
@@ -158,7 +158,7 @@ def setup_model():
     model = model.cuda(device=cur_device)
     ema_model = ema_model.cuda(device=cur_device)
     # Use multi-process data parallel model in the multi-gpu setting
-    if cfg.NUM_GPUS > 1:
+    if cfg.NUM_GPUS > 1 and not cfg.FSDP.ENABLED:
         # Make model replica operate on the current device
         ddp = torch.nn.parallel.DistributedDataParallel
         model = ddp(module=model, device_ids=[cur_device], output_device=cur_device)
@@ -231,7 +231,8 @@ def test_epoch(loader, model, meter, cur_epoch):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # Compute the predictions
-        preds = model(inputs)
+        with amp.autocast(enabled=cfg.TRAIN.MIXED_PRECISION):
+            preds = model(inputs)
         # Compute the errors
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs  (no reduction if 1 GPU used)

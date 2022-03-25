@@ -36,7 +36,8 @@ def compute_time_eval(model):
             timer.reset()
         # Forward
         timer.tic()
-        model(inputs)
+        with amp.autocast(enabled=cfg.TRAIN.MIXED_PRECISION):
+            model(inputs)
         torch.cuda.synchronize()
         timer.toc()
     return timer.average_time
