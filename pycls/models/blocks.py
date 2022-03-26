@@ -181,7 +181,7 @@ class MultiheadAttention(Module):
 
     def __init__(self, hidden_d, n_heads):
         super(MultiheadAttention, self).__init__()
-        self.block = nn.MultiheadAttention(hidden_d, n_heads, batch_first=True)
+        self.block = nn.MultiheadAttention(hidden_d, n_heads, batch_first=False)
 
     def forward(self, query, key, value, need_weights=False):
         return self.block(query=query, key=key, value=value, need_weights=need_weights)
