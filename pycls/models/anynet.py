@@ -9,7 +9,6 @@
 
 from pycls.core.config import cfg
 from pycls.models.blocks import (
-    SE,
     activation,
     conv2d,
     conv2d_cx,
@@ -22,6 +21,7 @@ from pycls.models.blocks import (
     norm2d_cx,
     pool2d,
     pool2d_cx,
+    SE,
 )
 from torch.nn import Module
 

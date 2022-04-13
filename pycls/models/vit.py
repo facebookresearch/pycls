@@ -20,7 +20,6 @@ import numpy as np
 import torch
 from pycls.core.config import cfg
 from pycls.models.blocks import (
-    MultiheadAttention,
     activation,
     conv2d,
     conv2d_cx,
@@ -28,12 +27,13 @@ from pycls.models.blocks import (
     layernorm_cx,
     linear,
     linear_cx,
+    MultiheadAttention,
     norm2d,
     norm2d_cx,
     patchify2d,
     patchify2d_cx,
 )
-from torch.nn import Module, Parameter, init
+from torch.nn import init, Module, Parameter
 
 
 class ViTHead(Module):
