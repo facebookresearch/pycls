@@ -86,7 +86,8 @@ def compute_time_train(model, loss_fun):
 def compute_time_loader(data_loader):
     """Computes loader time."""
     timer = Timer()
-    loader.shuffle(data_loader, 0)
+    if cfg.DATA_LOADER.MODE != loader.FFCV:
+        loader.shuffle(data_loader, 0)
     data_loader_iterator = iter(data_loader)
     total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
     total_iter = min(total_iter, len(data_loader))

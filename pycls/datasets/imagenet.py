@@ -18,6 +18,24 @@ import torch.utils.data
 from pycls.core.config import cfg
 
 
+try:
+    # FFCV imports
+    import torchvision as tv
+    from ffcv.fields.basics import IntDecoder
+    from ffcv.fields.rgb_image import CenterCropRGBImageDecoder
+    from ffcv.fields.rgb_image import RandomResizedCropRGBImageDecoder
+    from ffcv.transforms import (
+        ToTensor,
+        ToDevice,
+        Squeeze,
+        NormalizeImage,
+        RandomHorizontalFlip,
+        ToTorchImage,
+        Convert,
+    )
+except ImportError:
+    logging.get_logger(__name__).info("ffcv failed to import")
+
 logger = logging.get_logger(__name__)
 
 # Per-channel mean and standard deviation values on ImageNet (in RGB order)
@@ -99,3 +117,87 @@ class ImageNet(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self._imdb)
+
+
+class ImageNetFFCV:
+    """ImageNet FFCV dataset."""
+
+    def __init__(self, data_path, split):
+        splits = ["train", "val"]
+        assert split in splits, "Split '{}' not supported for ImageNet".format(split)
+        logger.info("Constructing ImageNet FFCV {}...".format(split))
+        self._data_path, self._split = data_path, split
+
+    def construct_ffcv(self):
+        imagenet_mean = (np.array(_MEAN) * 255).astype(np.uint8)
+        imagenet_std = (np.array(_STD) * 255).astype(np.uint8)
+        imagenet_mean_float = np.array(_MEAN) * 255
+        imagenet_std_float = np.array(_STD) * 255
+        default_crop_ratio = 224 / 256
+
+        # Leverages the operating system for caching purposes.
+        # This is beneficial when there is enough memory to cache the dataset
+        # and/or when multiple processes on the same machine training using the same dataset.
+        self.os_cache = True
+        # For distributed training (multiple GPUs).
+        # Emulates the behavior of DistributedSampler from PyTorch.
+        self.distributed = True
+        self.split_path = os.path.join(self._data_path, self._split + ".ffcv")
+        cur_device = torch.cuda.current_device()
+
+        if self._split == "train":
+            res = cfg.TRAIN.IM_SIZE
+            decoder = RandomResizedCropRGBImageDecoder((res, res))
+            image_pipeline = [
+                decoder,
+                RandomHorizontalFlip(),
+                ToTensor(),
+                ToDevice(cur_device),
+            ]
+            label_pipeline = [
+                IntDecoder(),
+                ToTensor(),
+                Squeeze(),
+                ToDevice(cur_device, non_blocking=True),
+            ]
+        else:
+            res_tuple = (cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE)
+            cropper = CenterCropRGBImageDecoder(res_tuple, ratio=default_crop_ratio)
+            image_pipeline = [cropper, ToTensor(), ToDevice(cur_device)]
+
+            label_pipeline = [
+                IntDecoder(),
+                ToTensor(),
+                Squeeze(),
+                ToDevice(cur_device, non_blocking=True),
+            ]
+        logger.info("Data Path: {}".format(self.split_path))
+        # Use torchvision APIs for augmentation
+        if cfg.TRAIN.AUGMENT == "":
+            image_pipeline.append(ToTorchImage())
+            image_pipeline.append(
+                NormalizeImage(imagenet_mean, imagenet_std, np.float32)
+            )
+        else:
+            image_pipeline.append(ToTorchImage(channels_last=False))
+            params = str(cfg.TRAIN.AUGMENT).split("_")
+            if params[0] == "AutoAugment":
+                image_pipeline.append(tv.transforms.AutoAugment())
+            elif params[0] == "RandAugment":
+                names = {"N": "num_ops", "M": "magnitude", "P": "prob"}
+                keys = [names[p[0]] for p in params[1:]]
+                vals = [float(p[1:]) for p in params[1:]]
+                num_ops = int(vals[keys.index("num_ops")])
+                magnitude = int(vals[keys.index("magnitude")] * 10)
+                logger.warn(
+                    "Ignoring probability parameter as it is not supported by torchvision augmentation..."
+                )
+                image_pipeline.append(
+                    tv.transforms.RandAugment(num_ops=num_ops, magnitude=magnitude)
+                )
+            image_pipeline.append(Convert(torch.float32))
+            image_pipeline.append(
+                tv.transforms.Normalize(imagenet_mean_float, imagenet_std_float)
+            )
+        # Pipeline for each data field
+        self.pipelines = {"image": image_pipeline, "label": label_pipeline}

@@ -359,6 +359,8 @@ _C.DATA_LOADER.NUM_WORKERS = 8
 # Load data to pinned host memory
 _C.DATA_LOADER.PIN_MEMORY = True
 
+# Data Loader mode to use ("pytorch", "ffcv")
+_C.DATA_LOADER.MODE = "pytorch"
 
 # ---------------------------------- CUDNN options ----------------------------------- #
 _C.CUDNN = CfgNode()

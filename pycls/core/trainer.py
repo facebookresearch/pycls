@@ -177,7 +177,8 @@ def get_weights_file(weights_file):
 def train_epoch(loader, model, ema, loss_fun, optimizer, scaler, meter, cur_epoch):
     """Performs one epoch of training."""
     # Shuffle the data
-    data_loader.shuffle(loader, cur_epoch)
+    if cfg.DATA_LOADER.MODE != data_loader.FFCV:
+        data_loader.shuffle(loader, cur_epoch)
     # Update the learning rate
     lr = optim.get_epoch_lr(cur_epoch)
     optim.set_lr(optimizer, lr)
@@ -188,7 +189,8 @@ def train_epoch(loader, model, ema, loss_fun, optimizer, scaler, meter, cur_epoc
     meter.iter_tic()
     for cur_iter, (inputs, labels) in enumerate(loader):
         # Transfer the data to the current GPU device
-        inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
+        if cfg.DATA_LOADER.MODE != data_loader.FFCV:
+            inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # Convert labels to smoothed one-hot vector
         labels_one_hot = net.smooth_one_hot_labels(labels)
         # Apply mixup to the batch (no effect if mixup alpha is 0)
@@ -229,7 +231,8 @@ def test_epoch(loader, model, meter, cur_epoch):
     meter.iter_tic()
     for cur_iter, (inputs, labels) in enumerate(loader):
         # Transfer the data to the current GPU device
-        inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
+        if cfg.DATA_LOADER.MODE != "ffcv":
+            inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # Compute the predictions
         with amp.autocast(enabled=cfg.TRAIN.MIXED_PRECISION):
             preds = model(inputs)

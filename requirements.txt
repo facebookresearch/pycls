@@ -2,6 +2,7 @@ black==19.3b0
 isort==4.3.21
 iopath
 fairscale
+ffcv
 flake8
 pyyaml
 matplotlib
