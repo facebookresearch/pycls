@@ -89,7 +89,7 @@ def construct_optimizer(model):
 def lr_fun_steps(cur_epoch):
     """Steps schedule (cfg.OPTIM.LR_POLICY = 'steps')."""
     ind = [i for i, s in enumerate(cfg.OPTIM.STEPS) if cur_epoch >= s][-1]
-    return cfg.OPTIM.LR_MULT ** ind
+    return cfg.OPTIM.LR_MULT**ind
 
 
 def lr_fun_exp(cur_epoch):

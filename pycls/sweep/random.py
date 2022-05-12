@@ -39,7 +39,7 @@ def power2_uniform(low, high, q):
     """Samples uniform powers of 2 from [low, high] quantized to q."""
     # Samples f2 in [l2, h2+1) then quantizes f2 to [l2, h2] via floor()
     f2 = np.floor(np.random.uniform(np.log2(low), np.log2(high) + 1))
-    return quantize(2 ** f2, q)
+    return quantize(2**f2, q)
 
 
 def power2_or_log_uniform(low, high, q):
