@@ -22,16 +22,18 @@ try:
     # FFCV imports
     import torchvision as tv
     from ffcv.fields.basics import IntDecoder
-    from ffcv.fields.rgb_image import CenterCropRGBImageDecoder
-    from ffcv.fields.rgb_image import RandomResizedCropRGBImageDecoder
+    from ffcv.fields.rgb_image import (
+        CenterCropRGBImageDecoder,
+        RandomResizedCropRGBImageDecoder,
+    )
     from ffcv.transforms import (
-        ToTensor,
-        ToDevice,
-        Squeeze,
+        Convert,
         NormalizeImage,
         RandomHorizontalFlip,
+        Squeeze,
+        ToDevice,
+        ToTensor,
         ToTorchImage,
-        Convert,
     )
 except ImportError:
     logging.get_logger(__name__).info("ffcv failed to import")
