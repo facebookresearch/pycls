@@ -17,8 +17,8 @@ echo "Running black..."
 black . --exclude pycls/datasets/data/
 
 echo "Running flake8..."
-if [ -x "$(command -v flake8-3)" ]; then
-  flake8-3 . --config ./dev/.flake8
+if [ -x "$(command -v flake8)" ]; then
+  flake8 . --config ./dev/.flake8
 else
   python3 -m flake8 . --config ./dev/.flake8
 fi
