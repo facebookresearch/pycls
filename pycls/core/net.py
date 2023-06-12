@@ -105,7 +105,7 @@ def mixup(inputs, labels):
         m = np.random.beta(cutmix_alpha, cutmix_alpha)
         permutation = torch.randperm(labels.shape[0])
         h, w = inputs.shape[2], inputs.shape[3]
-        w_b, h_b = np.int(w * np.sqrt(1.0 - m)), np.int(h * np.sqrt(1.0 - m))
+        w_b, h_b = int(w * np.sqrt(1.0 - m)), int(h * np.sqrt(1.0 - m))
         x_c, y_c = np.random.randint(w), np.random.randint(h)
         x_0, y_0 = np.clip(x_c - w_b // 2, 0, w), np.clip(y_c - h_b // 2, 0, h)
         x_1, y_1 = np.clip(x_c + w_b // 2, 0, w), np.clip(y_c + h_b // 2, 0, h)
