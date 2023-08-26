@@ -52,7 +52,7 @@ def gpu_mem_usage():
     return mem_usage_bytes / 1024 / 1024
 
 
-class ScalarMeter(object):
+class ScalarMeter:
     """Measures a scalar value (adapted from Detectron)."""
 
     def __init__(self, window_size):
@@ -80,7 +80,7 @@ class ScalarMeter(object):
         return self.total / self.count
 
 
-class TrainMeter(object):
+class TrainMeter:
     """Measures training stats."""
 
     def __init__(self, epoch_iters, phase="train"):
@@ -177,7 +177,7 @@ class TrainMeter(object):
         logger.info(logging.dump_log_data(stats, self.phase + "_epoch"))
 
 
-class TestMeter(object):
+class TestMeter:
     """Measures testing stats."""
 
     def __init__(self, epoch_iters, phase="test"):

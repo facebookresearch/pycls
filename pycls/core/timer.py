@@ -10,7 +10,7 @@
 import time
 
 
-class Timer(object):
+class Timer:
     """A simple timer (adapted from Detectron)."""
 
     def __init__(self):
